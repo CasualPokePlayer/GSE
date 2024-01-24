@@ -1,0 +1,7 @@
+**/.vs/**
+**/.vscode/**
+**/.idea/**
+**/output/**
+**/bin/**
+**/obj/**
+**/build/**

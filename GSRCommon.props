@@ -1,0 +1,21 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>12.0</LangVersion>
+		<AnalysisLevel>8</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<Features>strict</Features>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PlatformTarget>x64</PlatformTarget>
+		<Nullable>disable</Nullable>
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>full</TrimMode>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<IsAotCompatible>true</IsAotCompatible>
+		<PublishAot>true</PublishAot>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Publish'">
+		<DefineConstants>$(DefineConstants);GSR_PUBLISH</DefineConstants>
+	</PropertyGroup>
+</Project>

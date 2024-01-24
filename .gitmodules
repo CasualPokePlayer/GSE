@@ -1,0 +1,4 @@
+[submodule "externals/libmgba/mgba"]
+	path = externals/libmgba/mgba
+	url = https://github.com/mgba-emu/mgba.git
+	branch = 0.10

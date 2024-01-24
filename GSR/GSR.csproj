@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../GSRCommon.props" />
+	<PropertyGroup>
+		<OutputPath>$(ProjectDir)../output</OutputPath>
+		<OutputType>WinExe</OutputType>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="ImGui.NET" Version="1.90.1.1" />
+		<ProjectReference Include="$(ProjectDir)../SDL2-CS/SDL2-CS.csproj" />
+		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />
+		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
+	</ItemGroup>
+</Project>
