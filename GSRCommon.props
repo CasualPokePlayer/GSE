@@ -10,10 +10,12 @@
 		<Nullable>disable</Nullable>
 		<PublishTrimmed>true</PublishTrimmed>
 		<TrimMode>full</TrimMode>
+		<SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+		<ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<IsAotCompatible>true</IsAotCompatible>
 		<PublishAot>true</PublishAot>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath> 
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Publish'">
 		<DefineConstants>$(DefineConstants);GSR_PUBLISH</DefineConstants>

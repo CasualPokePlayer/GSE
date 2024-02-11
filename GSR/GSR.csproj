@@ -1,12 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="../GSRCommon.props" />
+	<PropertyGroup Condition="'$(TargetPlatformIdentifier)'=='osx'">
+		<TargetFramework>net8.0-macos</TargetFramework>
+	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
 		<OutputType>WinExe</OutputType>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ImGui.NET" Version="1.90.1.1" />
-		<ProjectReference Include="$(ProjectDir)../SDL2-CS/SDL2-CS.csproj" />
+		<PackageReference Include="SharpCompress" Version="0.36.0" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" PrivateAssets="all" />
+		<PackageReference Include="GtkSharp" Version="3.24.24.95" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
+		<ProjectReference Include="$(ProjectDir)../GSR.Audio/GSR.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
 	</ItemGroup>

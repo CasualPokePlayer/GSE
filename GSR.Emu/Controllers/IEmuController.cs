@@ -2,5 +2,5 @@ namespace GSR.Emu.Controllers;
 
 public interface IEmuController
 {
-	EmuControllerState GetState();
+	EmuControllerState GetState(bool immediateUpdate);
 }

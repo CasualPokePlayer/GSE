@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 using Windows.Win32;
@@ -21,15 +22,20 @@ public sealed class EmuManager : IDisposable
 
 	private IEmuCore _emuCore;
 	private IEmuController _emuController;
+	private bool _emuPaused;
+	private ulong _emuCycleCount;
+
+	public bool EmuAcceptingInputs => RomIsLoaded && !_emuPaused;
+	public bool RomIsLoaded { get; private set; }
+	public string CurrentRomDirectory { get; private set; }
+	public string CurrentRomName { get; private set; }
+	public GBPlatform CurrentGbPlatform { get; private set; }
 
 	private uint[] _lastVideoFrame;
+	private uint[] _lastVideoFrameCopy;
 	private readonly object _videoLock = new();
 
 	private readonly AudioManager _audioManager;
-
-	private readonly IntPtr _sdlRenderer;
-	private EmuVideoTexture _emuVideoTexture;
-	public IntPtr SdlVideoTexture => _emuVideoTexture?.Texture ?? IntPtr.Zero;
 
 	// this shift is just used to make throttle math more accurate, as it aligns timer frequency better to emulated cpu frequencies
 	// (a left shift is the same as multiplying by a power of 2, which emulated cpu frequencies will be)
@@ -39,6 +45,7 @@ public sealed class EmuManager : IDisposable
 
 	private UInt128 _lastTime = (UInt128)Stopwatch.GetTimestamp() << TIMER_FIXED_SHIFT;
 	private long _throttleError;
+	private int _speedFactor = 1;
 
 	private void Throttle(uint cpuCycles)
 	{
@@ -46,6 +53,10 @@ public sealed class EmuManager : IDisposable
 		// note that Stopwatch.Frequency is typically 10MHz on Windows, and always 1000MHz on non-Windows
 		// (ulong cast is needed here, due to the amount of cpu cycles a gba could produce)
 		var timeToThrottle = (long)((ulong)_timerFreq * cpuCycles / _emuCore.CpuFrequency);
+		if (_speedFactor != 1)
+		{
+			timeToThrottle /= _speedFactor;
+		}
 
 		if (_throttleError >= timeToThrottle)
 		{
@@ -101,13 +112,22 @@ public sealed class EmuManager : IDisposable
 			{
 				lock (_emuThreadLock)
 				{
-					var controllerState = _emuController.GetState();
-
 					bool completedFrame;
 					uint samples, cpuCycles;
 					lock (_emuCoreLock)
 					{
-						_emuCore.Advance(controllerState, out completedFrame, out samples, out cpuCycles);
+						if (!_emuPaused)
+						{
+							var controllerState = _emuController.GetState(_speedFactor == 1);
+							_emuCore.Advance(controllerState, out completedFrame, out samples, out cpuCycles);
+							_emuCycleCount += cpuCycles;
+						}
+						else
+						{
+							completedFrame = false;
+							samples = 0;
+							cpuCycles = _emuCore.CpuFrequency / 60;
+						}
 					}
 
 					_audioManager.DispatchAudio(_emuCore.AudioBuffer[..(int)(samples * 2)]);
@@ -145,13 +165,12 @@ public sealed class EmuManager : IDisposable
 		}
 	}
 
-	public EmuManager(AudioManager audioManager, IntPtr sdlRenderer)
+	public EmuManager(AudioManager audioManager)
 	{
 		_audioManager = audioManager;
-		_sdlRenderer = sdlRenderer;
 		SetToNullCore();
 
-		_emuThread = new(EmuThreadProc) { IsBackground = true };
+		_emuThread = new(EmuThreadProc) { IsBackground = true, Name = "Emu Thread" };
 		_emuThread.Start();
 	}
 
@@ -160,16 +179,17 @@ public sealed class EmuManager : IDisposable
 		_disposing = true;
 		_emuThread.Join();
 		_emuCore.Dispose();
-		_emuVideoTexture?.Dispose();
 	}
 
 	private void SetToNullCore()
 	{
+		_emuCore?.Dispose();
 		_emuCore = NullCore.Singleton;
 		_emuController = NullController.Singleton;
+		_emuCycleCount = 0;
 		_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
-		_emuVideoTexture?.Dispose();
-		_emuVideoTexture = null;
+		CurrentRomDirectory = CurrentRomName = null;
+		RomIsLoaded = false;
 	}
 
 	private void ResetThrottleState()
@@ -178,36 +198,171 @@ public sealed class EmuManager : IDisposable
 		_throttleError = 0;
 	}
 
-	public void LoadRom(EmuCoreType coreType, IEmuController emuController, byte[] romBuffer, byte[] biosBuffer)
+	public bool Pause()
+	{
+		lock (_emuCoreLock)
+		{
+			if (!_emuPaused)
+			{
+				_audioManager.Pause();
+				_emuPaused = true;
+				return true;
+			}
+
+			return false;
+		}
+	}
+
+	public void Unpause()
+	{
+		lock (_emuCoreLock)
+		{
+			if (_emuPaused)
+			{
+				_audioManager.Unpause();
+				_emuPaused = false;
+			}
+		}
+	}
+
+	public void TogglePause()
+	{
+		if (_emuPaused)
+		{
+			Unpause();
+		}
+		else
+		{
+			Pause();
+		}
+	}
+
+	public void LoadRom(EmuLoadArgs loadArgs)
 	{
 		lock (_emuThreadLock)
 		{
-			CheckEmuThreadException();
-			_emuCore.Dispose();
-			_emuCore = null;
+			UnloadRom();
 			try
 			{
-				_emuCore = EmuCoreFactory.CreateEmuCore(coreType, romBuffer, biosBuffer);
-				_emuController = emuController;
+				_emuCore = EmuCoreFactory.CreateEmuCore(loadArgs);
+				_emuController = loadArgs.EmuController;
+				_emuCycleCount = 0;
+				CurrentRomDirectory = loadArgs.RomDirectory;
+				CurrentRomName = loadArgs.RomName;
+				CurrentGbPlatform = loadArgs.GbPlatform;
+				RomIsLoaded = true;
 				_lastVideoFrame = new uint[_emuCore.VideoBuffer.Length];
-				ResetThrottleState();
+				_lastVideoFrameCopy = new uint[_emuCore.VideoBuffer.Length];
 				_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
-				_emuVideoTexture = new(_sdlRenderer, _emuCore.VideoWidth, _emuCore.VideoHeight);
+				ResetThrottleState();
 			}
 			catch
 			{
-				_emuCore?.Dispose();
 				SetToNullCore();
 				throw;
 			}
 		}
 	}
 
-	public void DrawLastFrameToTexture()
+	public void UnloadRom()
+	{
+		lock (_emuThreadLock)
+		{
+			CheckEmuThreadException();
+			SetToNullCore();
+		}
+	}
+
+	public EmuVideoBuffer GetVideoBuffer()
 	{
 		lock (_videoLock)
 		{
-			_emuVideoTexture?.DrawVideo(_lastVideoFrame);
+			CheckEmuThreadException();
+			_lastVideoFrame.AsSpan().CopyTo(_lastVideoFrameCopy);
+		}
+
+		return new(_lastVideoFrameCopy, _emuCore.VideoWidth, _emuCore.VideoHeight);
+	}
+
+	public (int Width, int Height) GetVideoDimensions(bool hideSgbBorder)
+	{
+		if (!RomIsLoaded)
+		{
+			return (240, 160); // default to GBA resolution, I guess
+		}
+
+		return hideSgbBorder && CurrentGbPlatform == GBPlatform.SGB2
+			? (160, 144) // kind of annoying hardcoding, but eh
+			: (_emuCore.VideoWidth, _emuCore.VideoHeight);
+	}
+
+	public bool SaveState(string statePath)
+	{
+		ReadOnlySpan<byte> stateBuf;
+		lock (_emuCoreLock)
+		{
+			CheckEmuThreadException();
+			stateBuf = _emuCore.SaveState();
+		}
+
+		try
+		{
+			using var fs = File.OpenWrite(statePath);
+			fs.Write(stateBuf);
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	public bool LoadState(string statePath)
+	{
+		byte[] stateBuf;
+		try
+		{
+			stateBuf = File.ReadAllBytes(statePath);
+		}
+		catch
+		{
+			return false;
+		}
+
+		lock (_emuCoreLock)
+		{
+			CheckEmuThreadException();
+			return _emuCore.LoadState(stateBuf);
+		}
+	}
+
+	public void SetSpeedFactor(int speedFactor)
+	{
+		lock (_emuThreadLock)
+		{
+			_speedFactor = speedFactor;
+			if (_speedFactor == 1)
+			{
+				_audioManager.Reset();
+				ResetThrottleState();
+			}
+		}
+	}
+
+	public void SetColorCorrectionEnable(bool enable)
+	{
+		lock (_emuCoreLock)
+		{
+			CheckEmuThreadException();
+			_emuCore.SetColorCorrectionEnable(enable);
+		}
+	}
+
+	public ulong GetCycleCount()
+	{
+		lock (_emuCoreLock)
+		{
+			return _emuCycleCount;
 		}
 	}
 }

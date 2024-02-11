@@ -13,15 +13,25 @@ internal static partial class MGBA
 	/// <param name="romLength">length of romData in bytes</param>
 	/// <param name="biosData">the bios data, can be disposed of once this function returns</param>
 	/// <param name="biosLength">length of biosData in bytes</param>
+	/// <param name="forceDisableRtc">force disable rtc, if present</param>
 	/// <returns>opaque state pointer</returns>
 	[LibraryImport("libmgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-	public static partial IntPtr mgba_create([In] byte[] romData, int romLength, [In] byte[] biosData, int biosLength);
+	public static partial IntPtr mgba_create(ReadOnlySpan<byte> romData, int romLength, ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc);
 
 	/// <param name="core">opaque state pointer</param>
 	[LibraryImport("libmgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_destroy(IntPtr core);
+
+	/// <summary>
+	/// set color palette lookup
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <param name="colorLut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
+	[LibraryImport("libmgba")]
+	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	public static partial void mgba_setcolorlut(IntPtr core, ReadOnlySpan<uint> colorLut);
 
 	/// <summary>
 	/// combination of button flags used in mgba_advance
@@ -83,6 +93,7 @@ internal static partial class MGBA
 
 	/// <summary>
 	/// get the size of the persistant cart memory block. this value DEPENDS ON THE PARTICULAR CART LOADED
+	/// NOTE: mgba will dynamically detect save type, so this may shrink in the first few frames. maximum size will be 0x20000 + 16 bytes
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>length in bytes. 0 means no internal persistant cart memory</returns>
@@ -120,5 +131,5 @@ internal static partial class MGBA
 	[LibraryImport("libmgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_loadstate(IntPtr core, [In] byte[] stateBuf, int size);
+	public static partial bool mgba_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);
 }

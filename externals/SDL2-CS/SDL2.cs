@@ -3480,7 +3480,7 @@ namespace SDL2
 		/* renderer refers to an SDL_Renderer* */
 		[LibraryImport(nativeLibName)]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-		public static partial int SDL_RenderGetViewport(
+		public static partial void SDL_RenderGetViewport(
 			IntPtr renderer,
 			out SDL_Rect rect
 		);
@@ -4083,7 +4083,7 @@ namespace SDL2
 				0,
 				24, 3
 			);
-		public static readonly uint SDL_PIXELFORMAT_XRGB888 =
+		public static readonly uint SDL_PIXELFORMAT_XRGB8888 =
 			SDL_DEFINE_PIXELFORMAT(
 				SDL_PixelType.SDL_PIXELTYPE_PACKED32,
 				(uint) SDL_PackedOrder.SDL_PACKEDORDER_XRGB,
@@ -4091,7 +4091,7 @@ namespace SDL2
 				24, 4
 			);
 		public static readonly uint SDL_PIXELFORMAT_RGB888 =
-			SDL_PIXELFORMAT_XRGB888;
+			SDL_PIXELFORMAT_XRGB8888;
 		public static readonly uint SDL_PIXELFORMAT_RGBX8888 =
 			SDL_DEFINE_PIXELFORMAT(
 				SDL_PixelType.SDL_PIXELTYPE_PACKED32,
@@ -4099,7 +4099,7 @@ namespace SDL2
 				SDL_PackedLayout.SDL_PACKEDLAYOUT_8888,
 				24, 4
 			);
-		public static readonly uint SDL_PIXELFORMAT_XBGR888 =
+		public static readonly uint SDL_PIXELFORMAT_XBGR8888 =
 			SDL_DEFINE_PIXELFORMAT(
 				SDL_PixelType.SDL_PIXELTYPE_PACKED32,
 				(uint) SDL_PackedOrder.SDL_PACKEDORDER_XBGR,
@@ -4107,7 +4107,7 @@ namespace SDL2
 				24, 4
 			);
 		public static readonly uint SDL_PIXELFORMAT_BGR888 =
-			SDL_PIXELFORMAT_XBGR888;
+			SDL_PIXELFORMAT_XBGR8888;
 		public static readonly uint SDL_PIXELFORMAT_BGRX8888 =
 			SDL_DEFINE_PIXELFORMAT(
 				SDL_PixelType.SDL_PIXELTYPE_PACKED32,
@@ -4150,6 +4150,22 @@ namespace SDL2
 				SDL_PackedLayout.SDL_PACKEDLAYOUT_2101010,
 				32, 4
 			);
+		public static readonly uint SDL_PIXELFORMAT_RGBA32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_ABGR8888 : SDL_PIXELFORMAT_RGBA8888;
+		public static readonly uint SDL_PIXELFORMAT_ARGB32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_BGRA8888 : SDL_PIXELFORMAT_ARGB8888;
+		public static readonly uint SDL_PIXELFORMAT_BGRA32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_ARGB8888 : SDL_PIXELFORMAT_BGRA8888;
+		public static readonly uint SDL_PIXELFORMAT_ABGR32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_ABGR8888;
+		public static readonly uint SDL_PIXELFORMAT_RGBX32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_XBGR8888 : SDL_PIXELFORMAT_RGBX8888;
+		public static readonly uint SDL_PIXELFORMAT_XRGB32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_BGRX8888 : SDL_PIXELFORMAT_XRGB8888;
+		public static readonly uint SDL_PIXELFORMAT_BGRX32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_XRGB8888 : SDL_PIXELFORMAT_BGRX8888;
+		public static readonly uint SDL_PIXELFORMAT_XBGR32 =
+			BitConverter.IsLittleEndian ? SDL_PIXELFORMAT_RGBX8888 : SDL_PIXELFORMAT_XBGR8888;
 		public static readonly uint SDL_PIXELFORMAT_YV12 =
 			SDL_DEFINE_PIXELFOURCC(
 				(byte) 'Y', (byte) 'V', (byte) '1', (byte) '2'
@@ -8843,6 +8859,32 @@ namespace SDL2
 			int iscapture,
 			out SDL_AudioSpec spec
 		);
+
+		/* Only available in 2.24.0 or higher. */
+		[LibraryImport(nativeLibName, EntryPoint = "SDL_GetDefaultAudioInfo")]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int INTERNAL_SDL_GetDefaultAudioInfo(
+			out IntPtr name,
+			out SDL_AudioSpec spec,
+			int iscapture
+		);
+
+		public static int SDL_GetDefaultAudioInfo(
+			out string name,
+			out SDL_AudioSpec spec,
+			int iscapture
+		) {
+			var ret = INTERNAL_SDL_GetDefaultAudioInfo(out var namep, out spec, iscapture);
+			if (ret != 0)
+			{
+				name = null;
+				spec = default;
+				return ret;
+			}
+
+			name = UTF8_ToManaged(namep, true);
+			return ret;
+		}
 
 		#endregion
 

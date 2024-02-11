@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 using Windows.Win32;
@@ -41,9 +42,10 @@ public sealed class InputManager : IDisposable
 
 			_inputThreadInitFinished.Set();
 
-			var isWindows = OperatingSystem.IsWindowsVersionAtLeast(5); // the check for windows 2000 is superfluous, it just gets rid of a warning
+			var isWindows = OperatingSystem.IsWindowsVersionAtLeast(5);
 			while (!_disposing)
 			{
+				// the check for Windows 2000 is superfluous, it just gets rid of a warning
 				if (isWindows)
 				{
 					// on windows, we must message pump this thread for underlying input apis to work
@@ -115,7 +117,7 @@ public sealed class InputManager : IDisposable
 
 	public InputManager()
 	{
-		_inputThread = new(InputThreadProc) { IsBackground = true };
+		_inputThread = new(InputThreadProc) { IsBackground = true, Name = "Input Thread" };
 		_inputThread.Start();
 		_inputThreadInitFinished.Wait();
 
@@ -210,9 +212,16 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
-	public InputBinding CreateInputBindingForScanCode(ScanCode scanCode)
+	/// <summary>
+	/// Must be handed to DeserializeInputBinding afterwards!
+	/// </summary>
+	/// <param name="scanCode">Scancode to use for binding</param>
+	/// <param name="modiferScanCode">Optional modifer scancode</param>
+	/// <returns>InputBinding for passed scancode</returns>
+	public static InputBinding CreateInputBindingForScanCode(ScanCode scanCode, ScanCode? modiferScanCode = null)
 	{
-		return new($"SC {(byte)scanCode}", null, _keyInput.ConvertScanCodeToString(scanCode));
+		var modiferSerializationLabel = modiferScanCode.HasValue ? $"SC {(byte)modiferScanCode}+" : string.Empty;
+		return new($"{modiferSerializationLabel}SC {(byte)scanCode}", null, null);
 	}
 
 	/// <summary>
@@ -264,16 +273,33 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private bool GetInputState(string inputLabel, InputGate inputGate)
+	{
+		var isJoystickInput = inputLabel.StartsWith("JS", StringComparison.Ordinal);
+		if (!inputGate.KeyInputAllowed && !isJoystickInput)
+		{
+			return false;
+		}
+
+		if (!inputGate.JoystickInputAllowed && isJoystickInput)
+		{
+			return false;
+		}
+
+		return _inputState.GetValueOrDefault(inputLabel);
+	}
+
 	/// <summary>
 	/// NOTE: CALLED ON GUI OR EMU THREAD
 	/// </summary>
-	public bool GetInputForBindings(IEnumerable<InputBinding> bindings)
+	public bool GetInputForBindings(IEnumerable<InputBinding> bindings, InputGate inputGate)
 	{
 		// ReSharper disable once LoopCanBeConvertedToQuery
 		foreach (var binding in bindings)
 		{
-			var modifierState = binding.ModifierLabel == null || _inputState.GetValueOrDefault(binding.ModifierLabel);
-			if (modifierState && _inputState.GetValueOrDefault(binding.MainInputLabel))
+			var modifierState = binding.ModifierLabel == null || GetInputState(binding.ModifierLabel, inputGate);
+			if (modifierState && GetInputState(binding.MainInputLabel, inputGate))
 			{
 				return true;
 			}

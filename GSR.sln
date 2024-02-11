@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GSR.Input", "GSR.Input\GSR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GSR.Audio", "GSR.Audio\GSR.Audio.csproj", "{9177BB41-28A5-4EF6-8102-BDF10D8E14FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS", "SDL2-CS\SDL2-CS.csproj", "{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS", "externals\SDL2-CS\SDL2-CS.csproj", "{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

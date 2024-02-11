@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -6,12 +7,14 @@ using System.Runtime.InteropServices;
 
 using ImGuiNET;
 
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
+
 using static SDL2.SDL;
 
 using GSR.Audio;
 using GSR.Emu;
 using GSR.Emu.Controllers;
-using GSR.Emu.Cores;
 using GSR.Gui;
 using GSR.Input;
 
@@ -23,7 +26,7 @@ namespace GSR;
 /// </summary>
 internal sealed class GSR : IDisposable
 {
-	private static readonly SDL_EventType[] _allowedEvents =
+	private static readonly ImmutableArray<SDL_EventType> _allowedEvents =
 	[
 		// ImGui events
 		SDL_EventType.SDL_QUIT,
@@ -35,13 +38,18 @@ internal sealed class GSR : IDisposable
 		SDL_EventType.SDL_MOUSEWHEEL,
 		// SDL joystick handler events
 		SDL_EventType.SDL_JOYDEVICEADDED, SDL_EventType.SDL_JOYDEVICEREMOVED,
+		// Drop file event (for drag+drop savestate/ROM files)
+		// drop begin/complete have to be allowed through, otherwise SDL will refuse to send any dropfile events
+		SDL_EventType.SDL_DROPFILE, SDL_EventType.SDL_DROPBEGIN, SDL_EventType.SDL_DROPCOMPLETE,
+		// Audio hotplug events
+		SDL_EventType.SDL_AUDIODEVICEADDED, SDL_EventType.SDL_AUDIODEVICEREMOVED,
 	];
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
 	private static unsafe int SDLEventFilter(IntPtr userdata, IntPtr sdlEvent)
 	{
 		var e = (SDL_Event*)sdlEvent;
-		return Array.Exists(_allowedEvents, t => t == e->type) ? 1 : 0;
+		return _allowedEvents.Contains(e->type) ? 1 : 0;
 	}
 
 	static GSR()
@@ -52,10 +60,20 @@ internal sealed class GSR : IDisposable
 		{
 			SDL_SetEventFilter(&SDLEventFilter, IntPtr.Zero); // filter out events which we don't care for
 		}
+
+		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
+		// do this to bypass the issue
+		if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
+		{
+			const uint WM_COPYGLOBALDATA = 0x0049; // apparently this isn't documented anymore?
+			PInvoke.ChangeWindowMessageFilter(PInvoke.WM_DROPFILES, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
+			PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
+			PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
+		}
 	}
 
 	/// <summary>
-	/// The config, handling any user settings
+	/// The config, storing any user settings
 	/// </summary>
 	private readonly Config _config;
 
@@ -81,23 +99,87 @@ internal sealed class GSR : IDisposable
 	/// </summary>
 	private readonly EmuManager _emuManager;
 
+	/// <summary>
+	/// The post processor, handles scaling/letterboxing emu video output
+	/// </summary>
+	private readonly PostProcessor _postProcessor;
+
+	/// <summary>
+	/// OSD manager, may be a status bar or an overlay
+	/// </summary>
+	private readonly OSDManager _osdManager;	
+
+	/// <summary>
+	/// The GB controller, used for GB games
+	/// </summary>
+	private readonly GBController _gbController;
+
+	/// <summary>
+	/// The GBA controller, used for GB games
+	/// </summary>
+	private readonly GBAController _gbaController;
+
+	/// <summary>
+	/// ROM loading logic
+	/// </summary>
+	private readonly RomLoader _romLoader;
+
+	/// <summary>
+	/// Hotkey logic
+	/// </summary>
+	private readonly HotkeyManager _hotkeyManager;
+
+	/// <summary>
+	/// ImGui popup modal logic, for the main window
+	/// </summary>
+	private readonly ImGuiModals _imGuiModals;
+
+	/// <summary>
+	/// ImGui menu bar logic, for the main window
+	/// </summary>
+	private readonly ImGuiMenuBar _imGuiMenuBar;
+
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
+
+	private InputGate InputGateCallback()
+	{
+		if (SDL_GetKeyboardFocus() != IntPtr.Zero)
+		{
+			return new(true, true);
+		}
+
+		var keyInputAllowed = _config.AllowBackgroundInput && !_config.BackgroundInputForJoysticksOnly;
+		var joystickInputAllowed = _config.AllowBackgroundInput;
+		return new(keyInputAllowed, joystickInputAllowed);
+	}
+
+	private InputGate HotkeyInputGateCallback()
+	{
+		return _imGuiModals.ModalIsOpened
+			? new(false, false) : InputGateCallback();
+	}
 
 	public GSR()
 	{
 		try
 		{
-			_mainWindow = new("GSR", true);
+			_config = Config.LoadConfig(Path.Combine(AppContext.BaseDirectory, "gsr_config.json"));
+			_mainWindow = new("GSR", _config, true);
 			_inputManager = new();
-			// input manager is needed to load the config, as input bindings depend on user's keyboard layout
-			_config = Config.LoadConfig(_inputManager, "gsr_config.json");
-			_audioManager = new(100, null);
-			_emuManager = new(_audioManager, _mainWindow.SdlRenderer);
-			_emuManager.LoadRom(
-				EmuCoreType.mGBA,
-				new GBAController(_inputManager, _config.EmuControllerBindings),
-				File.ReadAllBytes("gba.rom"),
-				File.ReadAllBytes("gba.bios"));
+			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
+			// default bindings will be set if this fails for some reason
+			_config.DeserializeInputBindings(_inputManager, _mainWindow.SdlWindow);
+			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+			_emuManager = new(_audioManager);
+			_postProcessor = new(_config, _emuManager, _mainWindow.SdlRenderer);
+			_osdManager = new(_emuManager);
+			_gbController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
+			_gbaController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
+			_romLoader = new(_config, _emuManager, _postProcessor, _osdManager, _gbController, _gbaController, _mainWindow);
+			_hotkeyManager = new(_config, _emuManager, _inputManager, _mainWindow, HotkeyInputGateCallback);
+			_imGuiModals = new(_config, _emuManager, _inputManager, _audioManager, _mainWindow);
+			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _hotkeyManager, _mainWindow, _imGuiModals);
+			_mainWindow.SetVisible(true);
 		}
 		catch
 		{
@@ -108,49 +190,93 @@ internal sealed class GSR : IDisposable
 
 	public void Dispose()
 	{
+		_postProcessor?.Dispose();
 		_mainWindow?.Dispose();
-        _emuManager?.Dispose();
-        _audioManager?.Dispose();
+		_emuManager?.Dispose();
+		_audioManager?.Dispose();
 		_inputManager?.Dispose();
-		_config?.SaveConfig("gsr_config.json");
+		_config?.SaveConfig(Path.Combine(AppContext.BaseDirectory, "gsr_config.json"));
 	}
 
-	private bool HandleEvents()
+	private unsafe bool HandleEvents()
 	{
 		SDL_PumpEvents();
 
-		while (true)
+		fixed (SDL_Event* sdlEvents = _sdlEvents)
 		{
-			var numEvents = SDL_PeepEvents(_sdlEvents, _sdlEvents.Length, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_QUIT, SDL_EventType.SDL_MOUSEWHEEL);
-			if (numEvents == 0)
+			while (true)
 			{
-				break;
-			}
-
-			for (var i = 0; i < numEvents; i++)
-			{
-				ref var e = ref _sdlEvents[i];
-				if (e.type == SDL_EventType.SDL_QUIT)
+				var numEvents = SDL_PeepEvents(sdlEvents, _sdlEvents.Length, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_QUIT, SDL_EventType.SDL_MOUSEWHEEL);
+				numEvents += SDL_PeepEvents(sdlEvents + numEvents, _sdlEvents.Length - numEvents, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_DROPFILE, SDL_EventType.SDL_AUDIODEVICEREMOVED);
+				if (numEvents == 0)
 				{
-					return false;
+					break;
 				}
 
-				var windowId = e.type switch
+				for (var i = 0; i < numEvents; i++)
 				{
-					SDL_EventType.SDL_MOUSEMOTION or SDL_EventType.SDL_MOUSEWHEEL => e.motion.windowID,
-					SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL_EventType.SDL_MOUSEBUTTONUP => e.button.windowID,
-					SDL_EventType.SDL_TEXTINPUT => e.text.windowID,
-					SDL_EventType.SDL_KEYDOWN or SDL_EventType.SDL_KEYUP => e.key.windowID,
-					SDL_EventType.SDL_WINDOWEVENT => e.window.windowID,
-					_ => 0u,
-				};
-
-				if (windowId == _mainWindow.WindowId)
-				{
-					_mainWindow.ProcessEvent(in e);
-					if (e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
+					var e = &sdlEvents[i];
+					// ReSharper disable once ConvertIfStatementToSwitchStatement
+					if (e->type == SDL_EventType.SDL_QUIT)
 					{
 						return false;
+					}
+
+					if (e->type == SDL_EventType.SDL_DROPFILE)
+					{
+						var filePath = UTF8_ToManaged(e->drop.file, true);
+						if (_imGuiModals.ModalIsOpened)
+						{
+							// don't allow drag+drop while a modal is open
+							continue;
+						}
+
+						var fileExt = Path.GetExtension(filePath);
+						if (fileExt.Equals(".gqs", StringComparison.OrdinalIgnoreCase))
+						{
+							if (_emuManager.RomIsLoaded)
+							{
+								_emuManager.LoadState(filePath);
+							}
+						}
+						else if (RomLoader.RomAndCompressionExtensions.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
+						{
+							_romLoader.LoadRomFile(filePath);
+						}
+
+						continue;
+					}
+
+					if (e->type is SDL_EventType.SDL_AUDIODEVICEADDED or SDL_EventType.SDL_AUDIODEVICEREMOVED)
+					{
+						_imGuiModals.AudioDeviceListChanged = true;
+						continue;
+					}
+
+					var windowId = e->type switch
+					{
+						SDL_EventType.SDL_MOUSEMOTION or SDL_EventType.SDL_MOUSEWHEEL => e->motion.windowID,
+						SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL_EventType.SDL_MOUSEBUTTONUP => e->button.windowID,
+						SDL_EventType.SDL_TEXTINPUT => e->text.windowID,
+						SDL_EventType.SDL_KEYDOWN or SDL_EventType.SDL_KEYUP => e->key.windowID,
+						SDL_EventType.SDL_WINDOWEVENT => e->window.windowID,
+						_ => 0u,
+					};
+
+					if (windowId == _mainWindow.WindowId)
+					{
+						// suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
+						if (e->type == SDL_EventType.SDL_KEYDOWN && _emuManager.EmuAcceptingInputs)
+						{
+							continue;
+						}
+
+						_mainWindow.ProcessEvent(in *e);
+
+						if (e->type == SDL_EventType.SDL_WINDOWEVENT && e->window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
+						{
+							return false;
+						}
 					}
 				}
 			}
@@ -161,42 +287,23 @@ internal sealed class GSR : IDisposable
 
 	private void DrawNullEmu()
 	{
-		
+		if (!_imGuiModals.ModalIsOpened)
+		{
+			// TODO: put some nice user message on the user needing to provide bios/roms
+		}
 	}
 
 	private void DrawEmu()
 	{
-		var sdlVideoTexture = _emuManager.SdlVideoTexture;
-		if (sdlVideoTexture == IntPtr.Zero)
+		if (!_emuManager.RomIsLoaded)
 		{
 			DrawNullEmu();
 			return;
 		}
 
-		ImGui.Image(sdlVideoTexture, ImGui.GetContentRegionAvail());
-	}
-
-	private void DrawMenu()
-	{
-		if (ImGui.BeginMenuBar())
-		{
-			if (ImGui.BeginMenu("Test"))
-			{
-				if (ImGui.MenuItem("Test Item", null))
-				{
-					SDL_ShowSimpleMessageBox(
-						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
-						title: "Test",
-						message: "Testing",
-						window: IntPtr.Zero
-					);
-				}
-
-				ImGui.EndMenu();
-			}
-
-			ImGui.EndMenuBar();
-		}
+		var contentRegionAvail = ImGui.GetContentRegionAvail();
+		var finalTex = _postProcessor.DoPostProcessing((int)contentRegionAvail.X, (int)contentRegionAvail.Y);
+		ImGui.Image(finalTex.Texture, contentRegionAvail);
 	}
 
 	public int MainLoop()
@@ -208,24 +315,52 @@ internal sealed class GSR : IDisposable
 				return 0;
 			}
 
+			// this needs to happen periodically
+			if (_audioManager.RecoverLostAudioDeviceIfNeeded())
+			{
+				_config.AudioDeviceName = _audioManager.AudioDeviceName;
+			}
+
+			_hotkeyManager.ProcessHotkeys();
+
 			_mainWindow.NewFrame();
+
+			var statusBarHeight = 0f;
+			if (!_config.HideStatusBar)
+			{
+				_osdManager.RunStatusBar();
+				statusBarHeight = ImGui.GetFrameHeight();
+			}
 
 			var vp = ImGui.GetMainViewport();
 			ImGui.SetNextWindowPos(vp.Pos);
-			ImGui.SetNextWindowSize(vp.Size);
+			ImGui.SetNextWindowSize(vp.Size - new Vector2(0, statusBarHeight));
 
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 
-			ImGui.Begin("Emu Blit", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar);
+			ImGui.Begin("GSR", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoBringToFrontOnFocus);
 			DrawEmu();
 			ImGui.PopStyleVar(3);
-			DrawMenu();
+
+			_imGuiMenuBar.RunMenuBar();
+			_imGuiModals.RunModals();
+
 			ImGui.End();
 
+			if (_config.HideStatusBar)
+			{
+				_osdManager.RunOverlay();
+			}
+
 			_mainWindow.Render();
-			_emuManager.DrawLastFrameToTexture(); // do this immediately after render, so it closely aligns to vsync
+
+			// do this immediately after render, so it closely aligns to vsync
+			if (_emuManager.RomIsLoaded)
+			{
+				_postProcessor.RenderEmuTexture(_emuManager.GetVideoBuffer());
+			}
 		}
 	}
 }

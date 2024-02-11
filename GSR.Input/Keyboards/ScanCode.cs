@@ -1,43 +1,10 @@
-using System;
-using System.Collections.Generic;
-
 namespace GSR.Input.Keyboards;
-
-internal readonly record struct KeyEvent(ScanCode Key, bool IsPressed);
-
-internal interface IKeyInput : IDisposable
-{
-	IEnumerable<KeyEvent> GetEvents();
-	string ConvertScanCodeToString(ScanCode key);
-}
-
-internal static class KeyInputFactory
-{
-	public static IKeyInput CreateKeyInput()
-	{
-		if (OperatingSystem.IsWindowsVersionAtLeast(5, 1, 2600))
-		{
-			return new RawKeyInput();
-		}
-
-		if (OperatingSystem.IsLinux())
-		{
-			//return new X11KeyInput();
-		}
-
-		if (OperatingSystem.IsMacOS())
-		{
-			//return new QuartzKeyInput();
-		}
-
-		throw new NotSupportedException("Key input is not supported on this platform");
-	}
-}
 
 /// <summary>
 /// This enum generally assumes a QWERTY layout
 /// Bit7 will indicate that the input has an E0 prefix
 /// (This also just mimics DirectInput's DIK_ enum)
+/// TODO: There are several missing members here (although that shouldn't really matter in practice)
 /// </summary>
 public enum ScanCode : byte
 {

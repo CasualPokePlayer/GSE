@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace GSR.Audio;
 
@@ -8,17 +7,17 @@ internal sealed class AudioRingBuffer
 {
 	private readonly object _audioBufferLock = new();
 
-	private short[] _buffer;
+	private short[] _buffer = [];
 	private int _readIndex;
 	private int _writeIndex;
 
-	public void Reset(int size)
+	public void Reset(int size, int initialFilledSize)
 	{
 		lock (_audioBufferLock)
 		{
 			_buffer = new short[size];
 			_readIndex = 0;
-			_writeIndex = size - 1;
+			_writeIndex = Math.Min(initialFilledSize, size - 1);
 		}
 	}
 

@@ -43,7 +43,7 @@ internal static partial class Gambatte
 	/// <returns>0 on success, negative value on failure.</returns>
 	[LibraryImport("libgambatte")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-	public static partial int gambatte_loadbuf(IntPtr core, [In] byte[] romData, uint length, LoadFlags flags);
+	public static partial int gambatte_loadbuf(IntPtr core, ReadOnlySpan<byte> romData, uint length, LoadFlags flags);
 
 	/// <summary>
 	/// Load GB(C) BIOS image.
@@ -54,7 +54,7 @@ internal static partial class Gambatte
 	/// <returns>0 on success, negative value on failure.</returns>
 	[LibraryImport("libgambatte")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-	public static partial int gambatte_loadbiosbuf(IntPtr core, [In] byte[] biosData, uint length);
+	public static partial int gambatte_loadbiosbuf(IntPtr core, ReadOnlySpan<byte> biosData, uint length);
 
 	/// <summary>
 	/// Emulates until at least 'samples' stereo sound samples are produced in the supplied buffer,
@@ -78,7 +78,11 @@ internal static partial class Gambatte
 	/// <returns>sample number at which the video frame was produced. -1 means no frame was produced.</returns>
 	[LibraryImport("libgambatte")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-	public static partial int gambatte_runfor(IntPtr core, [Out] uint[] videoBuf, int pitch, [Out] uint[] soundBuf, ref uint samples);
+	public static unsafe partial int gambatte_runfor(IntPtr core, uint* videoBuf, int pitch, [Out] uint[] soundBuf, ref uint samples);
+
+	[LibraryImport("libgambatte")]
+	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	public static unsafe partial int gambatte_updatescreenborder(IntPtr core, uint* videobuf, int pitch);
 
 	/// <summary>
 	/// Reset to initial state.
@@ -97,7 +101,7 @@ internal static partial class Gambatte
 	/// <param name="lut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
 	[LibraryImport("libgambatte")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-	public static partial void gambatte_setcgbpalette(IntPtr core, [In] uint[] lut);
+	public static partial void gambatte_setcgbpalette(IntPtr core, ReadOnlySpan<uint> lut);
 
 	/// <summary>
 	/// combination of button flags used by the input callback
@@ -174,5 +178,5 @@ internal static partial class Gambatte
 	[LibraryImport("libgambatte")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool gambatte_loadstate(IntPtr core, [In] byte[] stateBuf, int size);
+	public static partial bool gambatte_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);
 }

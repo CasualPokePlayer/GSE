@@ -16,12 +16,17 @@ internal sealed class NullCore : IEmuCore
 	{
 	}
 
-	public int ResetFadeoutCounter => 0;
-
 	public void Advance(EmuControllerState controllerState, out bool completedFrame, out uint samples, out uint cpuCycles)
 	{
 		completedFrame = false;
 		cpuCycles = samples = 48000 / 60;
+	}
+
+	public ReadOnlySpan<byte> SaveState() => ReadOnlySpan<byte>.Empty;
+	public bool LoadState(ReadOnlySpan<byte> state) => false;
+
+	public void SetColorCorrectionEnable(bool enable)
+	{
 	}
 
 	// no need to actually provide these, these will never be used for this core

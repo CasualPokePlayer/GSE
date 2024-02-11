@@ -28,7 +28,7 @@ public readonly record struct EmuControllerState(EmuButtons InputState)
 {
 	public EmuButtons GBInputState => InputState & EmuButtons.GB_BUTTON_MASK;
 
-	public EmuButtons GBAInputState => 0;//InputState & EmuButtons.GBA_BUTTON_MASK;
+	public EmuButtons GBAInputState => InputState & EmuButtons.GBA_BUTTON_MASK;
 
-	public bool HardReset => false;//(InputState & EmuButtons.HardReset) != 0;
+	public bool HardReset => (InputState & EmuButtons.HardReset) != 0;
 }

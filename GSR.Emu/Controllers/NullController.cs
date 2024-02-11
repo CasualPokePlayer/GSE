@@ -8,5 +8,5 @@ internal sealed class NullController : IEmuController
 	{
 	}
 
-	public EmuControllerState GetState() => default;
+	public EmuControllerState GetState(bool immediateUpdate) => default;
 }

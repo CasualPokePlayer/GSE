@@ -1,0 +1,7 @@
+GetOpenFileNameW
+GetSaveFileNameW
+MAX_PATH
+
+ChangeWindowMessageFilter
+WM_DROPFILES
+WM_COPYDATA

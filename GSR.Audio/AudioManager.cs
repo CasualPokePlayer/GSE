@@ -12,8 +12,9 @@ namespace GSR.Audio;
 // thus, resampling is done on the emu thread, and we let SDL handle obtaining samples in its audio callback (called on a separate thread anyways)
 public sealed class AudioManager : IDisposable
 {
-	public const int MINIMUM_BUFFER_MS = 30;
-	public const int MAXIMUM_BUFFER_MS = 100;
+	public const string DEFAULT_AUDIO_DEVICE = "[Default Audio Device]";
+	public const int MINIMUM_LATENCY_MS = 0;
+	public const int MAXIMUM_LATENCY_MS = 100;
 
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
  
@@ -25,6 +26,7 @@ public sealed class AudioManager : IDisposable
 		var samplesRead = manager.OutputAudioBuffer.Read(new((void*)stream, samples));
 		if (samplesRead < samples)
 		{
+			Console.WriteLine($"AUDIO UNDERRUN! Only read {samplesRead} samples (wanted {samples} samples)");
 			new Span<short>((void*)(stream + samplesRead * 2), samples - samplesRead).Clear();
 		}
 	}
@@ -33,21 +35,62 @@ public sealed class AudioManager : IDisposable
 
 	private int _inputAudioFrequency;
 	private int _outputAudioFrequency;
-	private int _bufferMs;
 
 	private BlipBuffer _resampler;
 	private int _lastL, _lastR;
 	private short[] _resamplingBuffer = [];
 
+	public string AudioDeviceName { get; private set; }
+	private int _latencyMs;
+	private int _volume;
+
 	private uint _sdlAudioDeviceId;
+
+	public static string[] EnumerateAudioDevices()
+	{
+		var deviceCount = SDL_GetNumAudioDevices(iscapture: 0);
+		var ret = new string[deviceCount + 1];
+		ret[0] = DEFAULT_AUDIO_DEVICE;
+		for (var i = 0; i < deviceCount; i++)
+		{
+			ret[i + 1] = SDL_GetAudioDeviceName(i, iscapture: 0);
+		}
+
+		return ret;
+	}
+
+	private static int GetDeviceSampleRate(string deviceName)
+	{
+		const int FALLBACK_FREQ = 48000;
+		if (deviceName == null)
+		{
+			return SDL_GetDefaultAudioInfo(out _, out var spec, iscapture: 0) == 0 ? spec.freq : FALLBACK_FREQ;
+		}
+
+		var deviceCount = SDL_GetNumAudioDevices(iscapture: 0);
+		for (var i = 0; i < deviceCount; i++)
+		{
+			if (SDL_GetAudioDeviceName(i, iscapture: 0) == deviceName)
+			{
+				return SDL_GetAudioDeviceSpec(i, iscapture: 0, out var spec) == 0 ? spec.freq : FALLBACK_FREQ;
+			}
+		}
+
+		return FALLBACK_FREQ;
+	}
 
 	private void OpenAudioDevice(string deviceName)
 	{
+		if (deviceName == DEFAULT_AUDIO_DEVICE)
+		{
+			deviceName = null;
+		}
+
 		var wantedSdlAudioSpec = default(SDL_AudioSpec);
-		wantedSdlAudioSpec.freq = 48000; // we'll allow this to change, as we need to handle resampling anyways
+		wantedSdlAudioSpec.freq = GetDeviceSampleRate(deviceName); // try to use the device sample rate, so we can avoid a secondary resampling by SDL or whatever native api is used
 		wantedSdlAudioSpec.format = AUDIO_S16SYS;
 		wantedSdlAudioSpec.channels = 2;
-		wantedSdlAudioSpec.samples = 1024; // we'll also let this change, we're doing buffering already...
+		wantedSdlAudioSpec.samples = 4096; // we'll let this change to however SDL best wants it
 
 		unsafe
 		{
@@ -66,13 +109,19 @@ public sealed class AudioManager : IDisposable
 
 		if (deviceId == 0)
 		{
-			deviceId = SDL_OpenAudioDevice(
-				device: null,
-				iscapture: 0,
-				desired: ref wantedSdlAudioSpec,
-				obtained: out obtainedAudioSpec,
-				allowed_changes: (int)(SDL_AUDIO_ALLOW_SAMPLES_CHANGE | SDL_AUDIO_ALLOW_FREQUENCY_CHANGE)
-			);
+			if (deviceName != null)
+			{
+				wantedSdlAudioSpec.freq = GetDeviceSampleRate(null);
+				deviceId = SDL_OpenAudioDevice(
+					device: null,
+					iscapture: 0,
+					desired: ref wantedSdlAudioSpec,
+					obtained: out obtainedAudioSpec,
+					allowed_changes: (int)(SDL_AUDIO_ALLOW_SAMPLES_CHANGE | SDL_AUDIO_ALLOW_FREQUENCY_CHANGE)
+				);
+
+				deviceName = null;
+			}
 
 			if (deviceId == 0)
 			{
@@ -81,6 +130,7 @@ public sealed class AudioManager : IDisposable
 		}
 
 		_sdlAudioDeviceId = deviceId;
+		AudioDeviceName = deviceName ?? DEFAULT_AUDIO_DEVICE;
 		_outputAudioFrequency = obtainedAudioSpec.freq;
 		SDL_PauseAudioDevice(_sdlAudioDeviceId, pause_on: 0);
 	}
@@ -92,8 +142,7 @@ public sealed class AudioManager : IDisposable
 			_lastL = _lastR = 0;
 			_resampler.SetRates(_inputAudioFrequency, _outputAudioFrequency);
 			_resampler.Clear();
-			var outputBufferSize = (int)BitOperations.RoundUpToPowerOf2((uint)(_bufferMs * _outputAudioFrequency / 1000));
-			OutputAudioBuffer.Reset(outputBufferSize);
+			OutputAudioBuffer.Reset(MAXIMUM_LATENCY_MS * 2 * _outputAudioFrequency * 2 / 1000, _latencyMs * _outputAudioFrequency * 2 / 1000);
 		}
 	}
 
@@ -109,38 +158,57 @@ public sealed class AudioManager : IDisposable
 		}
 	}
 
-	public void SetBufferMs(int bufferMs)
+	public void ChangeConfig(string audioDeviceName, int latencyMs, int volume)
 	{
-		if (_bufferMs != bufferMs)
+		if (AudioDeviceName != audioDeviceName || _latencyMs != latencyMs || _volume != volume)
 		{
 			lock (_audioLock)
 			{
-				_bufferMs = bufferMs;
+				if (AudioDeviceName != audioDeviceName)
+				{
+					_resampler?.Dispose();
+					_resampler = null;
+
+					if (_sdlAudioDeviceId != 0)
+					{
+						SDL_CloseAudioDevice(_sdlAudioDeviceId);
+						_sdlAudioDeviceId = 0;
+					}
+
+					OpenAudioDevice(audioDeviceName);
+					_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
+				}
+
+				_latencyMs = latencyMs;
+				_volume = volume;
 				Reset();
 			}
 		}
 	}
 
-	public void RecoverLostAudioDeviceIfNeeded()
+	public bool RecoverLostAudioDeviceIfNeeded()
 	{
 		// if the device stops, it's no longer valid, and must be reset with the default device (which shouldn't ever stop?)
 		if (SDL_GetAudioDeviceStatus(_sdlAudioDeviceId) == SDL_AudioStatus.SDL_AUDIO_STOPPED)
 		{
-			lock (_audioLock)
-			{
-				_resampler?.Dispose();
-				_resampler = null;
-				
-				if (_sdlAudioDeviceId != 0)
-				{
-					SDL_CloseAudioDevice(_sdlAudioDeviceId);
-					_sdlAudioDeviceId = 0;
-				}
+			ChangeConfig(DEFAULT_AUDIO_DEVICE, _latencyMs, _volume);
+			return true;
+		}
 
-				OpenAudioDevice(null);
-				_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
-				Reset();
-			}
+		return false;
+	}
+
+	public void Pause()
+	{
+		SDL_PauseAudioDevice(_sdlAudioDeviceId, pause_on: 1);
+	}
+
+	public void Unpause()
+	{
+		lock (_audioLock)
+		{
+			Reset();
+			SDL_PauseAudioDevice(_sdlAudioDeviceId, pause_on: 0);
 		}
 	}
 
@@ -153,7 +221,7 @@ public sealed class AudioManager : IDisposable
 			{
 				int l = samples[i + 0];
 				int r = samples[i + 1];
-				_resampler.AddDelta(resamplerTime++, l - _lastL, r - _lastR);
+				_resampler.AddDelta(resamplerTime++, l - _lastL, r - _lastR, _volume);
 				_lastL = l;
 				_lastR = r;
 			}
@@ -170,21 +238,18 @@ public sealed class AudioManager : IDisposable
 		}
 	}
 
-	public AudioManager(int bufferMs, string deviceName)
+	public AudioManager(string audioDeviceName, int latencyMs, int volume)
 	{
 		if (SDL_Init(SDL_INIT_AUDIO) != 0)
 		{
-			throw new($"SDL failed to init, SDL error: {SDL_GetError()}");
+			throw new($"Could not init SDL audio! SDL error: {SDL_GetError()}");
 		}
 
 		_inputAudioFrequency = 48000;
-		_bufferMs = bufferMs;
 
 		try
 		{
-			OpenAudioDevice(deviceName);
-			_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
-			Reset();
+			ChangeConfig(audioDeviceName, latencyMs, volume);
 		}
 		catch
 		{

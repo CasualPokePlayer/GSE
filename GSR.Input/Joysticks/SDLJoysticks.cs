@@ -7,8 +7,6 @@ namespace GSR.Input.Joysticks;
 
 internal class SDLJoysticks : IDisposable
 {
-	public readonly record struct JoystickInput(string ButtonName, bool IsPressed);
-
 	private readonly Dictionary<int, SDL2Joystick> Joysticks = new();
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
 

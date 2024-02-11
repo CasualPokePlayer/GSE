@@ -162,8 +162,15 @@ internal sealed unsafe class BlipBuffer : IDisposable
 		{ 0,  43,  -115,  350, -488, 1136,  -914, 5861  }
 	};
 
-	public void AddDelta(uint time, int deltaL, int deltaR)
+	public void AddDelta(uint time, int deltaL, int deltaR, int volume)
 	{
+		if (volume != 100)
+		{
+			deltaL = deltaL * volume / 100;
+			deltaR = deltaR * volume / 100;
+		}
+
+		// TODO: optimize this thing with SIMD intrinsics
 		if ((deltaL | deltaR) != 0)
 		{
 			var fixedSample = (uint)((time * _factor + _offset) >> PreShift);
