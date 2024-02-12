@@ -113,14 +113,13 @@ internal static class SaveFileDialog
 		{
 			keyWindow?.MakeKeyAndOrderFront(null);
 		}
-
-		return null;
 	}
 #endif
 
 	public static string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
 		// ReSharper disable ConvertIfStatementToReturnStatement
+
 		if (OperatingSystem.IsWindowsVersionAtLeast(5))
 		{
 			return ShowWindowsDialog(description, baseDir, filename, ext);

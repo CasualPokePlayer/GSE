@@ -1,4 +1,4 @@
-<Project>
+<Project InitialTargets="CheckPlatform">
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
@@ -15,9 +15,42 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<IsAotCompatible>true</IsAotCompatible>
 		<PublishAot>true</PublishAot>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath> 
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<GSR_PUBLISH Condition="'$(_IsPublishing)' == 'true'">true</GSR_PUBLISH>
+		<GSR_WINDOWS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</GSR_WINDOWS>
+		<GSR_OSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</GSR_OSX>
+		<GSR_LINUX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</GSR_LINUX>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)'=='Publish'">
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true'">
+		<DebugSymbols>False</DebugSymbols>
+		<DebugType>None</DebugType>
 		<DefineConstants>$(DefineConstants);GSR_PUBLISH</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_WINDOWS)' == 'true'">
+		<GSR_LIB_PREFIX></GSR_LIB_PREFIX>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.lib</GSR_LIB_EXT>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.dll</GSR_LIB_EXT>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">win-x64</GSR_RID>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">win-arm64</GSR_RID>
+		<DefineConstants>$(DefineConstants);GSR_WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
+		<GSR_LIB_PREFIX>lib</GSR_LIB_PREFIX>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.a</GSR_LIB_EXT>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.dylib</GSR_LIB_EXT>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">osx-x64</GSR_RID>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">osx-arm64</GSR_RID>
+		<DefineConstants>$(DefineConstants);GSR_OSX</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_LINUX)' == 'true'">
+		<GSR_LIB_PREFIX>lib</GSR_LIB_PREFIX>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.a</GSR_LIB_EXT>
+		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.so</GSR_LIB_EXT>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">linux-x64</GSR_RID>
+		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">linux-arm64</GSR_RID>
+		<DefineConstants>$(DefineConstants);GSR_LINUX</DefineConstants>
+	</PropertyGroup>
+	<Target Name="CheckPlatform">
+		<Error Condition="'$(GSR_RID)' == ''" Text="Unsupported Platform" />
+	</Target>
 </Project>

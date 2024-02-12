@@ -1,4 +1,17 @@
-[submodule "externals/libmgba/mgba"]
-	path = externals/libmgba/mgba
+[submodule "externals/SDL2/SDL"]
+	path = externals/SDL2/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = SDL2
+[submodule "externals/SDL2/libusb"]
+	path = externals/SDL2/libusb
+	url = https://github.com/libusb/libusb.git
+[submodule "externals/mgba/mgba"]
+	path = externals/mgba/mgba
 	url = https://github.com/mgba-emu/mgba.git
 	branch = 0.10
+[submodule "externals/gambatte/gambatte-core"]
+	path = externals/gambatte/gambatte-core
+	url = https://github.com/pokemon-speedrunning/gambatte-core.git
+[submodule "externals/cimgui/cimgui"]
+	path = externals/cimgui/cimgui
+	url = https://github.com/cimgui/cimgui.git

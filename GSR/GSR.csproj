@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="../GSRCommon.props" />
-	<PropertyGroup Condition="'$(TargetPlatformIdentifier)'=='osx'">
+	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
 		<TargetFramework>net8.0-macos</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup>
@@ -17,5 +17,47 @@
 		<ProjectReference Include="$(ProjectDir)../GSR.Audio/GSR.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
+	</ItemGroup>
+	<!-- Include all the libraries we end up using, yes this has to be here (for DirectPInvoke/NativeLibrary anyways) -->
+	<PropertyGroup>
+		<CIMGUI_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)cimgui$(GSR_LIB_EXT)</CIMGUI_PATH>
+		<SDL2_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)SDL2$(GSR_LIB_EXT)</SDL2_PATH>
+		<GAMBATTE_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)gambatte$(GSR_LIB_EXT)</GAMBATTE_PATH>
+		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)mgba$(GSR_LIB_EXT)</MGBA_PATH>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true'">
+		<DirectPInvoke Include="cimgui" />
+		<DirectPInvoke Include="SDL2" />
+		<DirectPInvoke Include="gambatte" />
+		<DirectPInvoke Include="mgba" />
+		<NativeLibrary Include="$(CIMGUI_PATH)" />
+		<NativeLibrary Include="$(SDL2_PATH)" />
+		<NativeLibrary Include="$(GAMBATTE_PATH)" />
+		<NativeLibrary Include="$(MGBA_PATH)" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_WINDOWS)' == 'true'">
+		<!-- These are needed by SDL -->
+		<NativeLibrary Include="gdi32.lib" />
+		<NativeLibrary Include="shell32.lib" />
+		<NativeLibrary Include="winmm.lib" />
+		<NativeLibrary Include="setupapi.lib" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true'">
+		<Content Include="$(CIMGUI_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+		<Content Include="$(SDL2_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+		<Content Include="$(GAMBATTE_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+		<Content Include="$(MGBA_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
 	</ItemGroup>
 </Project>

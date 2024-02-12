@@ -132,11 +132,11 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr
 			var scale = Math.Min(scaleW, scaleH);
 
 			dstWidth = Math.Min((int)Math.Round(srcWidth * scale), dstWidth);
-            dstHeight = Math.Min((int)Math.Round(srcHeight * scale), dstHeight);
+			dstHeight = Math.Min((int)Math.Round(srcHeight * scale), dstHeight);
 
-            // center the dest rect
-            dstRect.x += (dstRect.w - dstWidth) / 2;
-            dstRect.y += (dstRect.h - dstHeight) / 2;
+			// center the dest rect
+			dstRect.x += (dstRect.w - dstWidth) / 2;
+			dstRect.y += (dstRect.h - dstHeight) / 2;
 		}
 
 		dstRect.w = dstWidth;
@@ -184,7 +184,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr
 			// only do a second copy if the rects differ
 			if (srcRect.x != dstRect.x ||
 			    srcRect.y != dstRect.y ||
-                srcRect.w != dstRect.w ||
+			    srcRect.w != dstRect.w ||
 			    srcRect.h != dstRect.h)
 			{
 				dstTex = _blScaledTexture;

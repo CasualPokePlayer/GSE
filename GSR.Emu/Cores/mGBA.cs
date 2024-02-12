@@ -15,12 +15,12 @@ internal static partial class MGBA
 	/// <param name="biosLength">length of biosData in bytes</param>
 	/// <param name="forceDisableRtc">force disable rtc, if present</param>
 	/// <returns>opaque state pointer</returns>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial IntPtr mgba_create(ReadOnlySpan<byte> romData, int romLength, ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc);
 
 	/// <param name="core">opaque state pointer</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_destroy(IntPtr core);
 
@@ -29,7 +29,7 @@ internal static partial class MGBA
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="colorLut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_setcolorlut(IntPtr core, ReadOnlySpan<uint> colorLut);
 
@@ -60,7 +60,7 @@ internal static partial class MGBA
 	/// <param name="soundBuf">buffer with at least 1024 stereo samples (2048 16-bit integers)</param>
 	/// <param name="samples">number of stereo samples produced (double this to get 16-bit integer count)</param>
 	/// <param name="cpuCycles">number of cpu cycles advanced</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_advance(IntPtr core, Buttons buttons, [Out] uint[] videoBuf, [Out] short[] soundBuf, out uint samples, out uint cpuCycles);
 
@@ -69,7 +69,7 @@ internal static partial class MGBA
 	/// Equivalent to reloading a ROM image, or turning a Game Boy Advance off and on again.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_reset(IntPtr core);
 
@@ -78,7 +78,7 @@ internal static partial class MGBA
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="dest">byte buffer to write into. mgba_getsavedatalength() bytes will be written</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_savesavedata(IntPtr core, [Out] byte[] dest);
 
@@ -87,7 +87,7 @@ internal static partial class MGBA
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="data">byte buffer to read from. mgba_getsavedatalength() bytes will be read</param>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial void mgba_loadsavedata(IntPtr core, [In] byte[] data);
 
@@ -97,7 +97,7 @@ internal static partial class MGBA
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>length in bytes. 0 means no internal persistant cart memory</returns>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial int mgba_getsavedatalength(IntPtr core);
 
@@ -106,7 +106,7 @@ internal static partial class MGBA
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>save state size in bytes</returns>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	public static partial int mgba_getsavestatelength(IntPtr core);
 
@@ -116,7 +116,7 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <returns>success</returns>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool mgba_savestate(IntPtr core, [Out] byte[] stateBuf);
@@ -128,7 +128,7 @@ internal static partial class MGBA
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <param name="size">size of savestate buffer</param>
 	/// <returns>success</returns>
-	[LibraryImport("libmgba")]
+	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool mgba_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);

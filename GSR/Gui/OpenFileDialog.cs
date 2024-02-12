@@ -109,8 +109,6 @@ internal static class OpenFileDialog
 		{
 			keyWindow?.MakeKeyAndOrderFront(null);
 		}
-
-		return null;
 	}
 #endif
 
