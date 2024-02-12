@@ -6,3 +6,8 @@
 **/obj/**
 **/build/**
 *.DotSettings.user
+**/runtimes/*.lib
+**/runtimes/*.a
+**/runtimes/*.dll
+**/runtimes/*.so
+**/runtimes/*.dylib
