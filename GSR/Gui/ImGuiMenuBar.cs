@@ -116,7 +116,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 
 					for (var i = 0; i < 10; i++)
 					{
-						var slot = config.SaveStateSet * 10 + i;
+						var slot = config.SaveStateSet * 10 + i + 1;
 						if (ImGui.RadioButton($"Slot {slot}", i == config.SaveStateSlot))
 						{
 							hotkeyManager.SetStateSlot(i);

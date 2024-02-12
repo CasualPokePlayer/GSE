@@ -5,3 +5,6 @@ MAX_PATH
 ChangeWindowMessageFilter
 WM_DROPFILES
 WM_COPYDATA
+
+DwmSetWindowAttribute
+DWM_WINDOW_CORNER_PREFERENCE

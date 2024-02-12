@@ -541,6 +541,15 @@ internal sealed class ImGuiModals
 				}
 			}
 
+			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+			{
+				var disableWin11RoundCorners = _config.DisableWin11RoundCorners;
+				if (ImGui.Checkbox("Disable Win11 Round Corners", ref disableWin11RoundCorners))
+				{
+					_config.DisableWin11RoundCorners = disableWin11RoundCorners;
+				}
+			}
+
 			ImGui.EndPopup();
 		}
 

@@ -7,6 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Windows.Win32;
+using Windows.Win32.Graphics.Dwm;
+
 using ImGuiNET;
 
 using static SDL2.SDL;
@@ -364,7 +367,7 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 		{
-			throw new($"Could not init SDL video! SDL Error: {SDL_GetError()}");
+			throw new($"Could not init SDL video! SDL error: {SDL_GetError()}");
 		}
 
 		try
@@ -373,7 +376,23 @@ internal sealed class ImGuiWindow : IDisposable
 			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1, 1, windowFlags);
 			if (SdlWindow == IntPtr.Zero)
 			{
-				throw new($"Could not create SDL window! SDL Error: {SDL_GetError()}");
+				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
+			}
+
+			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+			{
+				var wminfo = default(SDL_SysWMinfo);
+				SDL_GetVersion(out wminfo.version);
+				if (SDL_GetWindowWMInfo(SdlWindow, ref wminfo) == SDL_bool.SDL_FALSE)
+				{
+					throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
+				}
+
+				unsafe
+				{
+					var cornerPref = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
+					_ = PInvoke.DwmSetWindowAttribute(new(wminfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
+				}
 			}
 
 			WindowId = SDL_GetWindowID(SdlWindow);
@@ -389,7 +408,7 @@ internal sealed class ImGuiWindow : IDisposable
 			SdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
 			if (SdlRenderer == IntPtr.Zero)
 			{
-				throw new($"Could not create SDL renderer! SDL Error: {SDL_GetError()}");
+				throw new($"Could not create SDL renderer! SDL error: {SDL_GetError()}");
 			}
 
 			var videoDriver = SDL_GetCurrentVideoDriver();

@@ -25,6 +25,7 @@ internal sealed class Config
 	public bool DisableGbaRtc { get; set; } = true;
 	public bool HideSgbBorder { get; set; }
 	public bool HideStatusBar { get; set; }
+	public bool DisableWin11RoundCorners { get; set; }
 
 	public string GbBiosPath { get; set; }
 	public string GbcBiosPath { get; set; }
