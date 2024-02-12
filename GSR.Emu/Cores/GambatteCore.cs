@@ -103,7 +103,22 @@ internal sealed class GambatteCore : IEmuCore
 				throw new($"Failed to load ROM! Core returned {loadRes}");
 			}
 
-			loadRes = gambatte_loadbiosbuf(_opaque, loadArgs.BiosData.Span, (uint)loadArgs.BiosData.Length);
+			static ReadOnlySpan<byte> PatchBiosForGbcGba(ReadOnlySpan<byte> gbcBiosData)
+			{
+				var patchedBios = gbcBiosData.ToArray();
+				patchedBios[0xF3] ^= 0x03;
+				Buffer.BlockCopy(patchedBios, 0xF6, patchedBios, 0xF5, 0xFB - 0xF5);
+				patchedBios[0xFB] ^= 0x74;
+				return patchedBios;
+			}
+
+			var biosData = _gbPlatform switch
+			{
+				GBPlatform.GBA or GBPlatform.GBP => PatchBiosForGbcGba(loadArgs.BiosData.Span),
+				_ => loadArgs.BiosData.Span
+			};
+
+			loadRes = gambatte_loadbiosbuf(_opaque, biosData, (uint)biosData.Length);
 			if (loadRes != 0)
 			{
 				throw new($"Failed to load BIOS! Core returned {loadRes}");
