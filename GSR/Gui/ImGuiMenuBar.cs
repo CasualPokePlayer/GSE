@@ -1,10 +1,10 @@
 using System.IO;
 
-using GSR.Emu;
-
 using ImGuiNET;
 
 using static SDL2.SDL;
+
+using GSR.Emu;
 
 namespace GSR.Gui;
 

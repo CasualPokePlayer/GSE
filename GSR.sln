@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GSR.Input", "GSR.Input\GSR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GSR.Audio", "GSR.Audio\GSR.Audio.csproj", "{9177BB41-28A5-4EF6-8102-BDF10D8E14FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS", "externals\SDL2-CS\SDL2-CS.csproj", "{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImGui.NET", "externals\ImGui.NET\ImGui.NET.csproj", "{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS", "externals\SDL2-CS\SDL2-CS.csproj", "{1C593A7D-00A9-46B3-8C6D-A06761900ED4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}.Debug|x64.Build.0 = Debug|x64
 		{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}.Release|x64.ActiveCfg = Release|x64
 		{66B1F3BD-D3A3-47EA-B7AC-25262C0B81CC}.Release|x64.Build.0 = Release|x64
+		{1C593A7D-00A9-46B3-8C6D-A06761900ED4}.Debug|x64.ActiveCfg = Debug|x64
+		{1C593A7D-00A9-46B3-8C6D-A06761900ED4}.Debug|x64.Build.0 = Debug|x64
+		{1C593A7D-00A9-46B3-8C6D-A06761900ED4}.Release|x64.ActiveCfg = Release|x64
+		{1C593A7D-00A9-46B3-8C6D-A06761900ED4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Versioning;
 
+#if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.UI.Controls.Dialogs;
+#endif
 
-using Gtk;
-
-#if MACOS
+#if GSR_OSX
 using AppKit;
 using Foundation;
 using System.Linq;
+#endif
+
+#if GSR_LINUX
+using Gtk;
 #endif
 
 namespace GSR.Gui;
@@ -20,10 +23,15 @@ namespace GSR.Gui;
 /// </summary>
 internal static class OpenFileDialog
 {
+#if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	[SupportedOSPlatform("windows5.0")]
-	private static unsafe string ShowWindowsDialog(string description, string baseDir, IEnumerable<string> fileTypes)
+	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
+		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
+		{
+			return null;
+		}
+
 		var filter = $"{description}\0*{string.Join(";*", fileTypes)}\0\0";
 		var fileBuffer = new char[PInvoke.MAX_PATH + 1];
 		var initDir = baseDir ?? AppContext.BaseDirectory;
@@ -47,39 +55,11 @@ internal static class OpenFileDialog
 
 		return null;
 	}
+#endif
 
-	private static string ShowGtkDialog(string description, string baseDir, IEnumerable<string> fileTypes)
+#if GSR_OSX
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
-		try
-		{
-			using var dialog = new FileChooserNative($"Open {description}", null, FileChooserAction.Open, "_Open", "_Cancel");
-			try
-			{
-				using var fileFilter = new FileFilter();
-				fileFilter.Name = description;
-				foreach (var fileType in fileTypes)
-				{
-					fileFilter.AddPattern($"*{fileType}");
-				}
-				dialog.AddFilter(fileFilter);
-				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
-			}
-			finally
-			{
-				dialog.Destroy();
-			}
-		}
-		catch
-		{
-			return null;
-		}
-	}
-
-#if MACOS
-	private static string ShowAppKitDialog(string description, string baseDir, IEnumerable<string> fileTypes)
-	{
-
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
 		{
@@ -112,27 +92,33 @@ internal static class OpenFileDialog
 	}
 #endif
 
+#if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
-		// ReSharper disable ConvertIfStatementToReturnStatement
-
-		if (OperatingSystem.IsWindowsVersionAtLeast(5))
+		try
 		{
-			return ShowWindowsDialog(description, baseDir, fileTypes);
+			using var dialog = new FileChooserNative($"Open {description}", null, FileChooserAction.Open, "_Open", "_Cancel");
+			try
+			{
+				using var fileFilter = new FileFilter();
+				fileFilter.Name = description;
+				foreach (var fileType in fileTypes)
+				{
+					fileFilter.AddPattern($"*{fileType}");
+				}
+				dialog.AddFilter(fileFilter);
+				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
+			}
+			finally
+			{
+				dialog.Destroy();
+			}
 		}
-
-		if (OperatingSystem.IsLinux())
+		catch
 		{
-			return ShowGtkDialog(description, baseDir, fileTypes);
+			return null;
 		}
-
-#if MACOS
-		if (OperatingSystem.IsMacOS())
-		{
-			return ShowAppKitDialog(description, baseDir, fileTypes);
-		}
-#endif
-
-		return null;
 	}
+#endif
 }

@@ -2,14 +2,14 @@ using System;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 
+using ImGuiNET;
+
+using static SDL2.SDL;
+
 using GSR.Emu;
 using GSR.Emu.Controllers;
 using GSR.Emu.Cores;
 using GSR.Gui;
-
-using ImGuiNET;
-
-using static SDL2.SDL;
 
 namespace GSR;
 

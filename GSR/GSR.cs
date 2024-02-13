@@ -7,10 +7,12 @@ using System.Runtime.InteropServices;
 
 using ImGuiNET;
 
+using static SDL2.SDL;
+
+#if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
-
-using static SDL2.SDL;
+#endif
 
 using GSR.Audio;
 using GSR.Emu;
@@ -61,6 +63,7 @@ internal sealed class GSR : IDisposable
 			SDL_SetEventFilter(&SDLEventFilter, IntPtr.Zero); // filter out events which we don't care for
 		}
 
+#if GSR_WINDOWS
 		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
 		// do this to bypass the issue
 		if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
@@ -70,6 +73,7 @@ internal sealed class GSR : IDisposable
 			PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 			PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 		}
+#endif
 	}
 
 	/// <summary>

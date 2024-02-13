@@ -15,3 +15,6 @@
 [submodule "externals/cimgui/cimgui"]
 	path = externals/cimgui/cimgui
 	url = https://github.com/cimgui/cimgui.git
+[submodule "externals/ImGui.NET/ImGui.NET"]
+	path = externals/ImGui.NET/ImGui.NET
+	url = https://github.com/ImGuiNET/ImGui.NET.git

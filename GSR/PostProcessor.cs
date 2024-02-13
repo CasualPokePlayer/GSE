@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-using GSR.Emu;
-
 using static SDL2.SDL;
+
+using GSR.Emu;
 
 namespace GSR;
 

@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+#if GSR_WINDOWS
 using Windows.Win32;
+#endif
 
 using GSR.Audio;
 using GSR.Emu.Cores;
@@ -101,12 +103,14 @@ public sealed class EmuManager : IDisposable
 	{
 		try
 		{
+#if GSR_WINDOWS
 			if (OperatingSystem.IsWindowsVersionAtLeast(5))
 			{
 				// raise timer resolution to 1 ms
 				// TODO: it's possible to raise this to 0.5ms using the undocumented NtSetTimerResolution function, consider using that?
 				_ = PInvoke.timeBeginPeriod(1);
 			}
+#endif
 
 			while (!_disposing)
 			{
@@ -147,6 +151,7 @@ public sealed class EmuManager : IDisposable
 		{
 			_emuThreadException = e;
 		}
+#if GSR_WINDOWS
 		finally
 		{
 			if (OperatingSystem.IsWindowsVersionAtLeast(5))
@@ -155,6 +160,7 @@ public sealed class EmuManager : IDisposable
 				_ = PInvoke.timeEndPeriod(1);
 			}
 		}
+#endif
 	}
 
 	private void CheckEmuThreadException()

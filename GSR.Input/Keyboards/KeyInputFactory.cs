@@ -6,10 +6,12 @@ internal static class KeyInputFactory
 {
 	public static IKeyInput CreateKeyInput()
 	{
+#if GSR_WINDOWS
 		if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
 		{
 			return new RawKeyInput();
 		}
+#endif
 
 		if (OperatingSystem.IsLinux())
 		{

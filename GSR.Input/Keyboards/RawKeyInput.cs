@@ -1,3 +1,5 @@
+#if GSR_WINDOWS
+
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -392,3 +394,5 @@ internal sealed class RawKeyInput : IKeyInput
 		return _vkStringMap.GetValueOrDefault(virtualKey);
 	}
 }
+
+#endif

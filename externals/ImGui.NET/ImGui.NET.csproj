@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../GSRCommon.props" />
+	<PropertyGroup>
+		<EnableDefaultItems>false</EnableDefaultItems>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Include="ImGuiInternal.cs" />
+		<Compile Include="ImGui.NET/src/ImGui.NET/*.cs" />
+		<Compile Include="ImGui.NET/src/ImGui.NET/Generated/*.cs" />
+	</ItemGroup>
+</Project>

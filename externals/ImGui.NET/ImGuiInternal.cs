@@ -1,12 +1,11 @@
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
-using ImGuiNET;
-
-namespace GSR.Gui;
+// ReSharper disable once CheckNamespace
+namespace ImGuiNET;
 
 /// <summary>
-/// A few internal ImGui API bindings (not exposed in ImGuiNET)
+/// A few internal ImGui API bindings (not exposed in base ImGuiNET)
 /// </summary>
 public static unsafe partial class ImGuiInternal
 {

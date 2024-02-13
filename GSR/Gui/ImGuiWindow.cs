@@ -7,12 +7,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using Windows.Win32;
-using Windows.Win32.Graphics.Dwm;
-
 using ImGuiNET;
 
 using static SDL2.SDL;
+
+#if GSR_WINDOWS
+using Windows.Win32;
+using Windows.Win32.Graphics.Dwm;
+#endif
 
 namespace GSR.Gui;
 
@@ -379,6 +381,7 @@ internal sealed class ImGuiWindow : IDisposable
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
 			}
 
+#if GSR_WINDOWS
 			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{
 				var wminfo = default(SDL_SysWMinfo);
@@ -394,6 +397,7 @@ internal sealed class ImGuiWindow : IDisposable
 					_ = PInvoke.DwmSetWindowAttribute(new(wminfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
 				}
 			}
+#endif
 
 			WindowId = SDL_GetWindowID(SdlWindow);
 

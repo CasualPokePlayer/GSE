@@ -1,14 +1,17 @@
 using System;
-using System.Runtime.Versioning;
 
+#if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.UI.Controls.Dialogs;
+#endif
 
-using Gtk;
-
-#if MACOS
+#if GSR_OSX
 using AppKit;
 using Foundation;
+#endif
+
+#if GSR_LINUX
+using Gtk;
 #endif
 
 namespace GSR.Gui;
@@ -18,10 +21,15 @@ namespace GSR.Gui;
 /// </summary>
 internal static class SaveFileDialog
 {
+#if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	[SupportedOSPlatform("windows5.0")]
-	private static unsafe string ShowWindowsDialog(string description, string baseDir, string filename, string ext)
+	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
+		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
+		{
+			return null;
+		}
+
 		try
 		{
 			var filter = $"{description}\0*{ext}\0\0";
@@ -52,36 +60,10 @@ internal static class SaveFileDialog
 			return null;
 		}
 	}
+#endif
 
-	private static string ShowGtkDialog(string description, string baseDir, string filename, string ext)
-	{
-		try
-		{
-			using var dialog = new FileChooserNative($"Save {description}", null, FileChooserAction.Save, "_Save", "_Cancel");
-			try
-			{
-				dialog.DoOverwriteConfirmation = true;
-				using var fileFilter = new FileFilter();
-				fileFilter.Name = description;
-				fileFilter.AddPattern($"*{ext}");
-				dialog.AddFilter(fileFilter);
-				dialog.SetCurrentFolder(baseDir);
-				dialog.SetFilename(filename);
-				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
-			}
-			finally
-			{
-				dialog.Destroy();
-			}
-		}
-		catch
-		{
-			return null;
-		}
-	}
-
-#if MACOS
-	private static string ShowAppKitDialog(string description, string baseDir, string filename, string ext)
+#if GSR_OSX
+	public static string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
@@ -116,27 +98,32 @@ internal static class SaveFileDialog
 	}
 #endif
 
+#if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
-		// ReSharper disable ConvertIfStatementToReturnStatement
-
-		if (OperatingSystem.IsWindowsVersionAtLeast(5))
+		try
 		{
-			return ShowWindowsDialog(description, baseDir, filename, ext);
+			using var dialog = new FileChooserNative($"Save {description}", null, FileChooserAction.Save, "_Save", "_Cancel");
+			try
+			{
+				dialog.DoOverwriteConfirmation = true;
+				using var fileFilter = new FileFilter();
+				fileFilter.Name = description;
+				fileFilter.AddPattern($"*{ext}");
+				dialog.AddFilter(fileFilter);
+				dialog.SetCurrentFolder(baseDir);
+				dialog.SetFilename(filename);
+				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
+			}
+			finally
+			{
+				dialog.Destroy();
+			}
 		}
-
-		if (OperatingSystem.IsLinux())
+		catch
 		{
-			return ShowGtkDialog(description, baseDir, filename, ext);
+			return null;
 		}
-
-#if MACOS
-		if (OperatingSystem.IsMacOS())
-		{
-			return ShowAppKitDialog(description, baseDir, filename, ext);
-		}
-#endif
-
-		return null;
 	}
+#endif
 }
