@@ -4,4 +4,20 @@
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" PrivateAssets="all" Condition="'$(GSR_WINDOWS)' == 'true'" />
 		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
 	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_WINDOWS)' != 'true'">
+		<Compile Remove="Keyboards/RawKeyInput.cs" />
+		<Content Include="Keyboards/RawKeyInput.cs" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_OSX)' != 'true'">
+		<Compile Remove="Keyboards/QuartzImports.cs" />
+		<Compile Remove="Keyboards/QuartzKeyInput.cs" />
+		<Content Include="Keyboards/QuartzImports.cs" />
+		<Content Include="Keyboards/QuartzKeyInput.cs" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_LINUX)' != 'true'">
+		<Compile Remove="Keyboards/X11Imports.cs" />
+		<Compile Remove="Keyboards/X11KeyInput.cs" />
+		<Content Include="Keyboards/X11Imports.cs" />
+		<Content Include="Keyboards/X11KeyInput.cs" />
+	</ItemGroup>
 </Project>
