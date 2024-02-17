@@ -103,7 +103,7 @@ internal static class SaveFileDialog
 	{
 		try
 		{
-			using var dialog = new FileChooserDialog($"Save {description}", null, FileChooserAction.Save, ResponseType.Cancel, "_Cancel", ResponseType.Save, "_Save");
+			using var dialog = new FileChooserDialog($"Save {description}", null, FileChooserAction.Save, ResponseType.Cancel, "_Cancel", ResponseType.Accept, "_Save");
 			try
 			{
 				dialog.DoOverwriteConfirmation = true;
