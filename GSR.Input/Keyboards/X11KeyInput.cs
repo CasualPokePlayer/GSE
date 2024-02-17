@@ -524,7 +524,7 @@ internal sealed class X11KeyInput : IKeyInput
 	public X11KeyInput()
 	{
 		_display = XOpenDisplay(IntPtr.Zero);
-		if (_display != IntPtr.Zero)
+		if (_display == IntPtr.Zero)
 		{
 			throw new("Failed to open display");
 		}
