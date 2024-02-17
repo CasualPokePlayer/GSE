@@ -6,7 +6,6 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<Features>strict</Features>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<PlatformTarget>x64</PlatformTarget>
 		<Nullable>disable</Nullable>
 		<PublishTrimmed>true</PublishTrimmed>
 		<TrimMode>full</TrimMode>
@@ -17,9 +16,19 @@
 		<PublishAot>true</PublishAot>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<GSR_PUBLISH Condition="'$(_IsPublishing)' == 'true'">true</GSR_PUBLISH>
+		<!-- Note that .NET AOT does not support cross compiling across OSes (only across architectures), therefore we can assume the host OS is going to be the target OS -->
 		<GSR_WINDOWS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</GSR_WINDOWS>
 		<GSR_OSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</GSR_OSX>
 		<GSR_LINUX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</GSR_LINUX>
+		<GSR_X64 Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">true</GSR_X64>
+		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == 'win-arm64' Or '$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'linux-arm64'">true</GSR_ARM64>
+		<GSR_X64 Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">true</GSR_X64>
+		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">true</GSR_ARM64>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_X64)' == 'true' Or '$(GSR_ARM64)' == 'true'">
+		<PlatformTarget Condition="'$(GSR_X64)' == 'true'">x64</PlatformTarget>
+		<PlatformTarget Condition="'$(GSR_ARM64)' == 'true'">ARM64</PlatformTarget>
+		<DefineConstants>$(DefineConstants);GSR_64BIT</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true'">
 		<DebugSymbols>False</DebugSymbols>
@@ -30,24 +39,24 @@
 		<GSR_LIB_PREFIX></GSR_LIB_PREFIX>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.lib</GSR_LIB_EXT>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.dll</GSR_LIB_EXT>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">win-x64</GSR_RID>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">win-arm64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_X64)' == 'true'">win-x64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">win-arm64</GSR_RID>
 		<DefineConstants>$(DefineConstants);GSR_WINDOWS</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
 		<GSR_LIB_PREFIX>lib</GSR_LIB_PREFIX>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.a</GSR_LIB_EXT>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.dylib</GSR_LIB_EXT>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">osx-x64</GSR_RID>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">osx-arm64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_X64)' == 'true'">osx-x64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">osx-arm64</GSR_RID>
 		<DefineConstants>$(DefineConstants);GSR_OSX</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSR_LINUX)' == 'true'">
 		<GSR_LIB_PREFIX>lib</GSR_LIB_PREFIX>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' == 'true'">.a</GSR_LIB_EXT>
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.so</GSR_LIB_EXT>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'x64'">linux-x64</GSR_RID>
-		<GSR_RID Condition="'$(PlatformTarget)' == 'ARM64'">linux-arm64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_X64)' == 'true'">linux-x64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">linux-arm64</GSR_RID>
 		<DefineConstants>$(DefineConstants);GSR_LINUX</DefineConstants>
 	</PropertyGroup>
 	<Target Name="CheckPlatform">

@@ -50,9 +50,12 @@ internal sealed class RawKeyInput : IKeyInput
 			return PInvoke.DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-		var ud = IntPtr.Size == 8
-			? PInvoke.GetWindowLongPtr(hWnd, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA)
-			: PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_USERDATA);
+		var ud =
+#if GSR_64BIT
+			PInvoke.GetWindowLongPtr(hWnd, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA);
+#else
+			PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_USERDATA);
+#endif
 		if (ud == IntPtr.Zero)
 		{
 			return PInvoke.DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -139,15 +142,11 @@ internal sealed class RawKeyInput : IKeyInput
 				}
 
 				var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-				if (IntPtr.Size == 8)
-				{
-					PInvoke.SetWindowLongPtr(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA, GCHandle.ToIntPtr(handle));
-				}
-				else
-				{
-					PInvoke.SetWindowLong(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWL_USERDATA, (int)GCHandle.ToIntPtr(handle));
-				}
-
+#if GSR_64BIT
+				_ = PInvoke.SetWindowLongPtr(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA, GCHandle.ToIntPtr(handle));
+#else
+				_ = PInvoke.SetWindowLong(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWL_USERDATA, (int)GCHandle.ToIntPtr(handle));
+#endif
 				if (Marshal.GetLastSystemError() != 0)
 				{
 					throw new Win32Exception("Failed to set window userdata");

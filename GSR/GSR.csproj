@@ -42,6 +42,10 @@
 		<NativeLibrary Include="winmm.lib" />
 		<NativeLibrary Include="setupapi.lib" />
 	</ItemGroup>
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_LINUX)' == 'true'">
+		<!-- gambatte is C++, so it needs libstdc++ linked in -->
+		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
+	</PropertyGroup>
 	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true'">
 		<Content Include="$(CIMGUI_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

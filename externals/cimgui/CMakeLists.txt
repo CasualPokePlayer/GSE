@@ -23,6 +23,10 @@ set(CIMGUI_TEST OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(cimgui EXCLUDE_FROM_ALL)
 
+# cimgui cmakelist decides to clear the prefix always
+# we don't like that, so restore the prefix
+set_property(TARGET cimgui PROPERTY PREFIX)
+
 # Copy output to our runtime folders
 add_custom_target(cimgui-gsr ALL)
 add_dependencies(cimgui-gsr cimgui)

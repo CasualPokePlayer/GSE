@@ -1,0 +1,75 @@
+name: Build GSR
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - name: windows-x64
+          runner: windows-latest
+          shell: cmd
+          build_script: .\windows.bat
+          rid: win-x64
+          msvc_arch: x64
+        - name: windows-arm64
+          runner: windows-latest
+          shell: cmd
+          build_script: .\windows.bat
+          rid: win-arm64
+          msvc_arch: x64_arm64
+        #- name: macos-universal
+        #  runner: macos-latest
+        #  shell: sh
+        #  build_script: ./macos.sh
+        #  rid: osx
+        - name: linux-x64
+          runner: ubuntu-latest
+          container: ubuntu:20.04
+          shell: sh
+          build_script: ./linux.sh
+          rid: linux-x64
+        - name: linux-arm64
+          runner: ubuntu-latest
+          container: ubuntu:20.04
+          shell: sh
+          build_script: ./linux.sh
+          rid: linux-arm64
+    name: ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.runner }}
+    container: ${{ matrix.platform.container }}
+    defaults:
+      run:
+        shell: ${{ matrix.platform.shell }}
+    steps:
+    - name: Setup MSVC environment
+      if: matrix.platform.msvc_arch != ''
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.platform.msvc_arch }}
+    - name: Setup base Linux environment
+      if: matrix.platform.container != ''
+      run: apt update && apt install -y git
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        path: GSR
+        submodules: recursive
+    - name: Run CI build script
+      env:
+        TARGET_RID: ${{ matrix.platform.rid }}
+      run: |
+        cd GSR/.ci
+        ${{ matrix.platform.build_script }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: GSR-${{ matrix.platform.rid }}
+        path: GSR/output/${{ matrix.platform.rid }}/publish/*
+        if-no-files-found: error
