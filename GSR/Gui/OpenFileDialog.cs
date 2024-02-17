@@ -97,7 +97,7 @@ internal static class OpenFileDialog
 	{
 		try
 		{
-			using var dialog = new FileChooserNative($"Open {description}", null, FileChooserAction.Open, "_Open", "_Cancel");
+			using var dialog = new FileChooserDialog($"Open {description}", null, FileChooserAction.Open, ResponseType.Cancel, "_Cancel", ResponseType.Accept, "_Open");
 			try
 			{
 				using var fileFilter = new FileFilter();
