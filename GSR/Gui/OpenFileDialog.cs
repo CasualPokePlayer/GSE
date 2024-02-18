@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if GSR_OSX || GSR_LINUX
+using System.Linq;
+#endif
 
 #if GSR_WINDOWS
 using Windows.Win32;
@@ -9,11 +12,6 @@ using Windows.Win32.UI.Controls.Dialogs;
 #if GSR_OSX
 using AppKit;
 using Foundation;
-using System.Linq;
-#endif
-
-#if GSR_LINUX
-using Gtk;
 #endif
 
 namespace GSR.Gui;
@@ -95,25 +93,19 @@ internal static class OpenFileDialog
 #if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
+		if (!GtkFileChooser.IsAvailable)
+		{
+			return null;
+		}
+
 		try
 		{
-			using var dialog = new FileChooserDialog($"Open {description}", null, FileChooserAction.Open, ResponseType.Cancel, "_Cancel", ResponseType.Accept, "_Open");
-			try
-			{
-				using var fileFilter = new FileFilter();
-				fileFilter.Name = description;
-				foreach (var fileType in fileTypes)
-				{
-					fileFilter.AddPattern($"*{fileType}");
-				}
-				dialog.AddFilter(fileFilter);
-				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
-			}
-			finally
-			{
-				dialog.Destroy();
-			}
+			using var dialog = new GtkFileChooser($"Open {description}", GtkFileChooser.FileChooserAction.Open);
+			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+			dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
+			dialog.AddFilter(description, fileTypes.Select(ft => $"*{ft}"));
+			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 		catch
 		{

@@ -10,10 +10,6 @@ using AppKit;
 using Foundation;
 #endif
 
-#if GSR_LINUX
-using Gtk;
-#endif
-
 namespace GSR.Gui;
 
 /// <summary>
@@ -101,24 +97,21 @@ internal static class SaveFileDialog
 #if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
+		if (!GtkFileChooser.IsAvailable)
+		{
+			return null;
+		}
+
 		try
 		{
-			using var dialog = new FileChooserDialog($"Save {description}", null, FileChooserAction.Save, ResponseType.Cancel, "_Cancel", ResponseType.Accept, "_Save");
-			try
-			{
-				dialog.DoOverwriteConfirmation = true;
-				using var fileFilter = new FileFilter();
-				fileFilter.Name = description;
-				fileFilter.AddPattern($"*{ext}");
-				dialog.AddFilter(fileFilter);
-				dialog.SetCurrentFolder(baseDir);
-				dialog.SetFilename(filename);
-				return (ResponseType)dialog.Run() == ResponseType.Accept ? dialog.Filename : null;
-			}
-			finally
-			{
-				dialog.Destroy();
-			}
+			using var dialog = new GtkFileChooser($"Save {description}", GtkFileChooser.FileChooserAction.Save);
+			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+			dialog.AddButton("_Save", GtkFileChooser.Response.Accept);
+			dialog.AddFilter(description, [ $"*{ext}" ]);
+			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+			dialog.SetCurrentName($"{filename}{ext}");
+			dialog.SetOverwriteConfirmation(true);
+			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 		catch
 		{
