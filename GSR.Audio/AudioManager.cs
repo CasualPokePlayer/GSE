@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -26,7 +27,7 @@ public sealed class AudioManager : IDisposable
 		var samplesRead = manager.OutputAudioBuffer.Read(new((void*)stream, samples));
 		if (samplesRead < samples)
 		{
-			Console.WriteLine($"AUDIO UNDERRUN! Only read {samplesRead} samples (wanted {samples} samples)");
+			Debug.WriteLine($"AUDIO UNDERRUN! Only read {samplesRead} samples (wanted {samples} samples)");
 			new Span<short>((void*)(stream + samplesRead * 2), samples - samplesRead).Clear();
 		}
 	}

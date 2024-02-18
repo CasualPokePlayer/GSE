@@ -646,7 +646,7 @@ internal sealed class X11KeyInput : IKeyInput
 
 							if (_keyToScanCodeMap[i] != 0)
 							{
-								_scanCodeSymStrMap[i] = _keysymToStrMap.GetValueOrDefault(keysym);
+								_scanCodeSymStrMap[(byte)_keyToScanCodeMap[i]] = _keysymToStrMap.GetValueOrDefault(keysym);
 							}
 						}
 					}
