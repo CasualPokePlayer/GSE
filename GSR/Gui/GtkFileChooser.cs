@@ -10,7 +10,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 {
 	private const string LIBGTK = "libgtk";
 
-	// most of the file chooser apis use only need at least gtk 2.4
+	// most of the file chooser apis used only need at least gtk 2.4
 	private static readonly ImmutableArray<string> _gtkLibraryNames = 
 	[
 		"libgtk-3.so",
@@ -60,7 +60,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 		catch
 		{
-			// g_log_set_default_handler might not be available (requires at least 2.6)
+			// g_log_set_default_handler might not be available (requires at least glib 2.6, which was released slightly after gtk 2.4)
 			// but most file chooser apis might still be available
 		}
 	}
@@ -130,7 +130,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 		catch
 		{
-			// might not be available (requires at least 2.8), not critical for usage however
+			// might not be available (requires at least gtk 2.8), not critical for usage however
 		}
 	}
 
@@ -209,7 +209,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 	private static partial IntPtr gtk_file_chooser_get_filename(IntPtr chooser);
 
 	[LibraryImport(LIBGTK)]
-	private static partial void g_free(IntPtr p);
+	private static partial void g_free(IntPtr mem);
 
 	[LibraryImport(LIBGTK)]
 	[return: MarshalAs(UnmanagedType.Bool)]

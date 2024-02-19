@@ -129,6 +129,11 @@ internal sealed class GSR : IDisposable
 	private readonly RomLoader _romLoader;
 
 	/// <summary>
+	/// Savestate logic
+	/// </summary>
+	private readonly StateManager _stateManager;
+
+	/// <summary>
 	/// Hotkey logic
 	/// </summary>
 	private readonly HotkeyManager _hotkeyManager;
@@ -180,9 +185,10 @@ internal sealed class GSR : IDisposable
 			_gbController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
 			_gbaController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
 			_romLoader = new(_config, _emuManager, _postProcessor, _osdManager, _gbController, _gbaController, _mainWindow);
-			_hotkeyManager = new(_config, _emuManager, _inputManager, _mainWindow, HotkeyInputGateCallback);
+			_stateManager = new(_config, _emuManager, _osdManager);
+			_hotkeyManager = new(_config, _emuManager, _inputManager, _stateManager, _mainWindow, HotkeyInputGateCallback);
 			_imGuiModals = new(_config, _emuManager, _inputManager, _audioManager, _mainWindow);
-			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _hotkeyManager, _mainWindow, _imGuiModals);
+			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _stateManager, _mainWindow, _imGuiModals);
 			_mainWindow.SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			_mainWindow.SetVisible(true);
 		}

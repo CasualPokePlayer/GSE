@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.Immutable;
 
 using GSR.Emu;
 using GSR.Gui;
@@ -8,167 +8,141 @@ using GSR.Input;
 
 namespace GSR;
 
-internal sealed class HotkeyManager(Config config, EmuManager emuManager, InputManager inputManager, ImGuiWindow mainWindow, Func<InputGate> inputGateCallback)
+internal sealed class HotkeyManager
 {
-	private record struct HotkeyState(List<InputBinding> InputBindings, bool WasPressed = false);
-
-	private HotkeyState _pauseHotkeyState = new(config.HotkeyBindings.PauseButtonBindings);
-	private HotkeyState _fullScreenHotkeyState = new(config.HotkeyBindings.FullScreenButtonBindings);
-	private HotkeyState _fastForwardHotkeyState = new(config.HotkeyBindings.FastForwardButtonBindings);
-	private HotkeyState _saveStateHotkeyState = new(config.HotkeyBindings.SaveStateButtonBindings);
-	private HotkeyState _loadStateHotkeyState = new(config.HotkeyBindings.LoadStateButtonBindings);
-	private HotkeyState _prevStateSetHotkeyState = new(config.HotkeyBindings.PrevStateSetButtonBindings);
-	private HotkeyState _nextStateSetHotkeyState = new(config.HotkeyBindings.NextStateSetButtonBindings);
-	private HotkeyState _prevStateSlotHotkeyState = new(config.HotkeyBindings.PrevStateSlotButtonBindings);
-	private HotkeyState _nextStateSlotHotkeyState = new(config.HotkeyBindings.NextStateSlotButtonBindings);
-
-	private readonly HotkeyState[] _selectStateSlotHotkeyStates =
-	[
-		new(config.HotkeyBindings.SelectStateSlot1ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot2ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot3ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot4ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot5ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot6ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot7ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot8ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot9ButtonBindings),
-		new(config.HotkeyBindings.SelectStateSlot10ButtonBindings)
-	];
-
-	private readonly HotkeyState[] _saveStateSlotHotkeyStates =
-	[
-		new(config.HotkeyBindings.SaveStateSlot1ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot2ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot3ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot4ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot5ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot6ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot7ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot8ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot9ButtonBindings),
-		new(config.HotkeyBindings.SaveStateSlot10ButtonBindings)
-	];
-
-	private readonly HotkeyState[] _loadStateSlotHotkeyStates =
-	[
-		new(config.HotkeyBindings.LoadStateSlot1ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot2ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot3ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot4ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot5ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot6ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot7ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot8ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot9ButtonBindings),
-		new(config.HotkeyBindings.LoadStateSlot10ButtonBindings)
-	];
-
-	private void UpdateHotkeyState(ref HotkeyState hotkeyState, InputGate inputGate, Action onPress, Action onUnpress = null)
+	private interface IHotkey
 	{
-		var newState = inputManager.GetInputForBindings(hotkeyState.InputBindings, inputGate);
-		if (newState == hotkeyState.WasPressed)
+		void UpdateHotkeyState(InputGate inputGate);
+	}
+
+	private class PressTriggerHotkeyState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action onPress) : IHotkey
+	{
+		private bool _wasPressed;
+
+		public void UpdateHotkeyState(InputGate inputGate)
 		{
-			return;
-		}
+			var newState = inputManager.GetInputForBindings(inputBindings, inputGate);
+			if (newState && !_wasPressed)
+			{
+				onPress();
+			}
 
-		if (newState)
+			_wasPressed = newState;
+		}
+	}
+
+	private class PressUnpressTriggerHotkeyState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action onPress, Action onUnpress) : IHotkey
+	{
+		private bool _wasPressed;
+
+		public void UpdateHotkeyState(InputGate inputGate)
 		{
-			onPress();
+			var newState = inputManager.GetInputForBindings(inputBindings, inputGate);
+			if (newState == _wasPressed)
+			{
+				return;
+			}
+
+			if (newState)
+			{
+				onPress();
+			}
+			else
+			{
+				onUnpress();
+			}
+
+			_wasPressed = newState;
 		}
-		else
+	}
+
+	private class PressTriggerHotkeySlotState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action<int> onPress, int slot) : IHotkey
+	{
+		private bool _wasPressed;
+
+		public void UpdateHotkeyState(InputGate inputGate)
 		{
-			onUnpress?.Invoke();
+			var newState = inputManager.GetInputForBindings(inputBindings, inputGate);
+			if (newState && !_wasPressed)
+			{
+				onPress(slot);
+			}
+
+			_wasPressed = newState;
 		}
-
-		hotkeyState.WasPressed = newState;
 	}
 
-	private void UpdateSlotHotkeyState(ref HotkeyState slotHotkeyState, InputGate inputGate, Action<int> onPress, int slot)
-	{
-		var newState = inputManager.GetInputForBindings(slotHotkeyState.InputBindings, inputGate);
-		if (newState && !slotHotkeyState.WasPressed)
-		{
-			onPress(slot);
-		}
+	private readonly Config _config;
+	private readonly EmuManager _emuManager;
+	private readonly Func<InputGate> _inputGateCallback;
+	private readonly ImmutableArray<IHotkey> _hotkeys;
 
-		slotHotkeyState.WasPressed = newState;
+	public HotkeyManager(Config config, EmuManager emuManager, InputManager inputManager, StateManager stateManager, ImGuiWindow mainWindow, Func<InputGate> inputGateCallback)
+	{
+		_config = config;
+		_emuManager = emuManager;
+		_inputGateCallback = inputGateCallback;
+
+		_hotkeys =
+		[
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, emuManager.TogglePause),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
+			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.SaveStateButtonBindings, stateManager.SaveStateCurSlot),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.LoadStateButtonBindings, stateManager.LoadStateCurSlot),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PrevStateSetButtonBindings, stateManager.DecStateSet),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.NextStateSetButtonBindings, stateManager.IncStateSet),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PrevStateSlotButtonBindings, stateManager.DecStateSlot),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.NextStateSlotButtonBindings, stateManager.IncStateSlot),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot1ButtonBindings, stateManager.SetStateSlot, 0),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot2ButtonBindings, stateManager.SetStateSlot, 1),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot3ButtonBindings, stateManager.SetStateSlot, 2),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot4ButtonBindings, stateManager.SetStateSlot, 3),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot5ButtonBindings, stateManager.SetStateSlot, 4),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot6ButtonBindings, stateManager.SetStateSlot, 5),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot7ButtonBindings, stateManager.SetStateSlot, 6),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot8ButtonBindings, stateManager.SetStateSlot, 7),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot9ButtonBindings, stateManager.SetStateSlot, 8),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SelectStateSlot10ButtonBindings, stateManager.SetStateSlot, 9),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot1ButtonBindings, stateManager.SaveStateSlot, 0),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot2ButtonBindings, stateManager.SaveStateSlot, 1),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot3ButtonBindings, stateManager.SaveStateSlot, 2),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot4ButtonBindings, stateManager.SaveStateSlot, 3),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot5ButtonBindings, stateManager.SaveStateSlot, 4),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot6ButtonBindings, stateManager.SaveStateSlot, 5),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot7ButtonBindings, stateManager.SaveStateSlot, 6),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot8ButtonBindings, stateManager.SaveStateSlot, 7),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot9ButtonBindings, stateManager.SaveStateSlot, 8),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.SaveStateSlot10ButtonBindings, stateManager.SaveStateSlot, 9),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot1ButtonBindings, stateManager.LoadStateSlot, 0),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot2ButtonBindings, stateManager.LoadStateSlot, 1),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot3ButtonBindings, stateManager.LoadStateSlot, 2),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot4ButtonBindings, stateManager.LoadStateSlot, 3),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot5ButtonBindings, stateManager.LoadStateSlot, 4),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot6ButtonBindings, stateManager.LoadStateSlot, 5),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot7ButtonBindings, stateManager.LoadStateSlot, 6),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot8ButtonBindings, stateManager.LoadStateSlot, 7),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot9ButtonBindings, stateManager.LoadStateSlot, 8),
+			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot10ButtonBindings, stateManager.LoadStateSlot, 9)
+		];
 	}
 
-	public void SaveStateCurSlot()
+	public void EnableFastForward()
 	{
-		SaveStateSlot(config.SaveStateSlot);
+		_emuManager.SetSpeedFactor(_config.FastForwardSpeed);
 	}
 
-	public void LoadStateCurSlot()
+	public void DisableFastForward()
 	{
-		LoadStateSlot(config.SaveStateSlot);
-	}
-
-	// TODO: a lot of these probably should be moved to Config
-	public void DecStateSet()
-	{
-		config.SaveStateSet = config.SaveStateSet == 0 ? 9 : config.SaveStateSet - 1;
-	}
-
-	public void IncStateSet()
-	{
-		config.SaveStateSet = config.SaveStateSet == 9 ? 0 : config.SaveStateSet + 1;
-	}
-
-	public void DecStateSlot()
-	{
-		config.SaveStateSlot = config.SaveStateSlot == 0 ? 9 : config.SaveStateSlot - 1;
-	}
-
-	public void IncStateSlot()
-	{
-		config.SaveStateSlot = config.SaveStateSlot == 9 ? 0 : config.SaveStateSlot + 1;
-	}
-
-	public void SetStateSlot(int i)
-	{
-		config.SaveStateSlot = i;
-	}
-
-	public void SaveStateSlot(int slot)
-	{
-		var stateSlot = config.SaveStateSet * 10 + slot + 1;
-		var statePath = $"{Path.Combine(emuManager.CurrentRomDirectory, emuManager.CurrentRomName)}_{stateSlot}.gqs";
-		_ = emuManager.SaveState(statePath);
-	}
-
-	public void LoadStateSlot(int slot)
-	{
-		var stateSlot = config.SaveStateSet * 10 + slot + 1;
-		var statePath = $"{Path.Combine(emuManager.CurrentRomDirectory, emuManager.CurrentRomName)}_{stateSlot}.gqs";
-		_ = emuManager.LoadState(statePath);
+		_emuManager.SetSpeedFactor(1);
 	}
 
 	public void ProcessHotkeys()
 	{
-		var inputGate = inputGateCallback();
-		UpdateHotkeyState(ref _pauseHotkeyState, inputGate, emuManager.TogglePause);
-		UpdateHotkeyState(ref _fullScreenHotkeyState, inputGate, mainWindow.ToggleFullscreen);
-		UpdateHotkeyState(ref _fastForwardHotkeyState, inputGate, () =>
+		var inputGate = _inputGateCallback();
+		foreach (var hotkey in _hotkeys)
 		{
-			emuManager.SetSpeedFactor(config.FastForwardSpeed);
-		}, () =>
-		{
-			emuManager.SetSpeedFactor(1);
-		});
-		UpdateHotkeyState(ref _saveStateHotkeyState, inputGate, SaveStateCurSlot);
-		UpdateHotkeyState(ref _loadStateHotkeyState, inputGate, LoadStateCurSlot);
-		UpdateHotkeyState(ref _prevStateSetHotkeyState, inputGate, DecStateSet);
-		UpdateHotkeyState(ref _nextStateSetHotkeyState, inputGate, IncStateSet);
-		UpdateHotkeyState(ref _prevStateSlotHotkeyState, inputGate, DecStateSlot);
-		UpdateHotkeyState(ref _nextStateSlotHotkeyState, inputGate, IncStateSlot);
-
-		for (var i = 0; i < 10; i++)
-		{
-			UpdateSlotHotkeyState(ref _selectStateSlotHotkeyStates[i], inputGate, SetStateSlot, i);
-			UpdateSlotHotkeyState(ref _saveStateSlotHotkeyStates[i], inputGate, SaveStateSlot, i);
-			UpdateSlotHotkeyState(ref _loadStateSlotHotkeyStates[i], inputGate, LoadStateSlot, i);
+			hotkey.UpdateHotkeyState(inputGate);
 		}
 	}
 }

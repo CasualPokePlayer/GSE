@@ -8,7 +8,7 @@ using GSR.Emu;
 
 namespace GSR.Gui;
 
-internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoader romLoader, HotkeyManager hotkeyManager, ImGuiWindow mainWindow, ImGuiModals imGuiModals)
+internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoader romLoader, StateManager stateManager, ImGuiWindow mainWindow, ImGuiModals imGuiModals)
 {
 	public void RunMenuBar()
 	{
@@ -80,36 +80,36 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 
 				if (ImGui.MenuItem("Save State", emuManager.RomIsLoaded))
 				{
-					hotkeyManager.SaveStateCurSlot();
+					stateManager.SaveStateCurSlot();
 				}
 
 				if (ImGui.MenuItem("Load State", emuManager.RomIsLoaded))
 				{
-					hotkeyManager.LoadStateCurSlot();
+					stateManager.LoadStateCurSlot();
 				}
 
 				if (ImGui.BeginMenu("Select State Slot...", emuManager.RomIsLoaded))
 				{
 					if (ImGui.MenuItem("Previous Set"))
 					{
-						hotkeyManager.DecStateSet();
+						stateManager.DecStateSet();
 					}
 
 					if (ImGui.MenuItem("Next Set"))
 					{
-						hotkeyManager.IncStateSet();
+						stateManager.IncStateSet();
 					}
 
 					ImGui.Separator();
 
 					if (ImGui.MenuItem("Previous"))
 					{
-						hotkeyManager.DecStateSlot();
+						stateManager.DecStateSlot();
 					}
 
 					if (ImGui.MenuItem("Next"))
 					{
-						hotkeyManager.IncStateSet();
+						stateManager.IncStateSet();
 					}
 
 					ImGui.Separator();
@@ -119,7 +119,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var slot = config.SaveStateSet * 10 + i + 1;
 						if (ImGui.RadioButton($"Slot {slot}", i == config.SaveStateSlot))
 						{
-							hotkeyManager.SetStateSlot(i);
+							stateManager.SetStateSlot(i);
 						}
 					}
 
