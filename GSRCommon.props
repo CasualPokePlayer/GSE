@@ -22,8 +22,10 @@
 		<GSR_LINUX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</GSR_LINUX>
 		<GSR_X64 Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">true</GSR_X64>
 		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == 'win-arm64' Or '$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'linux-arm64'">true</GSR_ARM64>
-		<GSR_X64 Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">true</GSR_X64>
-		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">true</GSR_ARM64>
+		<GSR_X64 Condition="'$(RuntimeIdentifier)' == '' And '$(PlatformTarget)' == 'x64'">true</GSR_X64>
+		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$(PlatformTarget)' == 'ARM64'">true</GSR_ARM64>
+		<GSR_X64 Condition="'$(GSR_X64)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">true</GSR_X64>
+		<GSR_ARM64 Condition="'$(GSR_ARM64)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">true</GSR_ARM64>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSR_X64)' == 'true' Or '$(GSR_ARM64)' == 'true'">
 		<PlatformTarget Condition="'$(GSR_X64)' == 'true'">x64</PlatformTarget>
