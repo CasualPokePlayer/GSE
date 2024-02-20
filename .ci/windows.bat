@@ -16,7 +16,7 @@ call:CMakeNinjaBuild mgba
 
 :: Build GSR
 cd ..
-dotnet publish .\GSR\GSR.csproj -r %TARGET_RID%
+dotnet publish -r %TARGET_RID%
 GOTO:EOF
 
 :CMakeNinjaBuild

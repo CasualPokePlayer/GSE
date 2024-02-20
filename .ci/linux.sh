@@ -75,4 +75,4 @@ chmod +x ./dotnet-install.sh
 
 # Build GSR
 cd ..
-$HOME/.dotnet/dotnet publish ./GSR/GSR.csproj -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
+$HOME/.dotnet/dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
