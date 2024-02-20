@@ -21,6 +21,11 @@
 
 static void stub_logger(struct mLogger* logger, int category, enum mLogLevel level, const char* format, va_list args)
 {
+	(void)logger;
+	(void)category;
+	(void)level;
+	(void)format;
+	(void)args;
 }
 
 static void set_default_logger()

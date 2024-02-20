@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1...3.20 FATAL_ERROR)
+
+if(POLICY CMP0063)
+	cmake_policy(SET CMP0063 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
+endif()
 
 if(POLICY CMP0069)
 	cmake_policy(SET CMP0069 NEW)
@@ -12,6 +17,9 @@ if(POLICY CMP0092)
 	set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 	set(CMAKE_POLICY_DEFAULT_CMP0092 NEW)
 endif()
+
+# .NET 8 macOS requires at least 10.15
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
 project(mgba-gsr C)
 

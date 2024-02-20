@@ -11,6 +11,9 @@ if(POLICY CMP0069)
 	cmake_policy(SET CMP0069 NEW)
 endif()
 
+# .NET 8 macOS requires at least 10.15
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+
 project(gambatte-gsr CXX)
 
 if(MSVC)
