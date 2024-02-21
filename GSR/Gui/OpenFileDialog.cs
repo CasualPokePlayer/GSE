@@ -67,7 +67,7 @@ internal static class OpenFileDialog
 			dialog.CanChooseFiles = true;
 			dialog.AllowsOtherFileTypes = false;
 			dialog.Title = $"Open {description}";
-			dialog.DirectoryUrl = new Uri(baseDir ?? AppContext.BaseDirectory);
+			dialog.DirectoryUrl = new(baseDir ?? AppContext.BaseDirectory);
 			// the older API is deprecated on macOS 12
 			// still need to support it however if we want to support macOS 10.15
 			if (OperatingSystem.IsMacOSVersionAtLeast(11))
