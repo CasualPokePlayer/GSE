@@ -661,8 +661,6 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
-		displayW *= 2;
-		displayH *= 2;
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{
