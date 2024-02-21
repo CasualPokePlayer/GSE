@@ -171,7 +171,7 @@ internal sealed class GSR : IDisposable
 	private static string ConfigDirectory()
 	{
 #if GSR_OSX
-		return SDL_GetPrefPath("", "GSR");
+		return Path.Combine(SDL_GetPrefPath("", "GSR"), "gsr_config.json");
 #else
 		return Path.Combine(AppContext.BaseDirectory, "gsr_config.json");
 #endif
