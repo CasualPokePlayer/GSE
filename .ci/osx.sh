@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Install base build tools
-brew install ninja cmake
+# Install ninja
+brew install ninja
 
 CMakeNinjaBuild() {
 	# One time for x64
@@ -43,6 +43,7 @@ CMakeNinjaBuild mgba
 
 # Build GSR
 cd ..
+dotnet workload restore
 dotnet publish -r osx-x64
 dotnet publish -r osx-arm64
 
