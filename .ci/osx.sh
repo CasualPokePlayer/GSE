@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Install ninja
-brew install ninja
+# Install build tools
+brew install ninja create-dmg
 
 CMakeNinjaBuild() {
 	# One time for x64
@@ -49,9 +49,19 @@ dotnet publish -r osx-arm64
 
 # Merge the binaries together
 mkdir output/$TARGET_RID
-mkdir output/$TARGET_RID/publish/
-cp -a output/osx-x64 output/$TARGET_RID/publish
-#lipo output/osx-x64/publish/GSR.app/Contents/MacOS/GSR output/osx-arm64/publish/GSR.app/Contents/MacOS/GSR -create -output output/$TARGET_RID/publish/GSR.app/Contents/MacOS/GSR
+cp -a output/osx-x64/GSR.app output/$TARGET_RID
+lipo output/osx-x64/GSR.app/Contents/MacOS/GSR output/osx-arm64/GSR.app/Contents/MacOS/GSR -create -output output/$TARGET_RID/GSR.app/Contents/MacOS/GSR
+
+# Also have to do this with all the dylibs bundled by dotnet
+cd output/osx-x64
+for dylib in GSR.app/Contents/MonoBundle/libSystem.*.dylib; do
+	lipo $dylib ../osx-arm64/$dylib -create -output ../$TARGET_RID/$dylib
+done
+cd ../..
 
 # Resign the binary
-#codesign -s - --deep output/$TARGET_RID/publish/GSR.app
+codesign -s - --deep output/$TARGET_RID/GSR.app
+
+# Output a dmg
+mkdir output/$TARGET_RID/publish
+create-dmg output/$TARGET_RID/publish/GSR.dmg output/$TARGET_RID/GSR.app
