@@ -2,6 +2,7 @@
 	<Import Project="../GSRCommon.props" />
 	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
 		<TargetFramework>net8.0-macos</TargetFramework>
+		<ApplicationId>org.psr.gsr</ApplicationId>
 	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
