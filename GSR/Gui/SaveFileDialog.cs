@@ -7,7 +7,6 @@ using Windows.Win32.UI.Controls.Dialogs;
 
 #if GSR_OSX
 using AppKit;
-using Foundation;
 #endif
 
 namespace GSR.Gui;
@@ -65,23 +64,14 @@ internal static class SaveFileDialog
 		try
 		{
 			using var dialog = NSSavePanel.SavePanel;
-			dialog.AllowsMultipleSelection = false;
-			dialog.CanChooseDirectories = false;
-			dialog.CanChooseFiles = true;
 			dialog.AllowsOtherFileTypes = false;
 			dialog.Title = $"Save {description}";
-			dialog.DirectoryUrl = new Uri(baseDir);
+			dialog.DirectoryUrl = new(baseDir);
 			dialog.NameFieldStringValue = filename;
-			// deprecated, but have to do this if we want to support macOS 10.15
+			// deprecated on macOS 12, but have to do this if we want to support macOS 10.15
 			dialog.AllowedFileTypes = [ ext[1..] ];
-			//dialog.AllowedContentTypes = [ UTType.CreateFromExtension(ext[1..]) ];
-			if ((NSModalResponse)dialog.RunModal() == NSModalResponse.OK)
-			{
-				Uri uri = panel.Url;
-				return uri.LocalPath;
-			}
-
-			return null;
+			//dialog.AllowedContentTypes = [ UniformTypeIdentifiers.UTType.CreateFromExtension(ext[1..]) ];
+			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
 		}
 		catch
 		{
@@ -89,7 +79,7 @@ internal static class SaveFileDialog
 		}
 		finally
 		{
-			keyWindow?.MakeKeyAndOrderFront(null);
+			keyWindow.MakeKeyAndOrderFront(null);
 		}
 	}
 #endif

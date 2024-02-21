@@ -43,7 +43,7 @@ CMakeNinjaBuild mgba
 
 # Build GSR
 cd ..
-dotnet workload restore
+dotnet workload install macos
 dotnet publish -r osx-x64
 dotnet publish -r osx-arm64
 
