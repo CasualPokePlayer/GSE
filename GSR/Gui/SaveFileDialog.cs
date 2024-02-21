@@ -7,6 +7,7 @@ using Windows.Win32.UI.Controls.Dialogs;
 
 #if GSR_OSX
 using AppKit;
+using UniformTypeIdentifiers;
 #endif
 
 namespace GSR.Gui;
@@ -68,9 +69,16 @@ internal static class SaveFileDialog
 			dialog.Title = $"Save {description}";
 			dialog.DirectoryUrl = new(baseDir);
 			dialog.NameFieldStringValue = filename;
-			// deprecated on macOS 12, but have to do this if we want to support macOS 10.15
-			dialog.AllowedFileTypes = [ ext[1..] ];
-			//dialog.AllowedContentTypes = [ UniformTypeIdentifiers.UTType.CreateFromExtension(ext[1..]) ];
+			// the older API is deprecated on macOS 12
+			// still need to support it however if we want to support macOS 10.15
+			if (OperatingSystem.IsMacOSVersionAtLeast(11))
+			{
+				dialog.AllowedContentTypes = [ UTType.CreateFromExtension(ext[1..]) ];
+			}
+			else
+			{
+				dialog.AllowedFileTypes = [ ext[1..] ];
+			}
 			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
 		}
 		catch
