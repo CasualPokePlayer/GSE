@@ -168,11 +168,20 @@ internal sealed class GSR : IDisposable
 			? new(false, false) : InputGateCallback();
 	}
 
+	private static string ConfigDirectory()
+	{
+#if GSR_OSX
+		return SDL_GetPrefPath("", "GSR");
+#else
+		return Path.Combine(AppContext.BaseDirectory, "gsr_config.json");
+#endif
+	}
+
 	public GSR()
 	{
 		try
 		{
-			_config = Config.LoadConfig(Path.Combine(AppContext.BaseDirectory, "gsr_config.json"));
+			_config = Config.LoadConfig(ConfigDirectory());
 			_mainWindow = new("GSR", _config, true);
 			_inputManager = new();
 			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
@@ -206,7 +215,7 @@ internal sealed class GSR : IDisposable
 		_emuManager?.Dispose();
 		_audioManager?.Dispose();
 		_inputManager?.Dispose();
-		_config?.SaveConfig(Path.Combine(AppContext.BaseDirectory, "gsr_config.json"));
+		_config?.SaveConfig(ConfigDirectory());
 	}
 
 	private unsafe bool HandleEvents()
