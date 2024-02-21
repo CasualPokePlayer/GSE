@@ -5,7 +5,8 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
-		<OutputType>WinExe</OutputType>
+		<OutputType Condition="'$(GSR_WINDOWS)' == 'true'">WinExe</OutputType>
+		<OutputType Condition="'$(GSR_WINDOWS)' != 'true'">Exe</OutputType>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="SharpCompress" Version="0.36.0" />
