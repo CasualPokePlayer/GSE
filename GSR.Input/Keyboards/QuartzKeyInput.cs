@@ -125,7 +125,7 @@ internal sealed class QuartzKeyInput : IKeyInput
 		[CGKeyCode.kVK_UpArrow] = ScanCode.SC_UP,
 	}.ToFrozenDictionary();
 
-	private readonly bool[] _lastKeyState = new bool[(int)CGKeyCode.kVK_MAX];
+	private readonly bool[] _lastKeyState = new bool[(int)CGKeyCode.kVK_MAX + 1];
 
 	public void Dispose()
 	{
