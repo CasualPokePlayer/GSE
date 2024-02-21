@@ -374,7 +374,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 		try
 		{
-			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
+			const SDL_WindowFlags windowFlags = /*SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |*/ SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1, 1, windowFlags);
 			if (SdlWindow == IntPtr.Zero)
 			{
