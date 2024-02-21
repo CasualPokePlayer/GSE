@@ -3,6 +3,8 @@
 	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
 		<TargetFramework>net8.0-macos</TargetFramework>
 		<ApplicationId>org.psr.gsr</ApplicationId>
+		<SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion>
+		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
