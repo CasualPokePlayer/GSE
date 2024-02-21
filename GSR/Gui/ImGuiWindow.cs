@@ -374,7 +374,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 		try
 		{
-			const SDL_WindowFlags windowFlags = /*SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |*/ SDL_WindowFlags.SDL_WINDOW_HIDDEN;
+			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1, 1, windowFlags);
 			if (SdlWindow == IntPtr.Zero)
 			{
@@ -652,6 +652,8 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
 		}
+		Console.WriteLine($"DisplaySize = {io.DisplaySize}");
+		Console.WriteLine($"DisplayFramebufferScale = {io.DisplayFramebufferScale}");
 
 		var time = SDL_GetPerformanceCounter();
 		if (time <= _lastTime)
@@ -730,6 +732,7 @@ internal sealed class ImGuiWindow : IDisposable
 		Vector2 renderScale;
 		renderScale.X = Math.Abs(scaleX - 1f) < 0.1f ? drawData.FramebufferScale.X : 1f;
 		renderScale.Y = Math.Abs(scaleY - 1f) < 0.1f ? drawData.FramebufferScale.Y : 1f;
+		Console.WriteLine($"renderScale = {renderScale}");
 
 		var fbWidth = (int)(drawData.DisplaySize.X * renderScale.X);
 		var fbHeight = (int)(drawData.DisplaySize.Y * renderScale.Y);
