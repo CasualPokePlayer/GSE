@@ -375,7 +375,7 @@ internal sealed class ImGuiWindow : IDisposable
 		try
 		{
 			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
-			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1, 1, windowFlags);
+			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 64, 64, windowFlags);
 			if (SdlWindow == IntPtr.Zero)
 			{
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
@@ -446,6 +446,20 @@ internal sealed class ImGuiWindow : IDisposable
 				io.GetClipboardTextFn = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, IntPtr>)&GetClipboardText;
 				io.SetClipboardTextFn = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void>)&SetClipboardText;
 				io.SetPlatformImeDataFn = (IntPtr)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&SetPlatformImeData;
+			}
+
+			var scaleOverride = Environment.GetEnvironmentVariable("GSR_SCALE");
+			if (float.TryParse(scaleOverride, out var scaleFactor))
+			{
+				io.FontGlobalScale = scaleFactor;
+				ImGui.GetStyle().ScaleAllSizes(scaleFactor);
+			}
+			else
+			{
+				_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out _);
+				SDL_GetWindowSize(SdlWindow, out var windowW, out _);
+				io.FontGlobalScale = displayW / (float)windowW;
+				ImGui.GetStyle().ScaleAllSizes(displayW / (float)windowW);
 			}
 
 			io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
@@ -647,13 +661,13 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+		displayW *= 2;
+		displayH *= 2;
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{
 			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
 		}
-		Console.WriteLine($"DisplaySize = {io.DisplaySize}");
-		Console.WriteLine($"DisplayFramebufferScale = {io.DisplayFramebufferScale}");
 
 		var time = SDL_GetPerformanceCounter();
 		if (time <= _lastTime)
@@ -728,14 +742,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 		var drawData = ImGui.GetDrawData();
 
-		SDL_RenderGetScale(SdlRenderer, out var scaleX, out var scaleY);
-		Vector2 renderScale;
-		renderScale.X = Math.Abs(scaleX - 1f) < 0.1f ? drawData.FramebufferScale.X : 1f;
-		renderScale.Y = Math.Abs(scaleY - 1f) < 0.1f ? drawData.FramebufferScale.Y : 1f;
-		Console.WriteLine($"renderScale = {renderScale}");
-
-		var fbWidth = (int)(drawData.DisplaySize.X * renderScale.X);
-		var fbHeight = (int)(drawData.DisplaySize.Y * renderScale.Y);
+		var fbWidth = (int)drawData.DisplaySize.X;
+		var fbHeight = (int)drawData.DisplaySize.Y;
 		if (fbWidth <= 0 || fbHeight <= 0)
 		{
 			Thread.Sleep(5);
@@ -747,7 +755,6 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_RenderGetClipRect(SdlRenderer, out var prevClipRect);
 
 		var clipOff = drawData.DisplayPos;
-		var clipScale = renderScale;
 
 		void ResetRenderState()
 		{
@@ -783,8 +790,8 @@ internal sealed class ImGuiWindow : IDisposable
 				}
 				else
 				{
-					var clipMin = new Vector2(Math.Max((cmd.ClipRect.X - clipOff.X) * clipScale.X, 0), Math.Max((cmd.ClipRect.Y - clipOff.Y) * clipScale.Y, 0));
-					var clipMax = new Vector2(Math.Min((cmd.ClipRect.Z - clipOff.X) * clipScale.X, fbWidth), Math.Min((cmd.ClipRect.W - clipOff.Y) * clipScale.Y, fbHeight));
+					var clipMin = new Vector2(Math.Max(cmd.ClipRect.X - clipOff.X, 0), Math.Max(cmd.ClipRect.Y - clipOff.Y, 0));
+					var clipMax = new Vector2(Math.Min(cmd.ClipRect.Z - clipOff.X, fbWidth), Math.Min(cmd.ClipRect.W - clipOff.Y, fbHeight));
 					if (clipMax.X <= clipMin.X || clipMax.Y <= clipMin.Y)
 					{
 						continue;
