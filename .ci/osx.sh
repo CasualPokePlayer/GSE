@@ -50,7 +50,7 @@ dotnet publish -r osx-arm64
 # Merge the binaries together
 mkdir output/$TARGET_RID
 cp -a output/osx-x64 output/$TARGET_RID
-lipo output/osx-x64/GSR.app/Contents/MacOS/GSR output/osx-arm64/GSR.app/Contents/MacOS/GSR -create -output output/$TARGET_RID/GSR.app/Contents/MacOS/GSR
+#lipo output/osx-x64/GSR.app/Contents/MacOS/GSR output/osx-arm64/GSR.app/Contents/MacOS/GSR -create -output output/$TARGET_RID/GSR.app/Contents/MacOS/GSR
 
 # Resign the binary
-codesign -s - --deep output/$TARGET_RID/GSR.app
+#codesign -s - --deep output/$TARGET_RID/GSR.app
