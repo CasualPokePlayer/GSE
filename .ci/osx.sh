@@ -43,6 +43,8 @@ CMakeNinjaBuild mgba
 
 # Build GSR
 cd ..
+export MIN_MACOS_SDK_VERSION=10.15
+export DOTNET_MIN_MACOS_SDK_VERSION=10.15
 dotnet workload install macos
 dotnet publish -r osx-x64
 dotnet publish -r osx-arm64
