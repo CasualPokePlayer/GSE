@@ -25,7 +25,7 @@ jobs:
           rid: win-arm64
           msvc_arch: x64_arm64
         - name: macos-universal
-          runner: macos-13
+          runner: macos-latest
           shell: sh
           build_script: ./osx.sh
           rid: osx
