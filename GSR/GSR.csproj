@@ -43,6 +43,23 @@
 		<NativeLibrary Include="winmm.lib" />
 		<NativeLibrary Include="setupapi.lib" />
 	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_OSX)' == 'true'">
+		<!-- More SDL linking madness -->
+		<NativeFramework Include="CoreVideo" />
+		<NativeFramework Include="Cocoa" />
+		<NativeFramework Include="IOKit" />
+		<NativeFramework Include="ForceFeedback" />
+		<NativeFramework Include="Carbon" />
+		<NativeFramework Include="CoreAudio" />
+		<NativeFramework Include="AudioToolbox" />
+		<NativeFramework Include="AVFoundation" />
+		<NativeFramework Include="Foundation" />
+		<!-- https://github.com/dotnet/runtime/issues/97414 -->
+		<ExtraLinkerArg Include="-weak_framework,GameController" />
+		<ExtraLinkerArg Include="-weak_framework,Metal" />
+		<ExtraLinkerArg Include="-weak_framework,QuartzCore" />
+		<ExtraLinkerArg Include="-weak_framework,CoreHaptics" />
+	</ItemGroup>
 	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_LINUX)' == 'true'">
 		<!-- gambatte is C++, so it needs libstdc++ linked in -->
 		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
