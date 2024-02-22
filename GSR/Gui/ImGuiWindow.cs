@@ -170,7 +170,9 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	private readonly IntPtr _imGuiContext;
-	private readonly IntPtr _fontSdlTexture;
+	private IntPtr _fontSdlTexture;
+	private readonly bool _isOverridingScale;
+	private float _dpiScale;
 
 	public readonly IntPtr SdlWindow;
 	public readonly IntPtr SdlRenderer;
@@ -365,6 +367,54 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 	}
 
+	private float GetDpiScale()
+	{
+		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+		SDL_GetWindowSize(SdlWindow, out var w, out var h);
+		return Math.Max(displayW / (float)w, displayH / (float)h);
+	}
+
+	private void SetFont(float scaleFactor)
+	{
+		var io = ImGui.GetIO();
+		var fontScaleFactor = (float)Math.Floor(scaleFactor);
+
+		ImFontConfigPtr fontConfig;
+		unsafe
+		{
+			fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+			if (fontConfig.NativePtr == null)
+			{
+				throw new("Failed to allocate font config");
+			}
+		}
+
+		fontConfig.OversampleH = fontConfig.OversampleV = 1;
+		fontConfig.PixelSnapH = true;
+		fontConfig.SizePixels = 13 * fontScaleFactor;
+
+		io.Fonts.Clear();
+		io.Fonts.AddFontDefault(fontConfig);
+		fontConfig.Destroy();
+
+		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
+		SDL_DestroyTexture(_fontSdlTexture);
+		_fontSdlTexture = SDL_CreateTexture(SdlRenderer, SDL_PIXELFORMAT_ABGR8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, width, height);
+		if (_fontSdlTexture == IntPtr.Zero)
+		{
+			throw new($"Failed to create SDL font texture! SDL error: {SDL_GetError()}");
+		}
+
+		if (SDL_UpdateTexture(_fontSdlTexture, IntPtr.Zero, pixels, width * bytesPerPixel) != 0)
+		{
+			throw new($"Failed to update SDL font texture! SDL error: {SDL_GetError()}");
+		}
+
+		_ = SDL_SetTextureBlendMode(_fontSdlTexture, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+		_ = SDL_SetTextureScaleMode(_fontSdlTexture, SDL_ScaleMode.SDL_ScaleModeLinear);
+		io.Fonts.SetTexID(_fontSdlTexture);
+	}
+
 	public ImGuiWindow(string windowName, Config config, bool isMainWindow)
 	{
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
@@ -448,35 +498,19 @@ internal sealed class ImGuiWindow : IDisposable
 				io.SetPlatformImeDataFn = (IntPtr)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&SetPlatformImeData;
 			}
 
+			_dpiScale = GetDpiScale();
 			var scaleOverride = Environment.GetEnvironmentVariable("GSR_SCALE");
 			if (float.TryParse(scaleOverride, out var scaleFactor))
 			{
-				io.FontGlobalScale = scaleFactor;
-				ImGui.GetStyle().ScaleAllSizes(scaleFactor);
+				_isOverridingScale = true;
 			}
 			else
 			{
-				_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out _);
-				SDL_GetWindowSize(SdlWindow, out var windowW, out _);
-				io.FontGlobalScale = displayW / (float)windowW;
-				ImGui.GetStyle().ScaleAllSizes(displayW / (float)windowW);
+				scaleFactor = _dpiScale;
 			}
 
-			io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
-			_fontSdlTexture = SDL_CreateTexture(SdlRenderer, SDL_PIXELFORMAT_ABGR8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, width, height);
-			if (_fontSdlTexture == IntPtr.Zero)
-			{
-				throw new($"Failed to create SDL font texture! SDL error: {SDL_GetError()}");
-			}
-
-			if (SDL_UpdateTexture(_fontSdlTexture, IntPtr.Zero, pixels, width * bytesPerPixel) != 0)
-			{
-				throw new($"Failed to update SDL font texture! SDL error: {SDL_GetError()}");
-			}
-
-			_ = SDL_SetTextureBlendMode(_fontSdlTexture, SDL_BlendMode.SDL_BLENDMODE_BLEND);
-			_ = SDL_SetTextureScaleMode(_fontSdlTexture, SDL_ScaleMode.SDL_ScaleModeLinear);
-			io.Fonts.SetTexID(_fontSdlTexture);
+			ImGui.GetStyle().ScaleAllSizes(scaleFactor);
+			SetFont(scaleFactor);
 		}
 		catch
 		{
@@ -667,6 +701,38 @@ internal sealed class ImGuiWindow : IDisposable
 			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
 		}
 
+		if (!_isOverridingScale)
+		{
+			var dpiScale = GetDpiScale();
+			if (Math.Abs(_dpiScale - dpiScale) > 0.01)
+			{
+				unsafe
+				{
+					var style = new ImGuiStylePtr(ImGuiNative.ImGuiStyle_ImGuiStyle());
+					if (style.NativePtr == null)
+					{
+						throw new("Failed to allocate default style");
+					}
+
+					// copy default style to current style
+					var curStyle = ImGui.GetStyle();
+					*curStyle.NativePtr = *style.NativePtr;
+					style.Destroy();
+
+					// scale up
+					curStyle.ScaleAllSizes(dpiScale);
+				}
+
+				// only reset fonts if we changed by an integer
+				if ((int)_dpiScale != (int)dpiScale)
+				{
+					SetFont(dpiScale);
+				}
+
+				_dpiScale = dpiScale;
+			}
+		}
+
 		var time = SDL_GetPerformanceCounter();
 		if (time <= _lastTime)
 		{
@@ -700,7 +766,7 @@ internal sealed class ImGuiWindow : IDisposable
 			{
 				_ = SDL_GetGlobalMouseState(out var mouseXGlobal, out var mouseYGlobal);
 				SDL_GetWindowPosition(SdlWindow, out var windowX, out var windowY);
-				io.AddMousePosEvent(mouseXGlobal - windowX, mouseYGlobal - windowY);
+				io.AddMousePosEvent((mouseXGlobal - windowX) * io.DisplayFramebufferScale.X, (mouseYGlobal - windowY) * io.DisplayFramebufferScale.Y);
 			}
 		}
 
