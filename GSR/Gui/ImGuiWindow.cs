@@ -724,7 +724,7 @@ internal sealed class ImGuiWindow : IDisposable
 				}
 
 				// only reset fonts if we changed by an integer
-				if ((int)_dpiScale != (int)dpiScale)
+				if ((int)Math.Floor(_dpiScale) != (int)Math.Floor(dpiScale))
 				{
 					SetFont(dpiScale);
 				}
