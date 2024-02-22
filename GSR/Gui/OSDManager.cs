@@ -92,7 +92,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 					{
 						ImGui.TextUnformatted(RomInfoPrefix());
 						var cycleCountStr = $"{emuManager.GetCycleCount()}";
-						ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(cycleCountStr).X - 15);
+						ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(cycleCountStr).X - ImGui.GetTextLineHeight());
 						ImGui.TextUnformatted(cycleCountStr);
 					}
 				}

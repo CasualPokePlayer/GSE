@@ -390,7 +390,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 		fontConfig.OversampleH = fontConfig.OversampleV = 1;
 		fontConfig.PixelSnapH = true;
-		fontConfig.SizePixels = (float)Math.Floor(13 * Math.Round(scaleFactor, MidpointRounding.AwayFromZero));
+		fontConfig.SizePixels = 13 * (float)Math.Round(scaleFactor, MidpointRounding.AwayFromZero);
 
 		io.Fonts.Clear();
 		io.Fonts.AddFontDefault(fontConfig);
@@ -602,12 +602,14 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
+		var xScale = io.DisplayFramebufferScale.X < 0.01 ? 1 : io.DisplayFramebufferScale.X;
+		var yScale = io.DisplayFramebufferScale.Y < 0.01 ? 1 : io.DisplayFramebufferScale.Y;
 		// ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
 		switch (e.type)
 		{
 			case SDL_EventType.SDL_MOUSEMOTION:
 				io.AddMouseSourceEvent(e.motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
-				io.AddMousePosEvent(e.motion.x, e.motion.y);
+				io.AddMousePosEvent(e.motion.x * xScale, e.motion.y * yScale);
 				break;
 			case SDL_EventType.SDL_MOUSEWHEEL:
 				io.AddMouseSourceEvent(e.wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
