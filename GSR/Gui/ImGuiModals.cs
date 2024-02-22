@@ -241,9 +241,7 @@ internal sealed class ImGuiModals
 	private void UpdateWindowScale()
 	{
 		var (emuWidth, emuHeight) = _emuManager.GetVideoDimensions(_config.HideSgbBorder);
-		var windowScale = _config.WindowScale;
-		var extraBarsHeight = (int)ImGui.GetFrameHeight() * (_config.HideStatusBar ? 1 : 2);
-		_mainWindow.SetWindowSize(emuWidth * windowScale, emuHeight * windowScale + extraBarsHeight);
+		_mainWindow.SetWindowSize(emuWidth, emuHeight, _config.WindowScale, _config.HideStatusBar ? 1 : 2);
 	}
 
 	public void EnumerateAudioDevices()

@@ -157,6 +157,7 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 		SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
 		SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
 
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
@@ -178,7 +179,7 @@ internal sealed class ImGuiWindow : IDisposable
 	public readonly IntPtr SdlRenderer;
 	public readonly uint WindowId;
 
-	private int _lastWidth, _lastHeight;
+	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
 	private bool _isFullscreen;
 
 	private static readonly ulong _perfFreq = SDL_GetPerformanceFrequency();
@@ -377,8 +378,6 @@ internal sealed class ImGuiWindow : IDisposable
 	private void SetFont(float scaleFactor)
 	{
 		var io = ImGui.GetIO();
-		var fontScaleFactor = (float)Math.Floor(scaleFactor);
-
 		ImFontConfigPtr fontConfig;
 		unsafe
 		{
@@ -391,7 +390,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 		fontConfig.OversampleH = fontConfig.OversampleV = 1;
 		fontConfig.PixelSnapH = true;
-		fontConfig.SizePixels = 13 * fontScaleFactor;
+		fontConfig.SizePixels = (float)Math.Floor(13 * Math.Round(scaleFactor, MidpointRounding.AwayFromZero));
 
 		io.Fonts.Clear();
 		io.Fonts.AddFontDefault(fontConfig);
@@ -547,16 +546,27 @@ internal sealed class ImGuiWindow : IDisposable
 
 		if (!_isFullscreen)
 		{
-			SetWindowSize(_lastWidth, _lastHeight);
+			SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
 		}
 	}
 
-	public void SetWindowSize(int w, int h)
+	public void SetWindowSize(int w, int h, int scale, int bars)
 	{
 		_lastWidth = w;
 		_lastHeight = h;
+		_lastScale = scale;
+		_lastBars = bars;
 		if (!_isFullscreen)
 		{
+			w *= scale;
+			h *= scale;
+			h += (int)(ImGui.GetFrameHeight() * bars);
+			// we want to adjust our width/height to match up against the renderer output
+			// as imgui coords go against the dpi scaled size, not the window size
+			_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+			SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
+			w = w * lastWindowWidth / displayW;
+			h = h * lastWindowHeight / displayH;
 			SDL_SetWindowSize(SdlWindow, w, h);
 		}
 	}
@@ -687,19 +697,6 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
-		SDL_GetWindowSize(SdlWindow, out var w, out var h);
-		var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
-		if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
-		{
-			w = h = 0;
-		}
-
-		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
-		io.DisplaySize = new(displayW, displayH);
-		if (w > 0 && h > 0)
-		{
-			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
-		}
 
 		if (!_isOverridingScale)
 		{
@@ -723,14 +720,38 @@ internal sealed class ImGuiWindow : IDisposable
 					curStyle.ScaleAllSizes(dpiScale);
 				}
 
-				// only reset fonts if we changed by an integer
-				if ((int)Math.Floor(_dpiScale) != (int)Math.Floor(dpiScale))
-				{
-					SetFont(dpiScale);
-				}
-
+				SetFont(dpiScale);
 				_dpiScale = dpiScale;
+
+				// can't use SetWindowSize, ImGui.GetFrameHeight() is not up to date
+				if (!_isFullscreen)
+				{
+					var newWidth = _lastWidth * _lastScale;
+					var newHeight = _lastHeight * _lastScale;
+					// nasty hack to account for ImGui.GetFrameHeight() not being up to date
+					var frameHeight = io.Fonts.Fonts[0].FontSize + ImGui.GetStyle().FramePadding.Y * 2.0f;
+					newHeight += (int)(frameHeight * _lastBars);
+					_ = SDL_GetRendererOutputSize(SdlRenderer, out var lastDisplayW, out var lastDisplayH);
+					SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
+					newWidth = newWidth * lastWindowWidth / lastDisplayW;
+					newHeight = newHeight * lastWindowHeight / lastDisplayH;
+					SDL_SetWindowSize(SdlWindow, newWidth, newHeight);
+				}
 			}
+		}
+
+		SDL_GetWindowSize(SdlWindow, out var w, out var h);
+		var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+		if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
+		{
+			w = h = 0;
+		}
+
+		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+		io.DisplaySize = new(displayW, displayH);
+		if (w > 0 && h > 0)
+		{
+			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
 		}
 
 		var time = SDL_GetPerformanceCounter();
@@ -766,7 +787,9 @@ internal sealed class ImGuiWindow : IDisposable
 			{
 				_ = SDL_GetGlobalMouseState(out var mouseXGlobal, out var mouseYGlobal);
 				SDL_GetWindowPosition(SdlWindow, out var windowX, out var windowY);
-				io.AddMousePosEvent((mouseXGlobal - windowX) * io.DisplayFramebufferScale.X, (mouseYGlobal - windowY) * io.DisplayFramebufferScale.Y);
+				var xScale = io.DisplayFramebufferScale.X < 0.01 ? 1 : io.DisplayFramebufferScale.X;
+				var yScale = io.DisplayFramebufferScale.Y < 0.01 ? 1 : io.DisplayFramebufferScale.Y;
+				io.AddMousePosEvent((mouseXGlobal - windowX) * xScale, (mouseYGlobal - windowY) * yScale);
 			}
 		}
 

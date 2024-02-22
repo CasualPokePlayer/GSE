@@ -108,7 +108,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 		if (nextOsdMessage != null)
 		{
 			var vp = ImGui.GetMainViewport();
-			ImGui.SetNextWindowPos(new(vp.Pos.X + ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() + ImGui.GetFrameHeight()));
+			ImGui.SetNextWindowPos(new(vp.Pos.X + ImGui.GetStyle().FramePadding.X, vp.Size.Y - ImGui.GetFrameHeight() * 2));
 			if (ImGui.Begin("OSD Overlay", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration))
 			{
 				ImGui.TextUnformatted(nextOsdMessage);
