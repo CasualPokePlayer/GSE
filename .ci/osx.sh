@@ -60,7 +60,7 @@ done
 cd ../..
 
 # Resign the binary
-codesign -s - --deep output/$TARGET_RID/GSR.app
+codesign -s - --deep --force output/$TARGET_RID/GSR.app
 
 # Output a dmg
 mkdir output/$TARGET_RID/publish
