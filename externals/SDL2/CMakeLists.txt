@@ -31,7 +31,6 @@ endif()
 # Disable subsystems we don't use
 set(SDL_HAPTIC OFF)
 set(SDL_POWER OFF)
-set(SDL_FILESYSTEM OFF)
 set(SDL_SENSOR OFF)
 set(SDL_LOCALE OFF)
 set(SDL_MISC OFF)

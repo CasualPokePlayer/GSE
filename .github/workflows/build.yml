@@ -24,11 +24,11 @@ jobs:
           build_script: .\windows.bat
           rid: win-arm64
           msvc_arch: x64_arm64
-        #- name: macos-universal
-        #  runner: macos-latest
-        #  shell: sh
-        #  build_script: ./macos.sh
-        #  rid: osx
+        - name: macos-universal
+          runner: macos-13
+          shell: sh
+          build_script: ./osx.sh
+          rid: osx
         - name: linux-x64
           runner: ubuntu-latest
           container: ubuntu:20.04

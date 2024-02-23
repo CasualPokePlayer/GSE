@@ -125,7 +125,7 @@ internal sealed class QuartzKeyInput : IKeyInput
 		[CGKeyCode.kVK_UpArrow] = ScanCode.SC_UP,
 	}.ToFrozenDictionary();
 
-	private readonly bool[] _lastKeyState = new bool[(int)CGKeyCode.kVK_MAX];
+	private readonly bool[] _lastKeyState = new bool[(int)CGKeyCode.kVK_MAX + 1];
 
 	public void Dispose()
 	{
@@ -134,7 +134,7 @@ internal sealed class QuartzKeyInput : IKeyInput
 	public IEnumerable<KeyEvent> GetEvents()
 	{
 		var keyEvents = new List<KeyEvent>();
-		for (CGKeyCode keycode = 0; keycode < CGKeyCode.kVK_MAX; keycode++)
+		for (CGKeyCode keycode = 0; keycode <= CGKeyCode.kVK_MAX; keycode++)
 		{
 			var keystate = CGEventSourceKeyState(CGEventSourceStateID.kCGEventSourceStateHIDSystemState, keycode);
 			if (_lastKeyState[(int)keycode] != keystate)

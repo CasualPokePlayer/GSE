@@ -11,7 +11,7 @@ using Windows.Win32.UI.Controls.Dialogs;
 
 #if GSR_OSX
 using AppKit;
-using Foundation;
+using UniformTypeIdentifiers;
 #endif
 
 namespace GSR.Gui;
@@ -67,17 +67,18 @@ internal static class OpenFileDialog
 			dialog.CanChooseFiles = true;
 			dialog.AllowsOtherFileTypes = false;
 			dialog.Title = $"Open {description}";
-			dialog.DirectoryUrl = new Uri(baseDir ?? AppContext.BaseDirectory);
-			// deprecated, but have to do this if we want to support macOS 10.15
-			dialog.AllowedFileTypes = fileTypes.Select(ft => ft[1..]).ToArray();
-			//dialog.AllowedContentTypes = fileTypes.Select(ft => UTType.CreateFromExtension(ft[1..])).ToArray();
-			if ((NSModalResponse)dialog.RunModal() == NSModalResponse.OK)
+			dialog.DirectoryUrl = new(baseDir ?? AppContext.BaseDirectory);
+			// the older API is deprecated on macOS 12
+			// still need to support it however if we want to support macOS 10.15
+			if (OperatingSystem.IsMacOSVersionAtLeast(11))
 			{
-				Uri uri = panel.Url;
-				return uri.LocalPath;
+				dialog.AllowedContentTypes = fileTypes.Select(ft => UTType.CreateFromExtension(ft[1..])).ToArray();
 			}
-
-			return null;
+			else
+			{
+				dialog.AllowedFileTypes = fileTypes.Select(ft => ft[1..]).ToArray();
+			}
+			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
 		}
 		catch
 		{
@@ -85,7 +86,7 @@ internal static class OpenFileDialog
 		}
 		finally
 		{
-			keyWindow?.MakeKeyAndOrderFront(null);
+			keyWindow.MakeKeyAndOrderFront(null);
 		}
 	}
 #endif

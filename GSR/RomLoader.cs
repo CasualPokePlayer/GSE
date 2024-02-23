@@ -149,13 +149,10 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(false);
 				postProcessor.ResetEmuTexture(emuWidth, emuHeight);
 
-				// lame copy paste code
 				if (!config.AllowManualResizing)
 				{
 					(emuWidth, emuHeight) = emuManager.GetVideoDimensions(config.HideSgbBorder);
-					var windowScale = config.WindowScale;
-					var extraBarsHeight = (int)ImGui.GetFrameHeight() * (config.HideStatusBar ? 1 : 2);
-					mainWindow.SetWindowSize(emuWidth * windowScale, emuHeight * windowScale + extraBarsHeight);
+					mainWindow.SetWindowSize(emuWidth, emuHeight, config.WindowScale, (config.HideStatusBar ? 1 : 2));
 				}
 			}
 			catch (Exception e)

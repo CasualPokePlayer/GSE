@@ -2,10 +2,14 @@
 	<Import Project="../GSRCommon.props" />
 	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">
 		<TargetFramework>net8.0-macos</TargetFramework>
+		<ApplicationId>org.psr.gsr</ApplicationId>
+		<SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion>
+		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
-		<OutputType>WinExe</OutputType>
+		<OutputType Condition="'$(GSR_WINDOWS)' == 'true'">WinExe</OutputType>
+		<OutputType Condition="'$(GSR_WINDOWS)' != 'true'">Exe</OutputType>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="SharpCompress" Version="0.36.0" />
@@ -40,6 +44,23 @@
 		<NativeLibrary Include="shell32.lib" />
 		<NativeLibrary Include="winmm.lib" />
 		<NativeLibrary Include="setupapi.lib" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_OSX)' == 'true'">
+		<!-- More SDL linking madness -->
+		<NativeFramework Include="CoreVideo" />
+		<NativeFramework Include="Cocoa" />
+		<NativeFramework Include="IOKit" />
+		<NativeFramework Include="ForceFeedback" />
+		<NativeFramework Include="Carbon" />
+		<NativeFramework Include="CoreAudio" />
+		<NativeFramework Include="AudioToolbox" />
+		<NativeFramework Include="AVFoundation" />
+		<NativeFramework Include="Foundation" />
+		<!-- https://github.com/dotnet/runtime/issues/97414 -->
+		<ExtraLinkerArg Include="-weak_framework,GameController" />
+		<ExtraLinkerArg Include="-weak_framework,Metal" />
+		<ExtraLinkerArg Include="-weak_framework,QuartzCore" />
+		<ExtraLinkerArg Include="-weak_framework,CoreHaptics" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_LINUX)' == 'true'">
 		<!-- gambatte is C++, so it needs libstdc++ linked in -->
