@@ -2,11 +2,8 @@
 
 # This script expects to be running on Debian 11 under root
 
-# TODO: We definitely could build under Debian 10, but we lose out on some packages (and Debian 11 is probably old enough to cover practically every user?)
-
-# Prevent hangs when installing tzdata (some dependency down the line)
-#export DEBIAN_FRONTEND=noninteractive
-#export TZ=Etc/UTC
+# TODO: We definitely could build under Debian 10 (although cmake would require buster-backports, so Debian 9 is probably out of the question)
+# but we lose out on some packages (and Debian 11 is probably old enough to cover practically every user?)
 
 # Install some base tools
 apt-get install -y wget lsb-release software-properties-common gpg cmake ninja-build
@@ -63,6 +60,7 @@ CMakeNinjaBuild() {
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_COMPILER=clang-17 \
 		-DCMAKE_CXX_COMPILER=clang++-17 \
+		-DCMAKE_EXE_LINKER_FLAGS=lld-17 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
 		-DGSR_SHARED=OFF

@@ -55,7 +55,7 @@ jobs:
         arch: ${{ matrix.platform.msvc_arch }}
     - name: Setup base Linux environment
       if: matrix.platform.container != ''
-      run: apt update && apt install -y git
+      run: apt-get update && apt-get install -y git
     - name: Checkout source code
       uses: actions/checkout@v4
       with:
