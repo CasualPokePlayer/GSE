@@ -64,7 +64,6 @@ CMakeNinjaBuild() {
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_COMPILER=clang-17 \
 		-DCMAKE_CXX_COMPILER=clang++-17 \
-		-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld-17 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
 		-DGSR_SHARED=OFF
@@ -84,4 +83,4 @@ chmod +x ./dotnet-install.sh
 
 # Build GSR
 cd ..
-$HOME/.dotnet/dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
