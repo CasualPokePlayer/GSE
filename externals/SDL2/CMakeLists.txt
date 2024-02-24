@@ -67,6 +67,9 @@ set(SDL_DUMMYVIDEO OFF)
 set(SDL_VULKAN OFF)
 set(SDL_OFFSCREEN OFF)
 
+# Might as well enable this, if it can be used
+set(SDL_DIRECTFB ON)
+
 # libusb gives us support for the official GC Adapter
 set(SDL_HIDAPI_LIBUSB ON)
 

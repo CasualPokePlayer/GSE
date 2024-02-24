@@ -31,13 +31,13 @@ jobs:
           rid: osx
         - name: linux-x64
           runner: ubuntu-latest
-          container: ubuntu:20.04
+          container: debian:11
           shell: sh
           build_script: ./linux.sh
           rid: linux-x64
         - name: linux-arm64
           runner: ubuntu-latest
-          container: ubuntu:20.04
+          container: debian:11
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
@@ -55,7 +55,7 @@ jobs:
         arch: ${{ matrix.platform.msvc_arch }}
     - name: Setup base Linux environment
       if: matrix.platform.container != ''
-      run: apt update && apt install -y git
+      run: apt-get update && apt-get install -y git
     - name: Checkout source code
       uses: actions/checkout@v4
       with:
