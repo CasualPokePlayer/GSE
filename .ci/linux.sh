@@ -32,7 +32,8 @@ if [ $TARGET_RID = "linux-x64" ]; then
 	apt-get install -y zlib1g-dev
 elif [ $TARGET_RID = "linux-arm64" ]; then
 	# Install aarch64 cross compiling setup
-	apt-get install -y libc6-dev-arm64-cross gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu dpkg-dev
+	apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu dpkg-dev
+	clang-17 --target=aarch64-linux-gnu -print-search-dirs
 	export PKG_CONFIG=aarch64-linux-gnu-pkg-config
 	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu"
 	# Enable ARM64 packages
