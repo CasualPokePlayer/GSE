@@ -13,10 +13,6 @@ wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 ./llvm.sh 17
 
-# Enable backports packages
-echo "deb http://deb.debian.org/debian bullseye-backports main contrib" | tee /etc/apt/sources.list.d/backports.list
-apt-get update
-
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
 	export EXTRA_CMAKE_ARGS=""
@@ -26,6 +22,9 @@ if [ $TARGET_RID = "linux-x64" ]; then
 		libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
 		libgles2-mesa-dev libegl1-mesa-dev libdirectfb-dev libdbus-1-dev libibus-1.0-dev \
 		fcitx-libs-dev libudev-dev libusb-1.0-0-dev pkg-config
+	# Enable backports packages
+	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
+	apt-get update
 	# More SDL2 dependencies only under backports
 	apt-get install -y libdecor-0-dev/bullseye-backports libpipewire-0.3-dev/bullseye-backports
 	# Install .NET AOT dependencies
@@ -44,6 +43,9 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 		libxss-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64 libdrm-dev:arm64 libgbm-dev:arm64 libgl1-mesa-dev:arm64 \
 		libgles2-mesa-dev:arm64 libegl1-mesa-dev:arm64 libdirectfb-dev:arm64 libdbus-1-dev:arm64 libibus-1.0-dev:arm64 \
 		fcitx-libs-dev:arm64 libudev-dev:arm64 libusb-1.0-0-dev:arm64
+	# Enable backports packages
+	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
+	apt-get update
 	# More SDL2 dependencies only under backports
 	apt-get install -y libdecor-0-dev/bullseye-backports:arm64 libpipewire-0.3-dev/bullseye-backports:arm64
 	# Install .NET AOT dependencies
