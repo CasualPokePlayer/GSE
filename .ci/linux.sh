@@ -14,7 +14,7 @@ chmod +x llvm.sh
 ./llvm.sh 17
 
 # Enable backports packages
-echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
+echo "deb http://deb.debian.org/debian bullseye-backports main contrib" | tee /etc/apt/sources.list.d/backports.list
 apt-get update
 
 if [ $TARGET_RID = "linux-x64" ]; then
@@ -60,7 +60,7 @@ CMakeNinjaBuild() {
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_COMPILER=clang-17 \
 		-DCMAKE_CXX_COMPILER=clang++-17 \
-		-DCMAKE_EXE_LINKER_FLAGS=lld-17 \
+		-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld-17 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
 		-DGSR_SHARED=OFF
