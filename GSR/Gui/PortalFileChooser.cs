@@ -26,6 +26,8 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// ignored
 		}
 
+		// the portal chooser is not ideal for choosing files, so we only prefer it when this environment variable is set
+		// if gtk is unavailable, we'll try portal regardless
 		var env = Environment.GetEnvironmentVariable("GSR_PREFER_PORTAL");
 		Preferred = int.TryParse(env, out var ret) && ret != 0;
 	}
