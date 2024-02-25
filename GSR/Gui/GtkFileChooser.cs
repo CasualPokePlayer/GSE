@@ -15,7 +15,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 	[
 		"libgtk-3.so",
 		"libgtk-3.so.0",
-		"libgtk-x11-2.0.so", 
+		"libgtk-x11-2.0.so",
 		"libgtk-x11-2.0.so.0",
 	];
 
@@ -30,7 +30,13 @@ internal sealed partial class GtkFileChooser : IDisposable
 		{
 			if (NativeLibrary.TryLoad(gtkLibraryName, assembly, searchPath, out var gtkHandle))
 			{
-				return gtkHandle;
+				// check if the file_chooser api is available
+				if (NativeLibrary.TryGetExport(gtkHandle, "gtk_file_chooser_dialog_new", out _))
+				{
+					return gtkHandle;
+				}
+
+				NativeLibrary.Free(gtkHandle);
 			}
 		}
 
@@ -65,7 +71,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	public static readonly bool IsAvailable;
+	public static bool IsAvailable;
 
 	public enum FileChooserAction
 	{
