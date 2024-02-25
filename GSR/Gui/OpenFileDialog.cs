@@ -94,24 +94,39 @@ internal static class OpenFileDialog
 #if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
-		if (!GtkFileChooser.IsAvailable)
+		var extensions = fileTypes.ToArray();
+		if (PortalFileChooser.IsAvailable)
 		{
-			return null;
+			try
+			{
+				using var portal = new PortalFileChooser();
+				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir);
+				return portal.RunQuery(openQuery);
+			}
+			catch
+			{
+				PortalFileChooser.IsAvailable = false;
+			}
 		}
 
-		try
+		if (GtkFileChooser.IsAvailable)
 		{
-			using var dialog = new GtkFileChooser($"Open {description}", GtkFileChooser.FileChooserAction.Open);
-			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
-			dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
-			dialog.AddFilter(description, fileTypes.Select(ft => $"*{ft}"));
-			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+			try
+			{
+				using var dialog = new GtkFileChooser($"Open {description}", GtkFileChooser.FileChooserAction.Open);
+				dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+				dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
+				dialog.AddFilter(description, extensions.Select(ft => $"*{ft}"));
+				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+				return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+			}
+			catch
+			{
+				GtkFileChooser.IsAvailable = false;
+			}
 		}
-		catch
-		{
-			return null;
-		}
+
+		return null;
 	}
 #endif
 }
