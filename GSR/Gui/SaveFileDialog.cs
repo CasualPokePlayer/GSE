@@ -95,13 +95,15 @@ internal static class SaveFileDialog
 #if GSR_LINUX
 	public static string ShowDialog(string description, string baseDir, string filename, string ext)
 	{
-		if (PortalFileChooser.IsAvailable)
+		if (PortalFileChooser.Preferred && PortalFileChooser.IsAvailable)
 		{
 			try
 			{
 				using var portal = new PortalFileChooser();
-				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir);
-				return portal.RunQuery(saveQuery);
+				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir ?? AppContext.BaseDirectory);
+				// the path returned won't have an extension, so add one in
+				var ret = portal.RunQuery(saveQuery);
+				return ret != null ? ret + ext : null;
 			}
 			catch
 			{
@@ -125,6 +127,23 @@ internal static class SaveFileDialog
 			catch
 			{
 				GtkFileChooser.IsAvailable = false;
+			}
+		}
+
+		// kind of lame copy paste
+		if (PortalFileChooser.IsAvailable)
+		{
+			try
+			{
+				using var portal = new PortalFileChooser();
+				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir ?? AppContext.BaseDirectory);
+				// the path returned won't have an extension, so add one in
+				var ret = portal.RunQuery(saveQuery);
+				return ret != null ? ret + ext : null;
+			}
+			catch
+			{
+				PortalFileChooser.IsAvailable = false;
 			}
 		}
 

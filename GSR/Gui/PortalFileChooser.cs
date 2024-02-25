@@ -25,9 +25,13 @@ internal sealed partial class PortalFileChooser : IDisposable
 		{
 			// ignored
 		}
+
+		var env = Environment.GetEnvironmentVariable("GSR_PREFER_PORTAL");
+		Preferred = int.TryParse(env, out var ret) && ret != 0;
 	}
 
 	public static bool IsAvailable;
+	public static readonly bool Preferred;
 
 	private static readonly string HANDLE_TOKEN = "handle_token";
 	private static readonly string FILTERS = "filters";
@@ -135,7 +139,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_open_container(ref filterSublistIter, DBusType.DBUS_TYPE_STRUCT, null, out var filterSublistStructIter);
 			// 0 indicates glob style
 			dbus_message_iter_append_basic_uint(ref filterSublistStructIter, DBusType.DBUS_TYPE_UINT32, 0);
-			dbus_message_iter_append_basic_string(ref filterSublistStructIter, DBusType.DBUS_TYPE_STRING, $"*.{ext}");
+			dbus_message_iter_append_basic_string(ref filterSublistStructIter, DBusType.DBUS_TYPE_STRING, $"*{ext}");
 			dbus_message_iter_close_container(ref filterSublistIter, ref filterSublistStructIter);
 		}
 

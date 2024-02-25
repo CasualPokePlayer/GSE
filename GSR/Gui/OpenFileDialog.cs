@@ -95,12 +95,13 @@ internal static class OpenFileDialog
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
 	{
 		var extensions = fileTypes.ToArray();
-		if (PortalFileChooser.IsAvailable)
+
+		if (PortalFileChooser.Preferred && PortalFileChooser.IsAvailable)
 		{
 			try
 			{
 				using var portal = new PortalFileChooser();
-				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir);
+				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory);
 				return portal.RunQuery(openQuery);
 			}
 			catch
@@ -123,6 +124,21 @@ internal static class OpenFileDialog
 			catch
 			{
 				GtkFileChooser.IsAvailable = false;
+			}
+		}
+
+		// kind of lame copy paste
+		if (PortalFileChooser.IsAvailable)
+		{
+			try
+			{
+				using var portal = new PortalFileChooser();
+				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory);
+				return portal.RunQuery(openQuery);
+			}
+			catch
+			{
+				PortalFileChooser.IsAvailable = false;
 			}
 		}
 
