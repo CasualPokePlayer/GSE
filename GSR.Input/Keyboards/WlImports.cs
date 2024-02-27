@@ -32,6 +32,19 @@ internal static partial class WlImports
 			// if x11 is unavailable, we'll use wayland regardless
 			var env = Environment.GetEnvironmentVariable("GSR_PREFER_WAYLAND");
 			Preferred = int.TryParse(env, out var ret) && ret != 0;
+
+			// there are a few interface structs exported we need access to
+			// library import can't handle these, so have to manually load them!
+			var handle = NativeLibrary.Load("libwayland-client.so.0");
+			try
+			{
+				wl_registry_interface = NativeLibrary.GetExport(handle, "wl_registry_interface");
+				wl_seat_interface = NativeLibrary.GetExport(handle, "wl_seat_interface");
+			}
+			finally
+			{
+				NativeLibrary.Free(handle);
+			}
 		}
 	}
 
@@ -288,7 +301,16 @@ internal static partial class WlImports
 	public static partial void wl_display_disconnect(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_display_get_registry(IntPtr display);
+	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, IntPtr args);
+
+	public static readonly IntPtr wl_registry_interface;
+
+	// this is normally a static inline function in wayland headers
+	public static IntPtr wl_display_get_registry(IntPtr display)
+	{
+		const uint WL_DISPLAY_GET_REGISTRY = 1;
+		return wl_proxy_marshal_constructor(display, WL_DISPLAY_GET_REGISTRY, wl_registry_interface, IntPtr.Zero);
+	}
 
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_flush(IntPtr display);
@@ -321,6 +343,8 @@ internal static partial class WlImports
 
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial void wl_registry_destroy(IntPtr wl_registry);
+
+	public static readonly IntPtr wl_seat_interface;
 
 	[Flags]
 	public enum WlSeatCapabilities : uint
