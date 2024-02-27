@@ -632,11 +632,11 @@ internal static partial class WlImports
 	public const nint MAP_FAILED = -1;
 
 	[LibraryImport("libc.so.6")]
-	public static extern IntPtr mmap(IntPtr addr, nuint length, int prot, int flags, int fd, nint offset);
+	public static partial IntPtr mmap(IntPtr addr, nuint length, int prot, int flags, int fd, nint offset);
 
 	[LibraryImport("libc.so.6")]
-	public static extern int munmap(IntPtr addr, nuint length);
+	public static partial int munmap(IntPtr addr, nuint length);
 
 	[LibraryImport("libc.so.6")]
-	public static extern int close(int fd);
+	public static partial int close(int fd);
 }
