@@ -542,13 +542,16 @@ internal sealed class WlKeyInput : IKeyInput
 				_ = wl_registry_add_listener(_wlRegistry, &wlRegistryListener, GCHandle.ToIntPtr(handle));
 			}
 
-			// sync so we get the seat, keyboard, and keymap
+			// sync so we get the seat
 			_ = wl_display_roundtrip(_wlDisplay);
 
 			if (WlSeat == IntPtr.Zero)
 			{
 				throw new("Failed to obtain seat");
 			}
+
+			// sync so we get the keyboard and keymap
+			_ = wl_display_roundtrip(_wlDisplay);
 
 			if (WlKeyboard == IntPtr.Zero)
 			{
