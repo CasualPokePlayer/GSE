@@ -365,17 +365,7 @@ internal sealed class WlKeyInput : IKeyInput
 		var ifaceStr = Marshal.PtrToStringUTF8(iface);
 		if (ifaceStr == "wl_seat")
 		{
-			// libwayland-client.so.0 should already be loaded at this point, so this will only inc/dec its ref count
-			var wlClientHandle = NativeLibrary.Load("libwayland-client.so.0");
-			var foundInterface = NativeLibrary.TryGetExport(wlClientHandle, "wl_seat_interface", out var wlSeatInterface);
-			NativeLibrary.Free(wlClientHandle);
-
-			if (!foundInterface)
-			{
-				return;
-			}
-
-			wlKeyInput.WlSeat = wl_registry_bind(wlRegistry, name, wlSeatInterface, 1);
+			wlKeyInput.WlSeat = wl_registry_bind(wlRegistry, name, wl_seat_interface, 1);
 			if (wlKeyInput.WlSeat == IntPtr.Zero)
 			{
 				return;
@@ -386,7 +376,7 @@ internal sealed class WlKeyInput : IKeyInput
 				var wlSeatListener = default(wl_seat_listener);
 				wlSeatListener.capabilities = &SeatCapabilities;
 				wlSeatListener.name = &SeatName;
-				_ = wl_seat_add_listener(wlKeyInput.WlSeat, in wlSeatListener, userdata);
+				_ = wl_seat_add_listener(wlKeyInput.WlSeat, &wlSeatListener, userdata);
 			}
 		}
 	}
@@ -425,7 +415,7 @@ internal sealed class WlKeyInput : IKeyInput
 				wlKeyboardListener.leave = &KeyboardLeave;
 				wlKeyboardListener.key = &KeyboardKey;
 				wlKeyboardListener.modifiers = &KeyboardModifiers;
-				_ = wl_keyboard_add_listener(wlKeyInput.WlKeyboard, in wlKeyboardListener, userdata);
+				_ = wl_keyboard_add_listener(wlKeyInput.WlKeyboard, &wlKeyboardListener, userdata);
 			}
 		}
 	}
@@ -549,7 +539,7 @@ internal sealed class WlKeyInput : IKeyInput
 				wlRegistryListener.global = &RegistryGlobal;
 				wlRegistryListener.global_remove = &RegistryGlobalRemove;
 				var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-				_ = wl_registry_add_listener(_wlRegistry, in wlRegistryListener, GCHandle.ToIntPtr(handle));
+				_ = wl_registry_add_listener(_wlRegistry, &wlRegistryListener, GCHandle.ToIntPtr(handle));
 			}
 
 			// sync so we get the seat, keyboard, and keymap

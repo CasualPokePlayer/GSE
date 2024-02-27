@@ -10,6 +10,10 @@ internal static partial class WlImports
 	public static readonly bool HasDisplay;
 	public static readonly bool Preferred;
 
+	public static readonly IntPtr wl_registry_interface;
+	public static readonly IntPtr wl_seat_interface;
+	public static readonly IntPtr wl_keyboard_interface;
+
 	static WlImports()
 	{
 		try
@@ -40,6 +44,7 @@ internal static partial class WlImports
 			{
 				wl_registry_interface = NativeLibrary.GetExport(handle, "wl_registry_interface");
 				wl_seat_interface = NativeLibrary.GetExport(handle, "wl_seat_interface");
+				wl_keyboard_interface = NativeLibrary.GetExport(handle, "wl_keyboard_interface");
 			}
 			finally
 			{
@@ -301,18 +306,6 @@ internal static partial class WlImports
 	public static partial void wl_display_disconnect(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, IntPtr args);
-
-	public static readonly IntPtr wl_registry_interface;
-
-	// this is normally a static inline function in wayland headers
-	public static IntPtr wl_display_get_registry(IntPtr display)
-	{
-		const uint WL_DISPLAY_GET_REGISTRY = 1;
-		return wl_proxy_marshal_constructor(display, WL_DISPLAY_GET_REGISTRY, wl_registry_interface, IntPtr.Zero);
-	}
-
-	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_flush(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
@@ -327,24 +320,56 @@ internal static partial class WlImports
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_dispatch_pending(IntPtr display);
 
+	// quite a few functions in wayland are simply implemented as static inline functions, using wl_proxy_* methods
+	// so we have to re-create them here
+
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_registry_bind(IntPtr wl_registry, uint name, IntPtr iface, uint ver);
+	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, IntPtr end_args);
+
+	[LibraryImport("libwayland-client.so.0")]
+	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, uint name, IntPtr iface_name, uint iface_ver, IntPtr end_args);
+
+	[LibraryImport("libwayland-client.so.0")]
+	private static partial int wl_proxy_add_listener(IntPtr proxy, IntPtr implementation, IntPtr data);
+
+	[LibraryImport("libwayland-client.so.0")]
+	private static partial void wl_proxy_destroy(IntPtr proxy);
+
+	public static IntPtr wl_display_get_registry(IntPtr display)
+	{
+		const uint WL_DISPLAY_GET_REGISTRY = 1;
+		return wl_proxy_marshal_constructor(display, WL_DISPLAY_GET_REGISTRY, wl_registry_interface, IntPtr.Zero);
+	}
 
 	[StructLayout(LayoutKind.Sequential)]
+	private struct wl_interface
+	{
+		public IntPtr name;
+		// there are more members here, but we don't care about them :)
+	}
 
+	public static unsafe IntPtr wl_registry_bind(IntPtr wl_registry, uint name, IntPtr iface, uint ver)
+	{
+		const uint WL_REGISTRY_BIND = 0;
+		return wl_proxy_marshal_constructor(wl_registry, WL_REGISTRY_BIND, iface, name, ((wl_interface*)iface)->name, ver, IntPtr.Zero);
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct wl_registry_listener
 	{
 		public delegate* unmanaged<IntPtr, IntPtr, uint, IntPtr, uint, void> global;
 		public delegate* unmanaged<IntPtr, IntPtr, uint, void> global_remove;
 	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_registry_add_listener(IntPtr wl_registry, in wl_registry_listener listener, IntPtr data);
+	public static unsafe int wl_registry_add_listener(IntPtr wl_registry, wl_registry_listener* listener, IntPtr data)
+	{
+		return wl_proxy_add_listener(wl_registry, (IntPtr)listener, data);
+	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_registry_destroy(IntPtr wl_registry);
-
-	public static readonly IntPtr wl_seat_interface;
+	public static void wl_registry_destroy(IntPtr wl_registry)
+	{
+		wl_proxy_destroy(wl_registry);
+	}
 
 	[Flags]
 	public enum WlSeatCapabilities : uint
@@ -359,14 +384,21 @@ internal static partial class WlImports
 		public delegate* unmanaged<IntPtr, IntPtr, IntPtr, void> name;
 	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_seat_add_listener(IntPtr wl_seat, in wl_seat_listener listener, IntPtr data);
+	public static unsafe int wl_seat_add_listener(IntPtr wl_seat, wl_seat_listener* listener, IntPtr data)
+	{
+		return wl_proxy_add_listener(wl_seat, (IntPtr)listener, data);
+	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_seat_get_keyboard(IntPtr wl_seat);
+	public static IntPtr wl_seat_get_keyboard(IntPtr wl_seat)
+	{
+		const uint WL_SEAT_GET_KEYBOARD = 1;
+		return wl_proxy_marshal_constructor(wl_seat, WL_SEAT_GET_KEYBOARD, wl_keyboard_interface, IntPtr.Zero);
+	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_seat_destroy(IntPtr wl_seat);
+	public static void wl_seat_destroy(IntPtr wl_seat)
+	{
+		wl_proxy_destroy(wl_seat);
+	}
 
 	public enum WlKeymapFormat : uint
 	{
@@ -389,11 +421,15 @@ internal static partial class WlImports
 		public delegate* unmanaged<IntPtr, IntPtr, uint, uint, uint, uint, uint, void> modifiers;
 	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_keyboard_add_listener(IntPtr wl_keyboard, in wl_keyboard_listener listener, IntPtr data);
+	public static unsafe int wl_keyboard_add_listener(IntPtr wl_keyboard, wl_keyboard_listener* listener, IntPtr data)
+	{
+		return wl_proxy_add_listener(wl_keyboard, (IntPtr)listener, data);
+	}
 
-	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_keyboard_destroy(IntPtr wl_keyboard);
+	public static void wl_keyboard_destroy(IntPtr wl_keyboard)
+	{
+		wl_proxy_destroy(wl_keyboard);
+	}
 
 	[LibraryImport("libxkbcommon.so.0")]
 	public static partial IntPtr xkb_context_new(int flags);
