@@ -20,15 +20,22 @@ internal static class KeyInputFactory
 #endif
 
 #if GSR_LINUX
+		if (WlImports.HasDisplay && WlImports.Preferred)
+		{
+			return new WlKeyInput();
+		}
+
 		if (X11Imports.HasDisplay)
 		{
 			return new X11KeyInput();
 		}
-		else
+
+		if (WlImports.HasDisplay)
 		{
-			//return new WlKeyInput();
-			throw new NotSupportedException("Linux key input requires X11");
+			return new WlKeyInput();
 		}
+
+		throw new NotSupportedException("Linux key input requires either X11 or Wayland");
 #endif
 	}
 }

@@ -159,6 +159,27 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
 
+#if GSR_LINUX 
+		// we generally prefer x11 (and so does SDL2 internally), but if the user wants they can prefer wayland
+		// if x11 is unavailable, we'll use wayland regardless
+		var env = Environment.GetEnvironmentVariable("GSR_PREFER_WAYLAND");
+		if (int.TryParse(env, out var ret) && ret != 0)
+		{
+			var videoDrivers = "wayland";
+			var numDrivers = SDL_GetNumVideoDrivers();
+			for (var i = 0; i < numDrivers; i++)
+			{
+				var driver = SDL_GetVideoDriver(i);
+				if (driver.Equals("wayland", StringComparison.OrdinalIgnoreCase))
+				{
+					videoDrivers += $",{driver}";
+				}
+			}
+
+			SDL_SetHint("SDL_VIDEODRIVER", videoDrivers);
+		}
+#endif
+
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
 		_sdlCursors[(int)ImGuiMouseCursor.ResizeAll] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL);
