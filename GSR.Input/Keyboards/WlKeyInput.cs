@@ -490,18 +490,21 @@ internal sealed class WlKeyInput : IKeyInput
 	[UnmanagedCallersOnly]
 	private static void KeyboardEnter(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface, IntPtr keys)
 	{
+		Console.WriteLine("KeyboardEnter called");
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
 	private static void KeyboardLeave(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface)
 	{
+		Console.WriteLine("KeyboardLeave called");
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
 	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, EvDevScanCode key, WlKeyState state)
 	{
+		Console.WriteLine($"Got key {key} with state {state}");
 		if (state is not (WlKeyState.WL_KEYBOARD_KEY_STATE_PRESSED or WlKeyState.WL_KEYBOARD_KEY_STATE_RELEASED))
 		{
 			return;
@@ -518,6 +521,7 @@ internal sealed class WlKeyInput : IKeyInput
 	[UnmanagedCallersOnly]
 	private static void KeyboardModifiers(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group)
 	{
+		Console.WriteLine("KeyboardModifiers called");
 		// don't care
 	}
 
