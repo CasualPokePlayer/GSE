@@ -170,7 +170,7 @@ internal sealed class ImGuiWindow : IDisposable
 			for (var i = 0; i < numDrivers; i++)
 			{
 				var driver = SDL_GetVideoDriver(i);
-				if (driver.Equals("wayland", StringComparison.OrdinalIgnoreCase))
+				if (!driver.Equals("wayland", StringComparison.OrdinalIgnoreCase))
 				{
 					videoDrivers += $",{driver}";
 				}

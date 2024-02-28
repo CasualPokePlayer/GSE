@@ -350,6 +350,45 @@ internal sealed class WlKeyInput : IKeyInput
 		[xkb_keysym_t.XKB_KEY_parenleft] = "9",
 	}.ToFrozenDictionary();
 
+	// wayland doesn't save copies of listeners, so these need to be kept alive in unmanaged memory
+	private static readonly IntPtr _wlRegistryListener;
+	private static readonly IntPtr _wlSeatListener;
+	private static readonly IntPtr _wlKeyboardListener;
+
+	static WlKeyInput()
+	{
+		unsafe
+		{
+			try
+			{
+				_wlRegistryListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_registry_listener));
+				var wlRegistryListener = (wl_registry_listener*)_wlRegistryListener;
+				wlRegistryListener->global = &RegistryGlobal;
+				wlRegistryListener->global_remove = &RegistryGlobalRemove;
+
+				_wlSeatListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_seat_listener));
+				var wlSeatListener = (wl_seat_listener*)_wlSeatListener;
+				wlSeatListener->capabilities = &SeatCapabilities;
+				wlSeatListener->name = &SeatName;
+
+				_wlKeyboardListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_keyboard_listener));
+				var wlKeyboardListener = (wl_keyboard_listener*)_wlKeyboardListener;
+				wlKeyboardListener->keymap = &KeyboardKeymap;
+				wlKeyboardListener->enter = &KeyboardEnter;
+				wlKeyboardListener->leave = &KeyboardLeave;
+				wlKeyboardListener->key = &KeyboardKey;
+				wlKeyboardListener->modifiers = &KeyboardModifiers;
+			}
+			catch
+			{
+				NativeMemory.Free((void*)_wlRegistryListener);
+				NativeMemory.Free((void*)_wlSeatListener);
+				NativeMemory.Free((void*)_wlKeyboardListener);
+				throw;
+			}
+		}
+	}
+
 	[UnmanagedCallersOnly]
 	private static void RegistryGlobal(IntPtr userdata, IntPtr wlRegistry, uint name, IntPtr iface, uint version)
 	{
@@ -371,13 +410,7 @@ internal sealed class WlKeyInput : IKeyInput
 				return;
 			}
 
-			unsafe
-			{
-				var wlSeatListener = default(wl_seat_listener);
-				wlSeatListener.capabilities = &SeatCapabilities;
-				wlSeatListener.name = &SeatName;
-				_ = wl_seat_add_listener(wlKeyInput.WlSeat, &wlSeatListener, userdata);
-			}
+			_ = wl_seat_add_listener(wlKeyInput.WlSeat, _wlSeatListener, userdata);
 		}
 	}
 
@@ -407,16 +440,7 @@ internal sealed class WlKeyInput : IKeyInput
 				return;
 			}
 
-			unsafe
-			{
-				var wlKeyboardListener = default(wl_keyboard_listener);
-				wlKeyboardListener.keymap = &KeyboardKeymap;
-				wlKeyboardListener.enter = &KeyboardEnter;
-				wlKeyboardListener.leave = &KeyboardLeave;
-				wlKeyboardListener.key = &KeyboardKey;
-				wlKeyboardListener.modifiers = &KeyboardModifiers;
-				_ = wl_keyboard_add_listener(wlKeyInput.WlKeyboard, &wlKeyboardListener, userdata);
-			}
+			_ = wl_keyboard_add_listener(wlKeyInput.WlKeyboard, _wlKeyboardListener, userdata);
 		}
 	}
 
@@ -533,14 +557,8 @@ internal sealed class WlKeyInput : IKeyInput
 				throw new("Failed to create xkb context");
 			}
 
-			unsafe
-			{
-				var wlRegistryListener = default(wl_registry_listener);
-				wlRegistryListener.global = &RegistryGlobal;
-				wlRegistryListener.global_remove = &RegistryGlobalRemove;
-				var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-				_ = wl_registry_add_listener(_wlRegistry, &wlRegistryListener, GCHandle.ToIntPtr(handle));
-			}
+			var handle = GCHandle.Alloc(this, GCHandleType.Weak);
+			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(handle));
 
 			// sync so we get the seat
 			_ = wl_display_roundtrip(_wlDisplay);

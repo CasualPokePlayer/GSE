@@ -361,9 +361,9 @@ internal static partial class WlImports
 		public delegate* unmanaged<IntPtr, IntPtr, uint, void> global_remove;
 	}
 
-	public static unsafe int wl_registry_add_listener(IntPtr wl_registry, wl_registry_listener* listener, IntPtr data)
+	public static int wl_registry_add_listener(IntPtr wl_registry, IntPtr listener, IntPtr data)
 	{
-		return wl_proxy_add_listener(wl_registry, (IntPtr)listener, data);
+		return wl_proxy_add_listener(wl_registry, listener, data);
 	}
 
 	public static void wl_registry_destroy(IntPtr wl_registry)
@@ -384,9 +384,9 @@ internal static partial class WlImports
 		public delegate* unmanaged<IntPtr, IntPtr, IntPtr, void> name;
 	}
 
-	public static unsafe int wl_seat_add_listener(IntPtr wl_seat, wl_seat_listener* listener, IntPtr data)
+	public static int wl_seat_add_listener(IntPtr wl_seat, IntPtr listener, IntPtr data)
 	{
-		return wl_proxy_add_listener(wl_seat, (IntPtr)listener, data);
+		return wl_proxy_add_listener(wl_seat, listener, data);
 	}
 
 	public static IntPtr wl_seat_get_keyboard(IntPtr wl_seat)
@@ -421,9 +421,9 @@ internal static partial class WlImports
 		public delegate* unmanaged<IntPtr, IntPtr, uint, uint, uint, uint, uint, void> modifiers;
 	}
 
-	public static unsafe int wl_keyboard_add_listener(IntPtr wl_keyboard, wl_keyboard_listener* listener, IntPtr data)
+	public static int wl_keyboard_add_listener(IntPtr wl_keyboard, IntPtr listener, IntPtr data)
 	{
-		return wl_proxy_add_listener(wl_keyboard, (IntPtr)listener, data);
+		return wl_proxy_add_listener(wl_keyboard, listener, data);
 	}
 
 	public static void wl_keyboard_destroy(IntPtr wl_keyboard)
