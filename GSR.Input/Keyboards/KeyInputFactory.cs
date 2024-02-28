@@ -1,10 +1,12 @@
 using System;
 
+using static SDL2.SDL;
+
 namespace GSR.Input.Keyboards;
 
 internal static class KeyInputFactory
 {
-	public static IKeyInput CreateKeyInput()
+	public static IKeyInput CreateKeyInput(in SDL_SysWMinfo mainWindowWmInfo)
 	{
 #if GSR_WINDOWS
 		if (!OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
@@ -20,15 +22,24 @@ internal static class KeyInputFactory
 #endif
 
 #if GSR_LINUX
-		if (X11Imports.HasDisplay)
+		// if we're using wayland windows, we must use wayland apis for key input
+		// as wayland typically doesn't allow for x11 to do inputs unless xwayland or similar is used
+		if (mainWindowWmInfo.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND)
 		{
-			return new X11KeyInput();
+			if (WlImports.HasDisplay)
+			{
+				return new WlKeyInput(mainWindowWmInfo.info.wl.display);
+			}
 		}
 		else
 		{
-			//return new WlKeyInput();
-			throw new NotSupportedException("Linux key input requires X11");
+			if (X11Imports.HasDisplay)
+			{
+				return new X11KeyInput();
+			}
 		}
+
+		throw new NotSupportedException("Linux key input requires either X11 or Wayland");
 #endif
 	}
 }

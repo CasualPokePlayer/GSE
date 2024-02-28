@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
+using static SDL2.SDL;
+
 #if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -25,6 +27,8 @@ public sealed class InputManager : IDisposable
 	private volatile bool _disposing;
 	private volatile Exception _inputThreadException;
 
+	private readonly SDL_SysWMinfo _mainWindowWmInfo;
+
 	// These must be created/destroyed on the input thread!
 	private IKeyInput _keyInput;
 	private SDLJoysticks _sdlJoysticks;
@@ -39,7 +43,7 @@ public sealed class InputManager : IDisposable
 	{
 		try
 		{
-			_keyInput = KeyInputFactory.CreateKeyInput();
+			_keyInput = KeyInputFactory.CreateKeyInput(in _mainWindowWmInfo);
 			_sdlJoysticks = new();
 
 			_inputThreadInitFinished.Set();
@@ -121,8 +125,9 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
-	public InputManager()
+	public InputManager(in SDL_SysWMinfo mainWindowWmInfo)
 	{
+		_mainWindowWmInfo = mainWindowWmInfo;
 		_inputThread = new(InputThreadProc) { IsBackground = true, Name = "Input Thread" };
 		_inputThread.Start();
 		_inputThreadInitFinished.Wait();
