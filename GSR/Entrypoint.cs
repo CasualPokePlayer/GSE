@@ -9,6 +9,15 @@ internal static class Entrypoint
 {
 	private static GSR _gsr;
 
+	private static string CrashLogDirectory()
+	{
+#if GSR_OSX
+		return Path.Combine(SDL_GetPrefPath("", "GSR"), "gsr_crash.txt");
+#else
+		return Path.Combine(AppContext.BaseDirectory, "gsr_crash.txt");
+#endif
+	}
+
 	[STAThread]
 	private static int Main()
 	{
@@ -28,7 +37,7 @@ internal static class Entrypoint
 				window: IntPtr.Zero
 			);
 
-			File.WriteAllText("gsr_crash.txt", exStr);
+			File.WriteAllText(CrashLogDirectory(), exStr);
 			return -1;
 		}
 		finally
