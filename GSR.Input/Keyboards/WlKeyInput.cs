@@ -529,6 +529,8 @@ internal sealed class WlKeyInput : IKeyInput
 	private readonly List<KeyEvent> KeyEvents = [];
 
 	private readonly IntPtr _wlDisplay;
+	private readonly IntPtr _wlDisplayProxy;
+	private readonly IntPtr _wlEventQueue;
 	private readonly IntPtr _wlRegistry;
 
 	private readonly IntPtr XkbContext;
@@ -538,16 +540,32 @@ internal sealed class WlKeyInput : IKeyInput
 	private IntPtr XkbKeymap;
 	private IntPtr XkbState;
 
-	public WlKeyInput()
+	public WlKeyInput(IntPtr wlDisplay)
 	{
-		_wlDisplay = wl_display_connect(IntPtr.Zero);
+		_wlDisplay = wlDisplay;
 		if (_wlDisplay == IntPtr.Zero)
 		{
-			throw new("Failed to connect to display");
+			throw new("Null wayland display");
 		}
 
 		try
 		{
+			// have to create a proxy / separate event queue
+			// as we don't want to interfere with SDL's event handling
+			_wlDisplayProxy = wl_proxy_create_wrapper(_wlDisplay);
+			if (_wlDisplayProxy == IntPtr.Zero)
+			{
+				throw new("Failed to create display proxy");
+			}
+
+			_wlEventQueue = wl_display_create_queue(_wlDisplay);
+			if (_wlEventQueue == IntPtr.Zero)
+			{
+				throw new("Failed to create event queue");
+			}
+
+			wl_proxy_set_queue(_wlDisplayProxy, _wlEventQueue);
+
 			_wlRegistry = wl_display_get_registry(_wlDisplay);
 			if (_wlRegistry == IntPtr.Zero)
 			{
@@ -565,7 +583,7 @@ internal sealed class WlKeyInput : IKeyInput
 			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(handle));
 
 			// sync so we get the seat
-			_ = wl_display_roundtrip(_wlDisplay);
+			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
 			if (WlSeat == IntPtr.Zero)
 			{
@@ -573,7 +591,7 @@ internal sealed class WlKeyInput : IKeyInput
 			}
 
 			// sync again for the keyboard
-			_ = wl_display_roundtrip(_wlDisplay);
+			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
 			if (WlKeyboard == IntPtr.Zero)
 			{
@@ -581,7 +599,7 @@ internal sealed class WlKeyInput : IKeyInput
 			}
 
 			// sync again for the keymap
-			_ = wl_display_roundtrip(_wlDisplay);
+			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
 			if (XkbKeymap == IntPtr.Zero)
 			{
@@ -647,7 +665,15 @@ internal sealed class WlKeyInput : IKeyInput
 			wl_registry_destroy(_wlRegistry);
 		}
 
-		wl_display_disconnect(_wlDisplay);
+		if (_wlEventQueue != IntPtr.Zero)
+		{
+			wl_event_queue_destroy(_wlEventQueue);
+		}
+
+		if (_wlDisplayProxy != IntPtr.Zero)
+		{
+			wl_proxy_wrapper_destroy(_wlDisplayProxy);
+		}
 	}
 
 	public IEnumerable<KeyEvent> GetEvents()
@@ -655,17 +681,17 @@ internal sealed class WlKeyInput : IKeyInput
 #if false
 		// prep reading new events
 		// existing events need to be drained for this to succeed
-		while (wl_display_prepare_read(_wlDisplay) != 0)
+		while (wl_display_prepare_read_queue(_wlDisplay, _wlEventQueue) != 0)
 		{
-			_ = wl_display_dispatch_pending(_wlDisplay);
+			_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 		}
 
 		// read and dispatch new events
 		_ = wl_display_flush(_wlDisplay);
 		_ = wl_display_read_events(_wlDisplay);
-		_ = wl_display_dispatch_pending(_wlDisplay);
+		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 #else
-		_ = wl_display_roundtrip(_wlDisplay);
+		_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 #endif
 
 		var ret = new KeyEvent[KeyEvents.Count];

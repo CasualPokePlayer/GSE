@@ -183,7 +183,7 @@ internal sealed class GSR : IDisposable
 		{
 			_config = Config.LoadConfig(ConfigDirectory());
 			_mainWindow = new("GSR", _config, true);
-			_inputManager = new();
+			_inputManager = new(in _mainWindow.SdlSysWMInfo);
 			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
 			// default bindings will be set if this fails for some reason
 			_config.DeserializeInputBindings(_inputManager, _mainWindow.SdlWindow);

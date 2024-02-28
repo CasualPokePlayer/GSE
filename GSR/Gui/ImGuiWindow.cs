@@ -159,27 +159,6 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
 
-#if GSR_LINUX 
-		// we generally prefer x11 (and so does SDL2 internally), but if the user wants they can prefer wayland
-		// if x11 is unavailable, we'll use wayland regardless
-		var env = Environment.GetEnvironmentVariable("GSR_PREFER_WAYLAND");
-		if (int.TryParse(env, out var ret) && ret != 0)
-		{
-			var videoDrivers = "wayland";
-			var numDrivers = SDL_GetNumVideoDrivers();
-			for (var i = 0; i < numDrivers; i++)
-			{
-				var driver = SDL_GetVideoDriver(i);
-				if (!driver.Equals("wayland", StringComparison.OrdinalIgnoreCase))
-				{
-					videoDrivers += $",{driver}";
-				}
-			}
-
-			SDL_SetHint("SDL_VIDEODRIVER", videoDrivers);
-		}
-#endif
-
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
 		_sdlCursors[(int)ImGuiMouseCursor.ResizeAll] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL);
@@ -198,6 +177,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public readonly IntPtr SdlWindow;
 	public readonly IntPtr SdlRenderer;
+	public readonly SDL_SysWMinfo SdlSysWMInfo;
 	public readonly uint WindowId;
 
 	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
@@ -451,20 +431,20 @@ internal sealed class ImGuiWindow : IDisposable
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
 			}
 
+			SdlSysWMInfo = default;
+			SDL_GetVersion(out SdlSysWMInfo.version);
+			if (SDL_GetWindowWMInfo(SdlWindow, ref SdlSysWMInfo) == SDL_bool.SDL_FALSE)
+			{
+				throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
+			}
+
 #if GSR_WINDOWS
 			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{
-				var wminfo = default(SDL_SysWMinfo);
-				SDL_GetVersion(out wminfo.version);
-				if (SDL_GetWindowWMInfo(SdlWindow, ref wminfo) == SDL_bool.SDL_FALSE)
-				{
-					throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
-				}
-
 				unsafe
 				{
 					var cornerPref = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
-					_ = PInvoke.DwmSetWindowAttribute(new(wminfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
+					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
 				}
 			}
 #endif

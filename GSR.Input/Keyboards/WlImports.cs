@@ -8,7 +8,6 @@ namespace GSR.Input.Keyboards;
 internal static partial class WlImports
 {
 	public static readonly bool HasDisplay;
-	public static readonly bool Preferred;
 
 	public static readonly IntPtr wl_registry_interface;
 	public static readonly IntPtr wl_seat_interface;
@@ -32,11 +31,6 @@ internal static partial class WlImports
 
 		if (HasDisplay)
 		{
-			// we generally prefer x11 for key inputs, but if the user wants they can prefer wayland key inputs
-			// if x11 is unavailable, we'll use wayland regardless
-			var env = Environment.GetEnvironmentVariable("GSR_PREFER_WAYLAND");
-			Preferred = int.TryParse(env, out var ret) && ret != 0;
-
 			// there are a few interface structs exported we need access to
 			// library import can't handle these, so have to manually load them!
 			var handle = NativeLibrary.Load("libwayland-client.so.0");
@@ -306,19 +300,34 @@ internal static partial class WlImports
 	public static partial void wl_display_disconnect(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
+	public static partial IntPtr wl_display_create_queue(IntPtr display);
+
+	[LibraryImport("libwayland-client.so.0")]
+	public static partial void wl_event_queue_destroy(IntPtr queue);
+
+	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_flush(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_roundtrip(IntPtr display);
+	public static partial int wl_display_roundtrip_queue(IntPtr display, IntPtr queue);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_prepare_read(IntPtr display);
+	public static partial int wl_display_prepare_read_queue(IntPtr display, IntPtr queue);
 
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_read_events(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_dispatch_pending(IntPtr display);
+	public static partial int wl_display_dispatch_queue_pending(IntPtr display, IntPtr queue);
+
+	[LibraryImport("libwayland-client.so.0")]
+	public static partial IntPtr wl_proxy_create_wrapper(IntPtr proxy);
+
+	[LibraryImport("libwayland-client.so.0")]
+	public static partial void wl_proxy_wrapper_destroy(IntPtr proxy_wrapper);
+
+	[LibraryImport("libwayland-client.so.0")]
+	public static partial void wl_proxy_set_queue(IntPtr proxy, IntPtr queue);
 
 	// quite a few functions in wayland are simply implemented as static inline functions, using wl_proxy_* methods
 	// so we have to re-create them here
