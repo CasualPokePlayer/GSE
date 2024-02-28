@@ -318,6 +318,9 @@ internal static partial class WlImports
 	public static partial int wl_display_read_events(IntPtr display);
 
 	[LibraryImport("libwayland-client.so.0")]
+	public static partial int wl_display_dispatch_queue(IntPtr display, IntPtr queue);
+
+	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_dispatch_queue_pending(IntPtr display, IntPtr queue);
 
 	[LibraryImport("libwayland-client.so.0")]

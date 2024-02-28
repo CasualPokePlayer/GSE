@@ -583,6 +583,7 @@ internal sealed class WlKeyInput : IKeyInput
 			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(handle));
 
 			// sync so we get the seat
+			_ = wl_display_dispatch_queue(_wlDisplay, _wlEventQueue);
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
 			if (WlSeat == IntPtr.Zero)
