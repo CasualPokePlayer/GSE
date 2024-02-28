@@ -652,6 +652,7 @@ internal sealed class WlKeyInput : IKeyInput
 
 	public IEnumerable<KeyEvent> GetEvents()
 	{
+#if false
 		// prep reading new events
 		// existing events need to be drained for this to succeed
 		while (wl_display_prepare_read(_wlDisplay) != 0)
@@ -663,6 +664,9 @@ internal sealed class WlKeyInput : IKeyInput
 		_ = wl_display_flush(_wlDisplay);
 		_ = wl_display_read_events(_wlDisplay);
 		_ = wl_display_dispatch_pending(_wlDisplay);
+#else
+		_ = wl_display_roundtrip(_wlDisplay);
+#endif
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
