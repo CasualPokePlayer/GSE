@@ -568,13 +568,16 @@ internal sealed class WlKeyInput : IKeyInput
 				throw new("Failed to obtain seat");
 			}
 
-			// sync so we get the keyboard and keymap
+			// sync again for the keyboard
 			_ = wl_display_roundtrip(_wlDisplay);
 
 			if (WlKeyboard == IntPtr.Zero)
 			{
 				throw new("Failed to obtain keyboard");
 			}
+
+			// sync again for the keymap
+			_ = wl_display_roundtrip(_wlDisplay);
 
 			if (XkbKeymap == IntPtr.Zero)
 			{
