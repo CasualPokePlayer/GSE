@@ -96,6 +96,8 @@ internal sealed class OSDManager(EmuManager emuManager)
 						ImGui.TextUnformatted(cycleCountStr);
 					}
 				}
+
+				ImGui.EndMenuBar();
 			}
 
 			ImGui.End();
