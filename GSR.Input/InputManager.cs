@@ -190,7 +190,7 @@ public sealed class InputManager : IDisposable
 			return new(serializationLabel, null, serializationLabel);
 		}
 
-		return default;
+		return null;
 	}
 
 	/// <summary>
@@ -202,16 +202,16 @@ public sealed class InputManager : IDisposable
 		switch (serializationLabels.Length)
 		{
 			case 0:
-				return default;
+				return new(null, null, null);
 			case 1:
-				return DeserializeSingleInputBinding(serializationLabels[0]);
+				return DeserializeSingleInputBinding(serializationLabels[0]) ?? new(null, null, null);
 			default:
 			{
 				var modifierBinding = DeserializeSingleInputBinding(serializationLabels[0]);
 				var mainBinding = DeserializeSingleInputBinding(serializationLabels[1]);
-				if (modifierBinding == default || mainBinding == default)
+				if (modifierBinding is null || mainBinding is null)
 				{
-					return default;
+					return new(null, null, null);
 				}
 
 				return new(
@@ -247,23 +247,35 @@ public sealed class InputManager : IDisposable
 			{
 				if (inputBinding.ModifierLabel == null)
 				{
-					inputBinding.ModifierLabel = inputEvent.InputName;
-					inputBinding.SerializationLabel = ConvertToSeralizableLabel(inputEvent);
+					inputBinding = new(
+						SerializationLabel: ConvertToSeralizableLabel(inputEvent),
+						ModifierLabel: inputEvent.InputName,
+						MainInputLabel: inputBinding.MainInputLabel
+					);
+
 					// we aren't finished unless this another key is pressed, or this key is released
 					continue;
 				}
 
 				// pressed a second key, we'll consider this the non-modifier key
-				inputBinding.MainInputLabel = inputEvent.InputName;
-				inputBinding.SerializationLabel += $"+{ConvertToSeralizableLabel(inputEvent)}";
+				inputBinding = new(
+					SerializationLabel: $"+{ConvertToSeralizableLabel(inputEvent)}",
+					ModifierLabel: inputBinding.ModifierLabel,
+					MainInputLabel: inputEvent.InputName
+				);
+
 				return true;
 			}
 
 			// released key, see if this matches our current modifier (and set it as the only input if so)
 			if (inputBinding.ModifierLabel == inputEvent.InputName)
 			{
-				inputBinding.ModifierLabel = null;
-				inputBinding.MainInputLabel = inputEvent.InputName;
+				inputBinding = new(
+					SerializationLabel: inputBinding.SerializationLabel,
+					ModifierLabel: null,
+					MainInputLabel: inputEvent.InputName
+				);
+
 				return true;
 			}
 		}

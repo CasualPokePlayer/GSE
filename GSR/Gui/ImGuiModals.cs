@@ -34,7 +34,7 @@ internal sealed class ImGuiModals
 	private readonly InputConfig[] _stateInputConfigs;
 
 	private List<InputBinding> _currentInputBindingList;
-	private InputBinding _currentInputBinding;
+	private InputBinding _currentInputBinding = new(null, null, null);
 	private bool _startingInputBinding;
 
 	private static readonly Lazy<string[]> _lazyRenderDriverOptions = new(() =>
@@ -234,7 +234,7 @@ internal sealed class ImGuiModals
 	{
 		_inputManager.EndInputBinding();
 		_currentInputBindingList = null;
-		_currentInputBinding = default;
+		_currentInputBinding = new(null, null, null);
 		_mainWindow.SuppressEscape = false;
 	}
 
