@@ -490,21 +490,18 @@ internal sealed class WlKeyInput : IKeyInput
 	[UnmanagedCallersOnly]
 	private static void KeyboardEnter(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface, IntPtr keys)
 	{
-		Console.WriteLine("KeyboardEnter called");
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
 	private static void KeyboardLeave(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface)
 	{
-		Console.WriteLine("KeyboardLeave called");
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
 	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, EvDevScanCode key, WlKeyState state)
 	{
-		Console.WriteLine($"Got key {key} with state {state}");
 		if (state is not (WlKeyState.WL_KEYBOARD_KEY_STATE_PRESSED or WlKeyState.WL_KEYBOARD_KEY_STATE_RELEASED))
 		{
 			return;
@@ -521,7 +518,6 @@ internal sealed class WlKeyInput : IKeyInput
 	[UnmanagedCallersOnly]
 	private static void KeyboardModifiers(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group)
 	{
-		Console.WriteLine("KeyboardModifiers called");
 		// don't care
 	}
 
@@ -566,7 +562,7 @@ internal sealed class WlKeyInput : IKeyInput
 
 			wl_proxy_set_queue(_wlDisplayProxy, _wlEventQueue);
 
-			_wlRegistry = wl_display_get_registry(_wlDisplay);
+			_wlRegistry = wl_display_get_registry(_wlDisplayProxy);
 			if (_wlRegistry == IntPtr.Zero)
 			{
 				throw new("Failed to get global registry");
@@ -583,7 +579,6 @@ internal sealed class WlKeyInput : IKeyInput
 			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(handle));
 
 			// sync so we get the seat
-			_ = wl_display_dispatch_queue(_wlDisplay, _wlEventQueue);
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
 			if (WlSeat == IntPtr.Zero)
@@ -679,7 +674,6 @@ internal sealed class WlKeyInput : IKeyInput
 
 	public IEnumerable<KeyEvent> GetEvents()
 	{
-#if false
 		// prep reading new events
 		// existing events need to be drained for this to succeed
 		while (wl_display_prepare_read_queue(_wlDisplay, _wlEventQueue) != 0)
@@ -691,9 +685,6 @@ internal sealed class WlKeyInput : IKeyInput
 		_ = wl_display_flush(_wlDisplay);
 		_ = wl_display_read_events(_wlDisplay);
 		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
-#else
-		_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
-#endif
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
