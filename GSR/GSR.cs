@@ -211,10 +211,10 @@ internal sealed class GSR : IDisposable
 	public void Dispose()
 	{
 		_postProcessor?.Dispose();
-		_mainWindow?.Dispose();
 		_emuManager?.Dispose();
 		_audioManager?.Dispose();
 		_inputManager?.Dispose();
+		_mainWindow?.Dispose();
 		_config?.SaveConfig(ConfigDirectory());
 	}
 
