@@ -162,6 +162,33 @@ internal sealed class ImGuiModals
 			new("Load State Slot 10", _config.HotkeyBindings.LoadStateSlot10ButtonBindings),
 		];
 
+		foreach (var inputConfig in _gameInputConfigs.Concat(_playInputConfigs).Concat(_stateInputConfigs))
+		{
+			// remove all overlapping inputs, leaving the latest inputs in their place
+			for (var i = 0; i < inputConfig.InputBindings.Count; i++)
+			{
+				for (var j = i + 1; j < inputConfig.InputBindings.Count; j++)
+				{
+					if (InputsOverlap(inputConfig.InputBindings[^i], inputConfig.InputBindings[^j]))
+					{
+						inputConfig.InputBindings.RemoveAt(inputConfig.InputBindings.Count - j);
+						j--;
+					}
+				}
+			}
+
+			// we limit bindings to only 4 max
+			if (inputConfig.InputBindings.Count > 4)
+			{
+				inputConfig.InputBindings.RemoveRange(0, inputConfig.InputBindings.Count - 4);
+			}
+		}
+
+		foreach (var gameInputConfig in _gameInputConfigs)
+		{
+			RemoveMatchingGameInputs(gameInputConfig.InputBindings);
+		}
+
 		_renderDriverOptions = _lazyRenderDriverOptions.Value;
 		_renderDriverConfigStrings = _lazyRenderDriverConfigStrings.Value;
 
@@ -242,6 +269,28 @@ internal sealed class ImGuiModals
 	{
 		var (emuWidth, emuHeight) = _emuManager.GetVideoDimensions(_config.HideSgbBorder);
 		_mainWindow.SetWindowSize(emuWidth, emuHeight, _config.WindowScale, _config.HideStatusBar ? 1 : 2);
+	}
+
+	private static bool InputsOverlap(InputBinding b1, InputBinding b2)
+	{
+		return b1.MainInputLabel == b2.MainInputLabel
+		       || b1.MainInputLabel == b2.ModifierLabel
+		       || b1.ModifierLabel == b2.MainInputLabel
+		       || (b1.ModifierLabel is not null && b1.ModifierLabel == b2.ModifierLabel);
+	}
+
+	public void RemoveMatchingGameInputs(List<InputBinding> inputBindings)
+	{
+		foreach (var inputBinding in inputBindings)
+		{
+			foreach (var gameInputConfig in _gameInputConfigs)
+			{
+				if (gameInputConfig.InputBindings != inputBindings)
+				{
+					gameInputConfig.InputBindings.RemoveAll(b => InputsOverlap(b, inputBinding));
+				}
+			}
+		}
 	}
 
 	public void EnumerateAudioDevices()
@@ -371,8 +420,21 @@ internal sealed class ImGuiModals
 					// otherwise, we can update our input binding
 					if (_inputManager.UpdateInputBinding(ref _currentInputBinding))
 					{
-						_currentInputBindingList.RemoveAll(b => b == _currentInputBinding);
+						_currentInputBindingList.RemoveAll(b => InputsOverlap(b, _currentInputBinding));
 						_currentInputBindingList.Add(_currentInputBinding);
+
+						// we limit bindings to only 4 max
+						if (_currentInputBindingList.Count > 4)
+						{
+							_currentInputBindingList.RemoveRange(0, _currentInputBindingList.Count - 4);
+						}
+
+						// we don't allow game inputs to match against other game inputs
+						if (_gameInputConfigs.Any(gi => gi.InputBindings == _currentInputBindingList))
+						{
+							RemoveMatchingGameInputs(_currentInputBindingList);
+						}
+
 						StopInputBinding();
 						ImGui.CloseCurrentPopup();
 					}

@@ -104,6 +104,8 @@ internal sealed class HotkeyBindings
 			{
 				binding[i] = inputManager.DeserializeInputBinding(binding[i].SerializationLabel);
 			}
+
+			binding.RemoveAll(b => b is null);
 		}
 	}
 }

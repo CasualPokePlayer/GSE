@@ -202,16 +202,16 @@ public sealed class InputManager : IDisposable
 		switch (serializationLabels.Length)
 		{
 			case 0:
-				return new(null, null, null);
+				return null;
 			case 1:
-				return DeserializeSingleInputBinding(serializationLabels[0]) ?? new(null, null, null);
+				return DeserializeSingleInputBinding(serializationLabels[0]);
 			default:
 			{
 				var modifierBinding = DeserializeSingleInputBinding(serializationLabels[0]);
 				var mainBinding = DeserializeSingleInputBinding(serializationLabels[1]);
 				if (modifierBinding is null || mainBinding is null)
 				{
-					return new(null, null, null);
+					return null;
 				}
 
 				return new(
