@@ -9,6 +9,7 @@ internal interface IEmuCore : IDisposable
 	ReadOnlySpan<byte> SaveState();
 	bool LoadState(ReadOnlySpan<byte> state);
 
+	void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len);
 	void SetColorCorrectionEnable(bool enable);
 
 	ReadOnlySpan<uint> VideoBuffer { get; }

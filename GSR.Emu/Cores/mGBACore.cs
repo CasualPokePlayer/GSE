@@ -2,7 +2,6 @@ using System;
 using System.IO;
 
 using static GSR.Emu.Cores.MGBA;
-using static GSR.Emu.ExportHelper;
 
 namespace GSR.Emu.Cores;
 
@@ -30,13 +29,6 @@ internal sealed class MGBACore : IEmuCore
 		{
 			mgba_setcolorlut(_opaque,
 				loadArgs.ApplyColorCorrection ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
-
-			mgba_getmemoryblock(_opaque, MemoryBlocks.IWRAM, out var iwramPtr, out var iwramLen);
-			mgba_getmemoryblock(_opaque, MemoryBlocks.EWRAM, out var ewramPtr, out var ewramLen);
-			mgba_getmemoryblock(_opaque, MemoryBlocks.SRAM, out var sramPtr, out var sramLen);
-			export_helper_set_mem_export(MemExportType.GBA_IWRAM, iwramPtr, iwramLen);
-			export_helper_set_mem_export(MemExportType.GBA_EWRAM, ewramPtr, ewramLen);
-			export_helper_set_mem_export(MemExportType.GBA_SRAM, sramPtr, sramLen);
 
 			var savPath = Path.Combine(loadArgs.RomDirectory, loadArgs.RomName) + ".sav";
 			var savFi = new FileInfo(savPath);
@@ -125,6 +117,27 @@ internal sealed class MGBACore : IEmuCore
 	public bool LoadState(ReadOnlySpan<byte> state)
 	{
 		return mgba_loadstate(_opaque, state, state.Length);
+	}
+
+	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	{
+		var block = which switch
+		{
+			ExportHelper.MemExport.GBA_IWRAM => MemoryBlocks.IWRAM,
+			ExportHelper.MemExport.GBA_EWRAM => MemoryBlocks.EWRAM,
+			ExportHelper.MemExport.GBA_SRAM => MemoryBlocks.SRAM,
+			_ => MemoryBlocks.END
+		};
+
+		if (block == MemoryBlocks.END)
+		{
+			ptr = IntPtr.Zero;
+			len = 0;
+		}
+		else
+		{
+			mgba_getmemoryblock(_opaque, block, out ptr, out len);
+		}
 	}
 
 	public void SetColorCorrectionEnable(bool enable)

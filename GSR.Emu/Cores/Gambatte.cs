@@ -169,7 +169,8 @@ internal static partial class Gambatte
 		HRAM = 5,
 		// these last two aren't returning native memory area data, but instead converted RGB32 colors
 		BGPAL = 6,
-		SPPAL = 7
+		SPPAL = 7,
+		END,
 	}
 
 	/// <summary>

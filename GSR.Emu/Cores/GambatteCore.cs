@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 using static GSR.Emu.Cores.Gambatte;
-using static GSR.Emu.ExportHelper;
 
 namespace GSR.Emu.Cores;
 
@@ -133,16 +132,6 @@ internal sealed class GambatteCore : IEmuCore
 
 			gambatte_setcgbpalette(_opaque,
 				loadArgs.ApplyColorCorrection ? GBColors.GetLut(_gbPlatform) : GBColors.TrueColorLut);
-
-			if (gambatte_getmemoryarea(_opaque, MemoryAreas.WRAM, out var wramPtr, out var wramLen))
-			{
-				export_helper_set_mem_export(MemExportType.GB_WRAM, wramPtr, (uint)wramLen);
-			}
-
-			if (gambatte_getmemoryarea(_opaque, MemoryAreas.CARTRAM, out var sramPtr, out var sramLen))
-			{
-				export_helper_set_mem_export(MemExportType.GB_SRAM, sramPtr, (uint)sramLen);
-			}
 
 			_stateBuffer = new byte[gambatte_savestate(_opaque, null, 0, null)];
 
@@ -327,6 +316,25 @@ internal sealed class GambatteCore : IEmuCore
 	{
 		// no loading a state while resetting!
 		return _resetStage == ResetStage.None && gambatte_loadstate(_opaque, state, state.Length);
+	}
+
+	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	{
+		var area = which switch
+		{
+			ExportHelper.MemExport.GB_WRAM => MemoryAreas.WRAM,
+			ExportHelper.MemExport.GB_SRAM => MemoryAreas.CARTRAM,
+			_ => MemoryAreas.END
+		};
+
+		ptr = IntPtr.Zero;
+		len = 0;
+
+		if (area != MemoryAreas.END && gambatte_getmemoryarea(_opaque, area, out var data, out var length))
+		{
+			ptr = data;
+			len = (uint)length;
+		}
 	}
 
 	public void SetColorCorrectionEnable(bool enable)

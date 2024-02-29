@@ -141,6 +141,7 @@ internal static partial class MGBA
 		IWRAM = 0,
 		EWRAM = 1,
 		SRAM = 2,
+		END,
 	}
 
 	/// <summary>

@@ -187,7 +187,7 @@ public sealed class EmuManager : IDisposable
 		_disposing = true;
 		_emuThread.Join();
 
-		for (MemExportType i = 0; i < MemExportType.EXPORT_TYPE_END; i++)
+		for (MemExport i = 0; i < MemExport.END; i++)
 		{
 			export_helper_set_mem_export(i, IntPtr.Zero, 0);
 		}
@@ -197,7 +197,7 @@ public sealed class EmuManager : IDisposable
 
 	private void SetToNullCore()
 	{
-		for (MemExportType i = 0; i < MemExportType.EXPORT_TYPE_END; i++)
+		for (MemExport i = 0; i < MemExport.END; i++)
 		{
 			export_helper_set_mem_export(i, IntPtr.Zero, 0);
 		}
@@ -266,6 +266,13 @@ public sealed class EmuManager : IDisposable
 				_emuCore = EmuCoreFactory.CreateEmuCore(loadArgs);
 				_emuController = loadArgs.EmuController;
 				_emuCycleCount = 0;
+
+				for (MemExport i = 0; i < MemExport.END; i++)
+				{
+					_emuCore.GetMemoryExport(i, out var ptr, out var len);
+					export_helper_set_mem_export(i, ptr, len);
+				}
+
 				CurrentRomDirectory = loadArgs.RomDirectory;
 				CurrentRomName = loadArgs.RomName;
 				CurrentGbPlatform = loadArgs.GbPlatform;

@@ -25,6 +25,12 @@ internal sealed class NullCore : IEmuCore
 	public ReadOnlySpan<byte> SaveState() => ReadOnlySpan<byte>.Empty;
 	public bool LoadState(ReadOnlySpan<byte> state) => false;
 
+	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	{
+		ptr = IntPtr.Zero;
+		len = 0;
+	}
+
 	public void SetColorCorrectionEnable(bool enable)
 	{
 	}
