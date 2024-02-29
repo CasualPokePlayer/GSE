@@ -40,6 +40,7 @@ CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL2
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
+CMakeNinjaBuild export_helper
 
 # Build GSR
 cd ..

@@ -13,6 +13,7 @@ call:CMakeNinjaBuild cimgui
 call:CMakeNinjaBuild SDL2
 call:CMakeNinjaBuild gambatte
 call:CMakeNinjaBuild mgba
+call:CMakeNinjaBuild export_helper
 
 :: Build GSR
 cd ..

@@ -264,3 +264,31 @@ GSR_EXPORT bool mgba_loadstate(GSR_ctx* ctx, const uint8_t* stateBuf, uint32_t s
 	vf->close(vf);
 	return ret;
 }
+
+enum MemoryBlock
+{
+	MEMORY_BLOCK_IWRAM = 0,
+	MEMORY_BLOCK_EWRAM = 1,
+	MEMORY_BLOCK_SRAM = 2,
+};
+
+GSR_EXPORT void mgba_getmemoryblock(GSR_ctx* ctx, enum MemoryBlock which, void** ptr, size_t* len)
+{
+	*ptr = NULL;
+	*len = 0;
+
+	switch (which)
+	{
+		case MEMORY_BLOCK_IWRAM:
+			*ptr = ctx->core->getMemoryBlock(ctx->core, REGION_WORKING_IRAM, len);
+			break;
+		case MEMORY_BLOCK_EWRAM:
+			*ptr = ctx->core->getMemoryBlock(ctx->core, REGION_WORKING_RAM, len);
+			break;
+		case MEMORY_BLOCK_SRAM:
+			// we don't know how much sram will actually be used yet, so give the entire block
+			*ptr = ctx->sram;
+			*len = sizeof(ctx->sram);
+			break;
+	}
+}

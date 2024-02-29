@@ -11,6 +11,8 @@ using GSR.Audio;
 using GSR.Emu.Cores;
 using GSR.Emu.Controllers;
 
+using static GSR.Emu.ExportHelper;
+
 namespace GSR.Emu;
 
 public sealed class EmuManager : IDisposable
@@ -184,11 +186,22 @@ public sealed class EmuManager : IDisposable
 	{
 		_disposing = true;
 		_emuThread.Join();
+
+		for (MemExportType i = 0; i < MemExportType.EXPORT_TYPE_END; i++)
+		{
+			export_helper_set_mem_export(i, IntPtr.Zero, 0);
+		}
+
 		_emuCore.Dispose();
 	}
 
 	private void SetToNullCore()
 	{
+		for (MemExportType i = 0; i < MemExportType.EXPORT_TYPE_END; i++)
+		{
+			export_helper_set_mem_export(i, IntPtr.Zero, 0);
+		}
+
 		_emuCore?.Dispose();
 		_emuCore = NullCore.Singleton;
 		_emuController = NullController.Singleton;

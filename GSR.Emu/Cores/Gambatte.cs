@@ -157,6 +157,35 @@ internal static partial class Gambatte
 	public static partial int gambatte_getsavedatalength(IntPtr core);
 
 	/// <summary>
+	/// memory areas that gambatte_getmemoryarea() can return
+	/// </summary>
+	public enum MemoryAreas : int
+	{
+		VRAM = 0,
+		ROM = 1,
+		WRAM = 2,
+		CARTRAM = 3,
+		OAM = 4,
+		HRAM = 5,
+		// these last two aren't returning native memory area data, but instead converted RGB32 colors
+		BGPAL = 6,
+		SPPAL = 7
+	}
+
+	/// <summary>
+	/// get pointer to internal memory areas, for debugging purposes
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <param name="which">which memory area to access</param>
+	/// <param name="data">pointer to the start of the area</param>
+	/// <param name="length">valid length of the area, in bytes</param>
+	/// <returns>success</returns>
+	[LibraryImport("gambatte")]
+	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[return: MarshalAs(UnmanagedType.U1)]
+	public static partial bool gambatte_getmemoryarea(IntPtr core, MemoryAreas which, out IntPtr data, out int length);
+
+	/// <summary>
 	/// Saves emulator state to the buffer given by 'stateBuf'.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>

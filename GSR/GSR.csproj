@@ -27,16 +27,19 @@
 		<SDL2_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)SDL2$(GSR_LIB_EXT)</SDL2_PATH>
 		<GAMBATTE_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)gambatte$(GSR_LIB_EXT)</GAMBATTE_PATH>
 		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)mgba$(GSR_LIB_EXT)</MGBA_PATH>
+		<EXPORT_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)export_helper$(GSR_LIB_EXT)</EXPORT_HELPER_PATH>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true'">
 		<DirectPInvoke Include="cimgui" />
 		<DirectPInvoke Include="SDL2" />
 		<DirectPInvoke Include="gambatte" />
 		<DirectPInvoke Include="mgba" />
+		<DirectPInvoke Include="export_helper" />
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
 		<NativeLibrary Include="$(SDL2_PATH)" />
 		<NativeLibrary Include="$(GAMBATTE_PATH)" />
 		<NativeLibrary Include="$(MGBA_PATH)" />
+		<NativeLibrary Include="$(EXPORT_HELPER_PATH)" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_WINDOWS)' == 'true'">
 		<!-- These are needed by SDL -->
@@ -80,6 +83,10 @@
 			<Visible>false</Visible>
 		</Content>
 		<Content Include="$(MGBA_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+		<Content Include="$(EXPORT_HELPER_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>

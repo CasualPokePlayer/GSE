@@ -132,4 +132,25 @@ internal static partial class MGBA
 	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool mgba_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);
+
+	/// <summary>
+	/// memory blocks that mgba_getmemoryblock() can return
+	/// </summary>
+	public enum MemoryBlocks : int
+	{
+		IWRAM = 0,
+		EWRAM = 1,
+		SRAM = 2,
+	}
+
+	/// <summary>
+	/// get memory block
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <param name="which">which memory block</param>
+	/// <param name="ptr">memory block pointer, or NULL if not present</param>
+	/// <param name="len">memory block length, or 0 if not present</param>
+	[LibraryImport("mgba")]
+	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	public static partial void mgba_getmemoryblock(IntPtr core, MemoryBlocks which, out IntPtr ptr, out nuint len);
 }

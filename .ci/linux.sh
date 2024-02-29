@@ -75,6 +75,7 @@ CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL2
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
+CMakeNinjaBuild export_helper
 
 # Install dotnet8 sdk
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
