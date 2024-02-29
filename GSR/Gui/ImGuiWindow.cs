@@ -523,6 +523,14 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		if (_imGuiContext != IntPtr.Zero)
 		{
+			ImGui.SetCurrentContext(_imGuiContext);
+
+			// ImGui wants userdata fields to be cleared before destroying the context
+			var io = ImGui.GetIO();
+			io.BackendPlatformUserData = IntPtr.Zero;
+			io.BackendRendererUserData = IntPtr.Zero;
+			io.ClipboardUserData = IntPtr.Zero;
+
 			ImGui.DestroyContext(_imGuiContext);
 		}
 

@@ -354,36 +354,38 @@ internal sealed class ImGuiModals
 
 				ImGui.EndTabBar();
 			}
-		}
 
-		if (_currentInputBindingList != null)
-		{
-			if (_startingInputBinding)
+			if (_currentInputBindingList != null)
 			{
-				ImGui.OpenPopup("Input Binding");
-				_startingInputBinding = false;
-			}
-
-			if (ImGui.BeginPopup("Input Binding", ImGuiWindowFlags.NoNavInputs))
-			{
-				ImGui.TextUnformatted("Press a keyboard or joystick input to bind this input.");
-				ImGui.TextUnformatted("Hold an input then press another to do a modifier input pair.");
-
-				// otherwise, we can update our input binding
-				if (_inputManager.UpdateInputBinding(ref _currentInputBinding))
+				if (_startingInputBinding)
 				{
-					_currentInputBindingList.RemoveAll(b => b == _currentInputBinding);
-					_currentInputBindingList.Add(_currentInputBinding);
-					StopInputBinding();
-					ImGui.CloseCurrentPopup();
+					ImGui.OpenPopup("Input Binding");
+					_startingInputBinding = false;
 				}
 
-				ImGui.EndPopup();
+				if (ImGui.BeginPopup("Input Binding", ImGuiWindowFlags.NoNavInputs))
+				{
+					ImGui.TextUnformatted("Press a keyboard or joystick input to bind this input.");
+					ImGui.TextUnformatted("Hold an input then press another to do a modifier input pair.");
+
+					// otherwise, we can update our input binding
+					if (_inputManager.UpdateInputBinding(ref _currentInputBinding))
+					{
+						_currentInputBindingList.RemoveAll(b => b == _currentInputBinding);
+						_currentInputBindingList.Add(_currentInputBinding);
+						StopInputBinding();
+						ImGui.CloseCurrentPopup();
+					}
+
+					ImGui.EndPopup();
+				}
+				else
+				{
+					StopInputBinding();
+				}
 			}
-			else
-			{
-				StopInputBinding();
-			}
+
+			ImGui.EndPopup();
 		}
 
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));

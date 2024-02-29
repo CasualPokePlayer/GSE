@@ -99,9 +99,9 @@ internal sealed class OSDManager(EmuManager emuManager)
 
 				ImGui.EndMenuBar();
 			}
-
-			ImGui.End();
 		}
+
+		ImGui.End();
 	}
 
 	public void RunOverlay()
@@ -114,8 +114,9 @@ internal sealed class OSDManager(EmuManager emuManager)
 			if (ImGui.Begin("OSD Overlay", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration))
 			{
 				ImGui.TextUnformatted(nextOsdMessage);
-				ImGui.End();
 			}
+
+			ImGui.End();
 		}
 	}
 }

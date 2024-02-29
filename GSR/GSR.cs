@@ -360,12 +360,17 @@ internal sealed class GSR : IDisposable
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 
-			ImGui.Begin("GSR", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoBringToFrontOnFocus);
-			DrawEmu();
-			ImGui.PopStyleVar(3);
-
-			_imGuiMenuBar.RunMenuBar();
-			_imGuiModals.RunModals();
+			if (ImGui.Begin("GSR", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoBringToFrontOnFocus))
+			{
+				DrawEmu();
+				ImGui.PopStyleVar(3);
+				_imGuiMenuBar.RunMenuBar();
+				_imGuiModals.RunModals();
+			}
+			else
+			{
+				ImGui.PopStyleVar(3);
+			}
 
 			ImGui.End();
 
