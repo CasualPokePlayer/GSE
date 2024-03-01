@@ -60,12 +60,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 		try
 		{
 			_busUniqueName = Marshal.PtrToStringUTF8(dbus_bus_get_unique_name(_conn)) ?? throw new("Failed to obtain D-Bus unique name");
-            var sender = (_busUniqueName.StartsWith(':') ? _busUniqueName[1..] : _busUniqueName).Replace('.', '_');
-            Span<char> token = stackalloc char[64];
-            Random.Shared.GetItems("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", token);
-            _uniqueToken = new(token);
-            _uniqueObjectPath = $"/org/freedesktop/portal/desktop/request/{sender}/{_uniqueToken}";
-            SetMatchRule(_uniqueObjectPath);
+			var sender = (_busUniqueName.StartsWith(':') ? _busUniqueName[1..] : _busUniqueName).Replace('.', '_');
+			Span<char> token = stackalloc char[64];
+			Random.Shared.GetItems("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", token);
+			_uniqueToken = new(token);
+			_uniqueObjectPath = $"/org/freedesktop/portal/desktop/request/{sender}/{_uniqueToken}";
+			SetMatchRule(_uniqueObjectPath);
 		}
 		catch
 		{
