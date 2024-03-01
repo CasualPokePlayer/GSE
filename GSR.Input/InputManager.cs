@@ -260,7 +260,7 @@ public sealed class InputManager : IDisposable
 				// pressed a second key, we'll consider this the non-modifier key
 				inputBinding = inputBinding with
 				{
-					SerializationLabel = $"+{ConvertToSeralizableLabel(inputEvent)}",
+					SerializationLabel = $"{inputBinding.SerializationLabel}+{ConvertToSeralizableLabel(inputEvent)}",
 					MainInputLabel = inputEvent.InputName
 				};
 
