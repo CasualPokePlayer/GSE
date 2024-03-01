@@ -14,9 +14,9 @@ internal static partial class ExportHelper
 		GBA_EWRAM,
 		GBA_SRAM,
 		END,
-	};
+	}
 
 	[LibraryImport("export_helper")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void export_helper_set_mem_export(MemExport which, IntPtr ptr, nuint len);
 }

@@ -10,7 +10,7 @@ namespace ImGuiNET;
 public static unsafe partial class ImGuiInternal
 {
 	[LibraryImport("cimgui", StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
 	private static partial bool igBeginViewportSideBar(string name, ImGuiViewport* viewport, ImGuiDir dir, float size, ImGuiWindowFlags window_flags);
 

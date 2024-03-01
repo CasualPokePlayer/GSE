@@ -8,12 +8,12 @@ internal static partial class Gambatte
 {
 	/// <returns>opaque state pointer</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial IntPtr gambatte_create();
 
 	/// <param name="core">opaque state pointer</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void gambatte_destroy(IntPtr core);
 
 	[Flags]
@@ -42,7 +42,7 @@ internal static partial class Gambatte
 	/// <param name="flags">ORed combination of LoadFlags.</param>
 	/// <returns>0 on success, negative value on failure.</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial int gambatte_loadbuf(IntPtr core, ReadOnlySpan<byte> romData, uint length, LoadFlags flags);
 
 	/// <summary>
@@ -53,7 +53,7 @@ internal static partial class Gambatte
 	/// <param name="length">length of biosData in bytes</param>
 	/// <returns>0 on success, negative value on failure.</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial int gambatte_loadbiosbuf(IntPtr core, ReadOnlySpan<byte> biosData, uint length);
 
 	/// <summary>
@@ -77,11 +77,11 @@ internal static partial class Gambatte
 	/// <param name="samples">in: number of stereo samples to produce, out: actual number of samples produced</param>
 	/// <returns>sample number at which the video frame was produced. -1 means no frame was produced.</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static unsafe partial int gambatte_runfor(IntPtr core, uint* videoBuf, int pitch, [Out] uint[] soundBuf, ref uint samples);
 
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static unsafe partial int gambatte_updatescreenborder(IntPtr core, uint* videobuf, int pitch);
 
 	/// <summary>
@@ -91,7 +91,7 @@ internal static partial class Gambatte
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="samplesToStall">samples of reset stall</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void gambatte_reset(IntPtr core, uint samplesToStall);
 
 	/// <summary>
@@ -100,7 +100,7 @@ internal static partial class Gambatte
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="lut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void gambatte_setcgbpalette(IntPtr core, ReadOnlySpan<uint> lut);
 
 	/// <summary>
@@ -126,7 +126,7 @@ internal static partial class Gambatte
 	/// <param name="getInput">input getter</param>
 	/// <param name="p">input getter userdata</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static unsafe partial void gambatte_setinputgetter(IntPtr core, delegate* unmanaged[Cdecl]<IntPtr, Buttons> getInput, IntPtr p);
 
 	/// <summary>
@@ -135,7 +135,7 @@ internal static partial class Gambatte
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="dest">byte buffer to write into. gambatte_getsavedatalength() bytes will be written</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void gambatte_savesavedata(IntPtr core, [Out] byte[] dest);
 
 	/// <summary>
@@ -144,7 +144,7 @@ internal static partial class Gambatte
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="data">byte buffer to read from. gambatte_getsavedatalength() bytes will be read</param>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void gambatte_loadsavedata(IntPtr core, [In] byte[] data);
 
 	/// <summary>
@@ -153,7 +153,7 @@ internal static partial class Gambatte
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>length in bytes. 0 means no internal persistant cart memory</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial int gambatte_getsavedatalength(IntPtr core);
 
 	/// <summary>
@@ -182,7 +182,7 @@ internal static partial class Gambatte
 	/// <param name="length">valid length of the area, in bytes</param>
 	/// <returns>success</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool gambatte_getmemoryarea(IntPtr core, MemoryAreas which, out IntPtr data, out int length);
 
@@ -195,7 +195,7 @@ internal static partial class Gambatte
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <returns>size</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial int gambatte_savestate(IntPtr core, [In] uint[] videoBuf, int pitch, [Out] byte[] stateBuf);
 
 	/// <summary>
@@ -206,7 +206,7 @@ internal static partial class Gambatte
 	/// <param name="size">size of savestate buffer</param>
 	/// <returns>success</returns>
 	[LibraryImport("gambatte")]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool gambatte_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);
 }
