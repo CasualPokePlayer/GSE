@@ -247,22 +247,22 @@ public sealed class InputManager : IDisposable
 			{
 				if (inputBinding.ModifierLabel == null)
 				{
-					inputBinding = new(
-						SerializationLabel: ConvertToSeralizableLabel(inputEvent),
-						ModifierLabel: inputEvent.InputName,
-						MainInputLabel: inputBinding.MainInputLabel
-					);
+					inputBinding = inputBinding with
+					{
+						SerializationLabel = ConvertToSeralizableLabel(inputEvent),
+						ModifierLabel = inputEvent.InputName
+					};
 
 					// we aren't finished unless this another key is pressed, or this key is released
 					continue;
 				}
 
 				// pressed a second key, we'll consider this the non-modifier key
-				inputBinding = new(
-					SerializationLabel: $"+{ConvertToSeralizableLabel(inputEvent)}",
-					ModifierLabel: inputBinding.ModifierLabel,
-					MainInputLabel: inputEvent.InputName
-				);
+				inputBinding = inputBinding with
+				{
+					SerializationLabel = $"+{ConvertToSeralizableLabel(inputEvent)}",
+					MainInputLabel = inputEvent.InputName
+				};
 
 				return true;
 			}
@@ -270,11 +270,11 @@ public sealed class InputManager : IDisposable
 			// released key, see if this matches our current modifier (and set it as the only input if so)
 			if (inputBinding.ModifierLabel == inputEvent.InputName)
 			{
-				inputBinding = new(
-					SerializationLabel: inputBinding.SerializationLabel,
-					ModifierLabel: null,
-					MainInputLabel: inputEvent.InputName
-				);
+				inputBinding = inputBinding with
+				{
+					ModifierLabel = null,
+					MainInputLabel = inputEvent.InputName
+				};
 
 				return true;
 			}
