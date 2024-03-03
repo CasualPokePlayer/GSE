@@ -3,167 +3,13 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using static GSR.Input.Keyboards.LibcImports;
 using static GSR.Input.Keyboards.WlImports;
 
 namespace GSR.Input.Keyboards;
 
-internal sealed class WlKeyInput : IKeyInput
+internal sealed class WlKeyInput : EvDevKeyInput
 {
-	/// <summary>
-	/// These map evdev scancodes (based on USB HID scancodes) to our scancodes
-	/// </summary>
-	private static readonly FrozenDictionary<EvDevScanCode, ScanCode> _evDevScanCodeMap = new Dictionary<EvDevScanCode, ScanCode>
-	{
-		[EvDevScanCode.KEY_ESC] = ScanCode.SC_ESCAPE,
-		[EvDevScanCode.KEY_1] = ScanCode.SC_1,
-		[EvDevScanCode.KEY_2] = ScanCode.SC_2,
-		[EvDevScanCode.KEY_3] = ScanCode.SC_3,
-		[EvDevScanCode.KEY_4] = ScanCode.SC_4,
-		[EvDevScanCode.KEY_5] = ScanCode.SC_5,
-		[EvDevScanCode.KEY_6] = ScanCode.SC_6,
-		[EvDevScanCode.KEY_7] = ScanCode.SC_7,
-		[EvDevScanCode.KEY_8] = ScanCode.SC_8,
-		[EvDevScanCode.KEY_9] = ScanCode.SC_9,
-		[EvDevScanCode.KEY_0] = ScanCode.SC_0,
-		[EvDevScanCode.KEY_MINUS] = ScanCode.SC_MINUS,
-		[EvDevScanCode.KEY_EQUAL] = ScanCode.SC_EQUALS,
-		[EvDevScanCode.KEY_BACKSPACE] = ScanCode.SC_BACKSPACE,
-		[EvDevScanCode.KEY_TAB] = ScanCode.SC_TAB,
-		[EvDevScanCode.KEY_Q] = ScanCode.SC_Q,
-		[EvDevScanCode.KEY_W] = ScanCode.SC_W,
-		[EvDevScanCode.KEY_E] = ScanCode.SC_E,
-		[EvDevScanCode.KEY_R] = ScanCode.SC_R,
-		[EvDevScanCode.KEY_T] = ScanCode.SC_T,
-		[EvDevScanCode.KEY_Y] = ScanCode.SC_Y,
-		[EvDevScanCode.KEY_U] = ScanCode.SC_U,
-		[EvDevScanCode.KEY_I] = ScanCode.SC_I,
-		[EvDevScanCode.KEY_O] = ScanCode.SC_O,
-		[EvDevScanCode.KEY_P] = ScanCode.SC_P,
-		[EvDevScanCode.KEY_LEFTBRACE] = ScanCode.SC_LEFTBRACKET,
-		[EvDevScanCode.KEY_RIGHTBRACE] = ScanCode.SC_RIGHTBRACKET,
-		[EvDevScanCode.KEY_ENTER] = ScanCode.SC_ENTER,
-		[EvDevScanCode.KEY_LEFTCTRL] = ScanCode.SC_LEFTCONTROL,
-		[EvDevScanCode.KEY_A] = ScanCode.SC_A,
-		[EvDevScanCode.KEY_S] = ScanCode.SC_S,
-		[EvDevScanCode.KEY_D] = ScanCode.SC_D,
-		[EvDevScanCode.KEY_F] = ScanCode.SC_F,
-		[EvDevScanCode.KEY_G] = ScanCode.SC_G,
-		[EvDevScanCode.KEY_H] = ScanCode.SC_H,
-		[EvDevScanCode.KEY_J] = ScanCode.SC_J,
-		[EvDevScanCode.KEY_K] = ScanCode.SC_K,
-		[EvDevScanCode.KEY_L] = ScanCode.SC_L,
-		[EvDevScanCode.KEY_SEMICOLON] = ScanCode.SC_SEMICOLON,
-		[EvDevScanCode.KEY_APOSTROPHE] = ScanCode.SC_APOSTROPHE,
-		[EvDevScanCode.KEY_GRAVE] = ScanCode.SC_GRAVE,
-		[EvDevScanCode.KEY_LEFTSHIFT] = ScanCode.SC_LEFTSHIFT,
-		[EvDevScanCode.KEY_BACKSLASH] = ScanCode.SC_BACKSLASH,
-		[EvDevScanCode.KEY_Z] = ScanCode.SC_Z,
-		[EvDevScanCode.KEY_X] = ScanCode.SC_X,
-		[EvDevScanCode.KEY_C] = ScanCode.SC_C,
-		[EvDevScanCode.KEY_V] = ScanCode.SC_V,
-		[EvDevScanCode.KEY_B] = ScanCode.SC_B,
-		[EvDevScanCode.KEY_N] = ScanCode.SC_N,
-		[EvDevScanCode.KEY_M] = ScanCode.SC_M,
-		[EvDevScanCode.KEY_COMMA] = ScanCode.SC_COMMA,
-		[EvDevScanCode.KEY_DOT] = ScanCode.SC_PERIOD,
-		[EvDevScanCode.KEY_SLASH] = ScanCode.SC_SLASH,
-		[EvDevScanCode.KEY_RIGHTSHIFT] = ScanCode.SC_RIGHTSHIFT,
-		[EvDevScanCode.KEY_KPASTERISK] = ScanCode.SC_MULTIPLY,
-		[EvDevScanCode.KEY_LEFTALT] = ScanCode.SC_LEFTALT,
-		[EvDevScanCode.KEY_SPACE] = ScanCode.SC_SPACEBAR,
-		[EvDevScanCode.KEY_CAPSLOCK] = ScanCode.SC_CAPSLOCK,
-		[EvDevScanCode.KEY_F1] = ScanCode.SC_F1,
-		[EvDevScanCode.KEY_F2] = ScanCode.SC_F2,
-		[EvDevScanCode.KEY_F3] = ScanCode.SC_F3,
-		[EvDevScanCode.KEY_F4] = ScanCode.SC_F4,
-		[EvDevScanCode.KEY_F5] = ScanCode.SC_F5,
-		[EvDevScanCode.KEY_F6] = ScanCode.SC_F6,
-		[EvDevScanCode.KEY_F7] = ScanCode.SC_F7,
-		[EvDevScanCode.KEY_F8] = ScanCode.SC_F8,
-		[EvDevScanCode.KEY_F9] = ScanCode.SC_F9,
-		[EvDevScanCode.KEY_F10] = ScanCode.SC_F10,
-		[EvDevScanCode.KEY_NUMLOCK] = ScanCode.SC_NUMLOCK,
-		[EvDevScanCode.KEY_SCROLLLOCK] = ScanCode.SC_SCROLLLOCK,
-		[EvDevScanCode.KEY_KP7] = ScanCode.SC_NUMPAD7,
-		[EvDevScanCode.KEY_KP8] = ScanCode.SC_NUMPAD8,
-		[EvDevScanCode.KEY_KP9] = ScanCode.SC_NUMPAD9,
-		[EvDevScanCode.KEY_KPMINUS] = ScanCode.SC_SUBSTRACT,
-		[EvDevScanCode.KEY_KP4] = ScanCode.SC_NUMPAD4,
-		[EvDevScanCode.KEY_KP5] = ScanCode.SC_NUMPAD5,
-		[EvDevScanCode.KEY_KP6] = ScanCode.SC_NUMPAD6,
-		[EvDevScanCode.KEY_KPPLUS] = ScanCode.SC_ADD,
-		[EvDevScanCode.KEY_KP1] = ScanCode.SC_NUMPAD1,
-		[EvDevScanCode.KEY_KP2] = ScanCode.SC_NUMPAD2,
-		[EvDevScanCode.KEY_KP3] = ScanCode.SC_NUMPAD3,
-		[EvDevScanCode.KEY_KP0] = ScanCode.SC_NUMPAD0,
-		[EvDevScanCode.KEY_KPDOT] = ScanCode.SC_DECIMAL,
-		[EvDevScanCode.KEY_ZENKAKUHANKAKU] = ScanCode.SC_F24,
-		[EvDevScanCode.KEY_102ND] = ScanCode.SC_EUROPE2,
-		[EvDevScanCode.KEY_F11] = ScanCode.SC_F11,
-		[EvDevScanCode.KEY_F12] = ScanCode.SC_F12,
-		[EvDevScanCode.KEY_RO] = ScanCode.SC_INTL1,
-		[EvDevScanCode.KEY_KATAKANA] = ScanCode.SC_LANG3,
-		[EvDevScanCode.KEY_HIRAGANA] = ScanCode.SC_LANG4,
-		[EvDevScanCode.KEY_HENKAN] = ScanCode.SC_INTL4,
-		[EvDevScanCode.KEY_KATAKANAHIRAGANA] = ScanCode.SC_INTL2,
-		[EvDevScanCode.KEY_MUHENKAN] = ScanCode.SC_INTL5,
-		[EvDevScanCode.KEY_KPJPCOMMA] = ScanCode.SC_INTL6,
-		[EvDevScanCode.KEY_KPENTER] = ScanCode.SC_NUMPADENTER,
-		[EvDevScanCode.KEY_RIGHTCTRL] = ScanCode.SC_RIGHTCONTROL,
-		[EvDevScanCode.KEY_KPSLASH] = ScanCode.SC_DIVIDE,
-		[EvDevScanCode.KEY_SYSRQ] = ScanCode.SC_PRINTSCREEN,
-		[EvDevScanCode.KEY_RIGHTALT] = ScanCode.SC_RIGHTALT,
-		[EvDevScanCode.KEY_HOME] = ScanCode.SC_HOME,
-		[EvDevScanCode.KEY_UP] = ScanCode.SC_UP,
-		[EvDevScanCode.KEY_PAGEUP] = ScanCode.SC_PAGEUP,
-		[EvDevScanCode.KEY_LEFT] = ScanCode.SC_LEFT,
-		[EvDevScanCode.KEY_RIGHT] = ScanCode.SC_RIGHT,
-		[EvDevScanCode.KEY_END] = ScanCode.SC_END,
-		[EvDevScanCode.KEY_DOWN] = ScanCode.SC_DOWN,
-		[EvDevScanCode.KEY_PAGEDOWN] = ScanCode.SC_PAGEDOWN,
-		[EvDevScanCode.KEY_INSERT] = ScanCode.SC_INSERT,
-		[EvDevScanCode.KEY_DELETE] = ScanCode.SC_DELETE,
-		[EvDevScanCode.KEY_MUTE] = ScanCode.SC_MUTE,
-		[EvDevScanCode.KEY_VOLUMEDOWN] = ScanCode.SC_VOLUMEDOWN,
-		[EvDevScanCode.KEY_VOLUMEUP] = ScanCode.SC_VOLUMEUP,
-		[EvDevScanCode.KEY_POWER] = ScanCode.SC_POWER,
-		[EvDevScanCode.KEY_KPEQUAL] = ScanCode.SC_NUMPADEQUALS,
-		[EvDevScanCode.KEY_PAUSE] = ScanCode.SC_PAUSE,
-		[EvDevScanCode.KEY_KPCOMMA] = ScanCode.SC_SEPARATOR,
-		[EvDevScanCode.KEY_YEN] = ScanCode.SC_INTL3,
-		[EvDevScanCode.KEY_LEFTMETA] = ScanCode.SC_LEFTGUI,
-		[EvDevScanCode.KEY_RIGHTMETA] = ScanCode.SC_RIGHTGUI,
-		[EvDevScanCode.KEY_STOP] = ScanCode.SC_STOP,
-		[EvDevScanCode.KEY_MENU] = ScanCode.SC_APPS,
-		[EvDevScanCode.KEY_CALC] = ScanCode.SC_CALCULATOR,
-		[EvDevScanCode.KEY_SLEEP] = ScanCode.SC_SLEEP,
-		[EvDevScanCode.KEY_WAKEUP] = ScanCode.SC_WAKE,
-		[EvDevScanCode.KEY_MAIL] = ScanCode.SC_MAIL,
-		[EvDevScanCode.KEY_BOOKMARKS] = ScanCode.SC_BROWSERFAVORITES,
-		[EvDevScanCode.KEY_COMPUTER] = ScanCode.SC_MYCOMPUTER,
-		[EvDevScanCode.KEY_BACK] = ScanCode.SC_BROWSERBACK,
-		[EvDevScanCode.KEY_FORWARD] = ScanCode.SC_BROWSERFORWARD,
-		[EvDevScanCode.KEY_NEXTSONG] = ScanCode.SC_NEXTTRACK,
-		[EvDevScanCode.KEY_PLAYPAUSE] = ScanCode.SC_PLAYPAUSE,
-		[EvDevScanCode.KEY_PREVIOUSSONG] = ScanCode.SC_PREVTRACK,
-		[EvDevScanCode.KEY_HOMEPAGE] = ScanCode.SC_BROWSERHOME,
-		[EvDevScanCode.KEY_REFRESH] = ScanCode.SC_BROWSERREFRESH,
-		[EvDevScanCode.KEY_F13] = ScanCode.SC_F13,
-		[EvDevScanCode.KEY_F14] = ScanCode.SC_F14,
-		[EvDevScanCode.KEY_F15] = ScanCode.SC_F15,
-		[EvDevScanCode.KEY_F16] = ScanCode.SC_F16,
-		[EvDevScanCode.KEY_F17] = ScanCode.SC_F17,
-		[EvDevScanCode.KEY_F18] = ScanCode.SC_F18,
-		[EvDevScanCode.KEY_F19] = ScanCode.SC_F19,
-		[EvDevScanCode.KEY_F20] = ScanCode.SC_F20,
-		[EvDevScanCode.KEY_F21] = ScanCode.SC_F21,
-		[EvDevScanCode.KEY_F22] = ScanCode.SC_F22,
-		[EvDevScanCode.KEY_F23] = ScanCode.SC_F23,
-		[EvDevScanCode.KEY_F24] = ScanCode.SC_F24,
-		[EvDevScanCode.KEY_SEARCH] = ScanCode.SC_BROWSERSEARCH,
-		[EvDevScanCode.KEY_MEDIA] = ScanCode.SC_MEDIASELECT,
-	}.ToFrozenDictionary();
-
 	/// <summary>
 	/// These map keysyms to strings
 	/// These should be preferred for strings, as these will depend on the keyboard layout
@@ -500,14 +346,25 @@ internal sealed class WlKeyInput : IKeyInput
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, EvDevScanCode key, WlKeyState state)
+	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, uint key, WlKeyState state)
 	{
+		// if we have root, we'll be deferring keyboard events to our underlying evdev handler
+		if (HasRoot)
+		{
+			return;
+		}
+
 		if (state is not (WlKeyState.WL_KEYBOARD_KEY_STATE_PRESSED or WlKeyState.WL_KEYBOARD_KEY_STATE_RELEASED))
 		{
 			return;
 		}
 
-		if (_evDevScanCodeMap.TryGetValue(key, out var scancode))
+		if (key > (uint)EvDevImports.EvDevKeyCode.KEY_MAX)
+		{
+			return;
+		}
+
+		if (EvDevKeyCodeMap.TryGetValue((EvDevImports.EvDevKeyCode)key, out var scancode))
 		{
 			var handle = GCHandle.FromIntPtr(userdata);
 			var wlKeyInput = (WlKeyInput)handle.Target!;
@@ -524,6 +381,7 @@ internal sealed class WlKeyInput : IKeyInput
 	private readonly string[] _scanCodeSymStrMap = new string[256];
 	private readonly List<KeyEvent> KeyEvents = [];
 
+	private readonly bool _ownsDisplay;
 	private readonly IntPtr _wlDisplay;
 	private readonly IntPtr _wlDisplayProxy;
 	private readonly IntPtr _wlEventQueue;
@@ -537,11 +395,18 @@ internal sealed class WlKeyInput : IKeyInput
 	private IntPtr XkbState;
 
 	public WlKeyInput(IntPtr wlDisplay)
+		: base(HasRoot || wlDisplay == IntPtr.Zero)
 	{
 		_wlDisplay = wlDisplay;
+
 		if (_wlDisplay == IntPtr.Zero)
 		{
-			throw new("Null wayland display");
+			_ownsDisplay = true;
+			_wlDisplay = wl_display_connect(IntPtr.Zero);
+			if (_wlDisplay == IntPtr.Zero)
+			{
+				throw new("Failed to connect to display");
+			}
 		}
 
 		try
@@ -611,8 +476,8 @@ internal sealed class WlKeyInput : IKeyInput
 			var maxKeyCode = (xkb_keycode_t)Math.Min((uint)xkb_keymap_max_keycode(XkbKeymap), 256);
 			for (var i = minKeyCode; i <= maxKeyCode; i++)
 			{
-				var evDevScanCode = (EvDevScanCode)(i - XKB_EVDEV_OFFSET);
-				if (_evDevScanCodeMap.TryGetValue(evDevScanCode, out var scanCode))
+				var evDevScanCode = (EvDevImports.EvDevKeyCode)(i - XKB_EVDEV_OFFSET);
+				if (EvDevKeyCodeMap.TryGetValue(evDevScanCode, out var scanCode))
 				{
 					var keysym = xkb_state_key_get_one_sym(XkbState, i);
 					if (_keysymToStrMap.TryGetValue(keysym, out var keyStr))
@@ -629,7 +494,7 @@ internal sealed class WlKeyInput : IKeyInput
 		}
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		if (XkbState != IntPtr.Zero)
 		{
@@ -670,10 +535,23 @@ internal sealed class WlKeyInput : IKeyInput
 		{
 			wl_proxy_wrapper_destroy(_wlDisplayProxy);
 		}
+
+		if (_ownsDisplay)
+		{
+			wl_display_disconnect(_wlDisplay);
+		}
+
+		base.Dispose();
 	}
 
-	public IEnumerable<KeyEvent> GetEvents()
+	public override IEnumerable<KeyEvent> GetEvents()
 	{
+		// if we have root, then we can use our underlying evdev handler to get inputs 
+		if (HasRoot)
+		{
+			return base.GetEvents();
+		}
+
 		// prep reading new events
 		// existing events need to be drained for this to succeed
 		while (wl_display_prepare_read_queue(_wlDisplay, _wlEventQueue) != 0)
@@ -692,162 +570,8 @@ internal sealed class WlKeyInput : IKeyInput
 		return ret;
 	}
 
-	/// <summary>
-	/// Fallback scancode string map in case there was no keysym translation
-	/// </summary>
-	private static readonly FrozenDictionary<ScanCode, string> _scanCodeStrMap = new Dictionary<ScanCode, string>
+	public override string ConvertScanCodeToString(ScanCode key)
 	{
-		[ScanCode.SC_ESCAPE] = "Escape",
-		[ScanCode.SC_1] = "1",
-		[ScanCode.SC_2] = "2",
-		[ScanCode.SC_3] = "3",
-		[ScanCode.SC_4] = "4",
-		[ScanCode.SC_5] = "5",
-		[ScanCode.SC_6] = "6",
-		[ScanCode.SC_7] = "7",
-		[ScanCode.SC_8] = "8",
-		[ScanCode.SC_9] = "9",
-		[ScanCode.SC_0] = "0",
-		[ScanCode.SC_MINUS] = "Minus",
-		[ScanCode.SC_EQUALS] = "Equals",
-		[ScanCode.SC_BACKSPACE] = "Backspace",
-		[ScanCode.SC_TAB] = "Tab",
-		[ScanCode.SC_Q] = "Q",
-		[ScanCode.SC_W] = "W",
-		[ScanCode.SC_E] = "E",
-		[ScanCode.SC_R] = "R",
-		[ScanCode.SC_T] = "T",
-		[ScanCode.SC_Y] = "Y",
-		[ScanCode.SC_U] = "U",
-		[ScanCode.SC_I] = "I",
-		[ScanCode.SC_O] = "O",
-		[ScanCode.SC_P] = "P",
-		[ScanCode.SC_LEFTBRACKET] = "Left Bracket",
-		[ScanCode.SC_RIGHTBRACKET] = "Right Bracket",
-		[ScanCode.SC_ENTER] = "Enter",
-		[ScanCode.SC_LEFTCONTROL] = "Left Control",
-		[ScanCode.SC_A] = "A",
-		[ScanCode.SC_S] = "S",
-		[ScanCode.SC_D] = "D",
-		[ScanCode.SC_F] = "F",
-		[ScanCode.SC_G] = "G",
-		[ScanCode.SC_H] = "H",
-		[ScanCode.SC_J] = "J",
-		[ScanCode.SC_K] = "K",
-		[ScanCode.SC_L] = "L",
-		[ScanCode.SC_SEMICOLON] = "Semicolon",
-		[ScanCode.SC_APOSTROPHE] = "Quotes",
-		[ScanCode.SC_GRAVE] = "Tilde",
-		[ScanCode.SC_LEFTSHIFT] = "Left Shift",
-		[ScanCode.SC_BACKSLASH] = "Pipe",
-		[ScanCode.SC_Z] = "Z",
-		[ScanCode.SC_X] = "X",
-		[ScanCode.SC_C] = "C",
-		[ScanCode.SC_V] = "V",
-		[ScanCode.SC_B] = "B",
-		[ScanCode.SC_N] = "N",
-		[ScanCode.SC_M] = "M",
-		[ScanCode.SC_COMMA] = "Comma",
-		[ScanCode.SC_PERIOD] = "Period",
-		[ScanCode.SC_SLASH] = "Question",
-		[ScanCode.SC_RIGHTSHIFT] = "Right Shift",
-		[ScanCode.SC_MULTIPLY] = "Multiply",
-		[ScanCode.SC_LEFTALT] = "Left Alt",
-		[ScanCode.SC_SPACEBAR] = "Spacebar",
-		[ScanCode.SC_CAPSLOCK] = "Caps Lock",
-		[ScanCode.SC_F1] = "F1",
-		[ScanCode.SC_F2] = "F2",
-		[ScanCode.SC_F3] = "F3",
-		[ScanCode.SC_F4] = "F4",
-		[ScanCode.SC_F5] = "F5",
-		[ScanCode.SC_F6] = "F6",
-		[ScanCode.SC_F7] = "F7",
-		[ScanCode.SC_F8] = "F8",
-		[ScanCode.SC_F9] = "F9",
-		[ScanCode.SC_F10] = "F10",
-		[ScanCode.SC_NUMLOCK] = "Num Lock",
-		[ScanCode.SC_SCROLLLOCK] = "Scroll Lock",
-		[ScanCode.SC_NUMPAD7] = "Numpad 7",
-		[ScanCode.SC_NUMPAD8] = "Numpad 8",
-		[ScanCode.SC_NUMPAD9] = "Numpad 9",
-		[ScanCode.SC_SUBSTRACT] = "Substract",
-		[ScanCode.SC_NUMPAD4] = "Numpad 4",
-		[ScanCode.SC_NUMPAD5] = "Numpad 5",
-		[ScanCode.SC_NUMPAD6] = "Numpad 6",
-		[ScanCode.SC_ADD] = "Add",
-		[ScanCode.SC_NUMPAD1] = "Numpad 1",
-		[ScanCode.SC_NUMPAD2] = "Numpad 2",
-		[ScanCode.SC_NUMPAD3] = "Numpad 3",
-		[ScanCode.SC_NUMPAD0] = "Numpad 0",
-		[ScanCode.SC_DECIMAL] = "Decimal",
-		[ScanCode.SC_EUROPE2] = "",
-		[ScanCode.SC_F11] = "F11",
-		[ScanCode.SC_F12] = "F12",
-		[ScanCode.SC_INTL1] = "Intl 1",
-		[ScanCode.SC_LANG3] = "Lang 3",
-		[ScanCode.SC_LANG4] = "Lang 4",
-		[ScanCode.SC_INTL4] = "Intl 4",
-		[ScanCode.SC_INTL2] = "Intl 2",
-		[ScanCode.SC_INTL5] = "Intl 5",
-		[ScanCode.SC_INTL6] = "Intl 6",
-		[ScanCode.SC_NUMPADENTER] = "Numpad Enter",
-		[ScanCode.SC_RIGHTCONTROL] = "Right Control",
-		[ScanCode.SC_DIVIDE] = "Divide",
-		[ScanCode.SC_PRINTSCREEN] = "Print Screen",
-		[ScanCode.SC_RIGHTALT] = "Right Alt",
-		[ScanCode.SC_HOME] = "Home",
-		[ScanCode.SC_UP] = "Up",
-		[ScanCode.SC_PAGEUP] = "Page Up",
-		[ScanCode.SC_LEFT] = "Left",
-		[ScanCode.SC_RIGHT] = "Right",
-		[ScanCode.SC_END] = "End",
-		[ScanCode.SC_DOWN] = "Down",
-		[ScanCode.SC_PAGEDOWN] = "Page Down",
-		[ScanCode.SC_INSERT] = "Insert",
-		[ScanCode.SC_DELETE] = "Delete",
-		[ScanCode.SC_MUTE] = "Mute",
-		[ScanCode.SC_VOLUMEDOWN] = "Volume Down",
-		[ScanCode.SC_VOLUMEUP] = "Volume Up",
-		[ScanCode.SC_POWER] = "Power",
-		[ScanCode.SC_NUMPADEQUALS] = "Numpad Equals",
-		[ScanCode.SC_PAUSE] = "Pause",
-		[ScanCode.SC_SEPARATOR] = "Separator",
-		[ScanCode.SC_INTL3] = "Intl 3",
-		[ScanCode.SC_LEFTGUI] = "Left Super",
-		[ScanCode.SC_RIGHTGUI] = "Right Super",
-		[ScanCode.SC_STOP] = "Stop",
-		[ScanCode.SC_APPS] = "Menu",
-		[ScanCode.SC_CALCULATOR] = "Calculator",
-		[ScanCode.SC_SLEEP] = "Sleep",
-		[ScanCode.SC_WAKE] = "Wake",
-		[ScanCode.SC_MAIL] = "Mail",
-		[ScanCode.SC_BROWSERFAVORITES] = "Favorites",
-		[ScanCode.SC_MYCOMPUTER] = "Computer",
-		[ScanCode.SC_BROWSERBACK] = "Back",
-		[ScanCode.SC_BROWSERFORWARD] = "Forward",
-		[ScanCode.SC_NEXTTRACK] = "Next Track",
-		[ScanCode.SC_PLAYPAUSE] = "Play/Pause",
-		[ScanCode.SC_PREVTRACK] = "Prev Track",
-		[ScanCode.SC_BROWSERHOME] = "Browser Home",
-		[ScanCode.SC_BROWSERREFRESH] = "Refresh",
-		[ScanCode.SC_F13] = "F13",
-		[ScanCode.SC_F14] = "F14",
-		[ScanCode.SC_F15] = "F15",
-		[ScanCode.SC_F16] = "F16",
-		[ScanCode.SC_F17] = "F17",
-		[ScanCode.SC_F18] = "F18",
-		[ScanCode.SC_F19] = "F19",
-		[ScanCode.SC_F20] = "F20",
-		[ScanCode.SC_F21] = "F21",
-		[ScanCode.SC_F22] = "F22",
-		[ScanCode.SC_F23] = "F23",
-		[ScanCode.SC_F24] = "F24",
-		[ScanCode.SC_BROWSERSEARCH] = "Search",
-		[ScanCode.SC_MEDIASELECT] = "Media",
-	}.ToFrozenDictionary();
-
-	public string ConvertScanCodeToString(ScanCode key)
-	{
-		return _scanCodeSymStrMap[(byte)key] ?? _scanCodeStrMap.GetValueOrDefault(key);
+		return _scanCodeSymStrMap[(byte)key] ?? base.ConvertScanCodeToString(key);
 	}
 }

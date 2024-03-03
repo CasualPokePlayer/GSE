@@ -9131,7 +9131,8 @@ namespace SDL2
 			SDL_SYSWM_VIVANTE,
 			SDL_SYSWM_OS2,
 			SDL_SYSWM_HAIKU,
-			SDL_SYSWM_KMSDRM /* requires >= 2.0.16 */
+			SDL_SYSWM_KMSDRM, /* requires >= 2.0.16 */
+			SDL_SYSWM_RISCOS /* requires >= 2.0.22 */
 		}
 
 		// FIXME: I wish these weren't public...

@@ -24,7 +24,7 @@ if [ $TARGET_RID = "linux-x64" ]; then
 	apt-get install -y libasound2-dev libpulse-dev libaudio-dev libjack-jackd2-dev libsamplerate0-dev \
 		libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
 		libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
-		libgles2-mesa-dev libegl1-mesa-dev libdirectfb-dev libdbus-1-dev libibus-1.0-dev \
+		libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev \
 		fcitx-libs-dev libudev-dev libusb-1.0-0-dev pkg-config
 	# More SDL2 dependencies only under backports
 	apt-get install -y libdecor-0-dev/bullseye-backports libpipewire-0.3-dev/bullseye-backports
@@ -46,7 +46,7 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	apt-get install -y libasound2-dev:arm64 libpulse-dev:arm64 libaudio-dev:arm64 libjack-jackd2-dev:arm64 libsamplerate0-dev:arm64 \
 		libx11-dev:arm64 libxext-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxfixes-dev:arm64 libxi-dev:arm64 \
 		libxss-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64 libdrm-dev:arm64 libgbm-dev:arm64 libgl1-mesa-dev:arm64 \
-		libgles2-mesa-dev:arm64 libegl1-mesa-dev:arm64 libdirectfb-dev:arm64 libdbus-1-dev:arm64 libibus-1.0-dev:arm64 \
+		libgles2-mesa-dev:arm64 libegl1-mesa-dev:arm64 libdbus-1-dev:arm64 libibus-1.0-dev:arm64 \
 		fcitx-libs-dev:arm64 libudev-dev:arm64 libusb-1.0-0-dev:arm64
 	# More SDL2 dependencies only under backports
 	apt-get install -y libdecor-0-dev:arm64/bullseye-backports libpipewire-0.3-dev:arm64/bullseye-backports

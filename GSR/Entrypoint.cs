@@ -21,6 +21,10 @@ internal static class Entrypoint
 	[STAThread]
 	private static int Main()
 	{
+#if GSR_LINUX
+		RootHelper.DropRoot();
+#endif
+
 		try
 		{
 			_gsr = new();
