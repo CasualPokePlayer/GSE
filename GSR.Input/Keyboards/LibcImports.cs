@@ -9,16 +9,10 @@ internal static partial class LibcImports
 	public const int EAGAIN = 11;
 	public const int ENODEV = 19;
 
-	public static readonly bool HasRoot = getuid() == 0;
+	public static readonly bool HasRoot = geteuid() == 0;
 
 	[LibraryImport("libc.so.6")]
-	public static partial uint getuid();
-
-	[LibraryImport("libc.so.6")]
-	public static partial uint geteuid();
-
-	[LibraryImport("libc.so.6", SetLastError = true)]
-	public static partial int seteuid(uint euid);
+	private static partial uint geteuid();
 
 	public const int O_RDONLY = 0;
 	public const int O_NONBLOCK = 0x800;
