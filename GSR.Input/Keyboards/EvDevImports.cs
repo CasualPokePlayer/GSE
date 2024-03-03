@@ -1,10 +1,14 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace GSR.Input.Keyboards;
 
 internal static class EvDevImports
 {
+	// note that this isn't a solid check of availability, as root might be required
+	public static readonly bool IsAvailable = Directory.Exists("/dev/input/");
+
 	public enum EvDevEventType : ushort
 	{
 		EV_SYN = 0x00,

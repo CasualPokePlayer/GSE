@@ -358,6 +358,13 @@ internal class EvDevKeyInput : IKeyInput
 	// ReSharper disable once MemberCanBeProtected.Global
 	public EvDevKeyInput(bool needsRoot)
 	{
+		// this could be the case for our wayland backend, which might not have evdev available for us
+		// (main use case is WSL2)
+		if (!IsAvailable)
+		{
+			return;
+		}
+
 		NeedsRoot = needsRoot;
 		if (NeedsRoot && !HasRoot)
 		{
@@ -383,7 +390,7 @@ internal class EvDevKeyInput : IKeyInput
 
 	public virtual void Dispose()
 	{
-		_fileSystemWatcher.Dispose();
+		_fileSystemWatcher?.Dispose();
 
 		foreach (var keyboard in _keyboards.Values)
 		{
