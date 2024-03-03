@@ -348,12 +348,6 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	[UnmanagedCallersOnly]
 	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, uint key, WlKeyState state)
 	{
-		// if we have root, we'll be deferring keyboard events to our underlying evdev handler
-		if (HasRoot && EvDevImports.IsAvailable)
-		{
-			return;
-		}
-
 		if (state is not (WlKeyState.WL_KEYBOARD_KEY_STATE_PRESSED or WlKeyState.WL_KEYBOARD_KEY_STATE_RELEASED))
 		{
 			return;
