@@ -315,17 +315,10 @@ internal class EvDevKeyInput : IKeyInput
 	{
 		// this could be the case for our wayland backend, which might not have evdev available for us
 		// (main use case is WSL2)
-		if (HasRoot)
-		{
-			Console.WriteLine("root is available");
-		}
 		if (!IsAvailable)
 		{
-			Console.WriteLine("evdev is unavailable");
 			return;
 		}
-
-		Console.WriteLine("evdev is available");
 
 		_fileSystemWatcher = new("/dev/input/", "event*")
 		{
