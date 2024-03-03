@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -215,49 +214,7 @@ internal class EvDevKeyInput : IKeyInput
 			return;
 		}
 
-		int fd;
-
-		// sometimes, we have to raise ourselves to root permissions to open keyboard evdev devices
-		// due to the security model of Linux distros using X11/Wayland
-		if (NeedsRoot)
-		{
-			var euid = geteuid();
-			if (euid != 0)
-			{
-				if (seteuid(0) == -1)
-				{
-					return;
-				}
-			}
-
-			var droppedTemporaryRoot = true;
-			try
-			{
-				fd = open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
-			}
-			finally
-			{
-				if (euid != 0)
-				{
-					droppedTemporaryRoot = seteuid(euid) != -1;
-				}
-			}
-
-			if (!droppedTemporaryRoot)
-			{
-				if (fd != -1)
-				{
-					_ = close(fd);
-				}
-
-				throw new Win32Exception("Failed to drop temporary root permissions");
-			}
-		}
-		else
-		{
-			fd = open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
-		}
-
+		var fd = open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 		if (fd == -1)
 		{
 			return;
@@ -349,26 +306,18 @@ internal class EvDevKeyInput : IKeyInput
 		_watcherEvents.Enqueue(e);
 	}
 
-	protected readonly bool NeedsRoot;
-
 	private readonly ConcurrentQueue<FileSystemEventArgs> _watcherEvents = new();
 	private readonly FileSystemWatcher _fileSystemWatcher;
 	private readonly Dictionary<string, EvDevKeyboard> _keyboards = [];
 
 	// ReSharper disable once MemberCanBeProtected.Global
-	public EvDevKeyInput(bool needsRoot)
+	public EvDevKeyInput()
 	{
 		// this could be the case for our wayland backend, which might not have evdev available for us
 		// (main use case is WSL2)
 		if (!IsAvailable)
 		{
 			return;
-		}
-
-		NeedsRoot = needsRoot;
-		if (NeedsRoot && !HasRoot)
-		{
-			throw new("Root was needed, but was not available");
 		}
 
 		_fileSystemWatcher = new("/dev/input/", "event*")

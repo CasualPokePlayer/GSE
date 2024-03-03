@@ -349,7 +349,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, uint key, WlKeyState state)
 	{
 		// if we have root, we'll be deferring keyboard events to our underlying evdev handler
-		if (HasRoot)
+		if (HasRoot && EvDevImports.IsAvailable)
 		{
 			return;
 		}
@@ -395,7 +395,6 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private IntPtr XkbState;
 
 	public WlKeyInput(IntPtr wlDisplay)
-		: base(HasRoot || wlDisplay == IntPtr.Zero)
 	{
 		_wlDisplay = wlDisplay;
 
@@ -547,7 +546,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	public override IEnumerable<KeyEvent> GetEvents()
 	{
 		// if we have root, then we can use our underlying evdev handler to get inputs 
-		if (HasRoot)
+		if (HasRoot && EvDevImports.IsAvailable)
 		{
 			return base.GetEvents();
 		}
