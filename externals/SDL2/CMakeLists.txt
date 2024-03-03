@@ -63,12 +63,10 @@ set(SDL_DISKAUDIO OFF)
 set(SDL_DUMMYAUDIO OFF)
 
 # Get rid of SDL video stuff we will not be using
+set(SDL_DIRECTFB OFF)
 set(SDL_DUMMYVIDEO OFF)
 set(SDL_VULKAN OFF)
 set(SDL_OFFSCREEN OFF)
-
-# Might as well enable this, if it can be used
-set(SDL_DIRECTFB ON)
 
 # libusb gives us support for the official GC Adapter
 set(SDL_HIDAPI_LIBUSB ON)
