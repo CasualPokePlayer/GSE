@@ -206,7 +206,7 @@ internal class EvDevKeyInput : IKeyInput
 		return result;
 	}
 
-	private unsafe void MaybeAddKeyboard(string path)
+	private unsafe void TryAddKeyboard(string path)
 	{
 		if (_keyboards.ContainsKey(path))
 		{
@@ -291,7 +291,7 @@ internal class EvDevKeyInput : IKeyInput
 		_keyboards.Add(path, keyboard);
 	}
 
-	private void MaybeRemoveKeyboard(string path)
+	private void TryRemoveKeyboard(string path)
 	{
 		if (_keyboards.TryGetValue(path, out var keyboard))
 		{
@@ -306,17 +306,31 @@ internal class EvDevKeyInput : IKeyInput
 		_watcherEvents.Enqueue(e);
 	}
 
+	protected readonly bool CanUseEvDev;
+
 	private readonly ConcurrentQueue<FileSystemEventArgs> _watcherEvents = new();
 	private readonly FileSystemWatcher _fileSystemWatcher;
 	private readonly Dictionary<string, EvDevKeyboard> _keyboards = [];
 
-	// ReSharper disable once MemberCanBeProtected.Global
 	public EvDevKeyInput()
+		: this(false)
+	{
+	}
+
+	protected EvDevKeyInput(bool needsRoot)
 	{
 		// this could be the case for our wayland backend, which might not have evdev available for us
 		// (main use case is WSL2)
-		if (!IsAvailable)
+		if (!HasEvDev)
 		{
+			CanUseEvDev = false;
+			return;
+		}
+
+		// avoid doing anything if root is required and is unavailable
+		if (needsRoot && !HasRoot)
+		{
+			CanUseEvDev = false;
 			return;
 		}
 
@@ -333,8 +347,10 @@ internal class EvDevKeyInput : IKeyInput
 		var evFns = Directory.GetFiles("/dev/input/", "event*");
 		foreach (var fn in evFns)
 		{
-			MaybeAddKeyboard(fn);
+			TryAddKeyboard(fn);
 		}
+
+		CanUseEvDev = true;
 	}
 
 	public virtual void Dispose()
@@ -356,13 +372,13 @@ internal class EvDevKeyInput : IKeyInput
 			{
 				case WatcherChangeTypes.Created:
 				case WatcherChangeTypes.Changed:
-					MaybeAddKeyboard(e.FullPath);
+					TryAddKeyboard(e.FullPath);
 					break;
 				case WatcherChangeTypes.Deleted:
-					MaybeRemoveKeyboard(e.FullPath);
+					TryRemoveKeyboard(e.FullPath);
 					break;
 				default:
-					Debug.WriteLine($"Unexpected watcher event {e.ChangeType}");
+					Debug.WriteLine($"Unexpected evdev watcher event {e.ChangeType}");
 					break;
 			}
 		}
@@ -395,13 +411,13 @@ internal class EvDevKeyInput : IKeyInput
 						break;
 					}
 
-					Debug.WriteLine($"Unexpected error reading keyboards: {errno}");
+					Debug.WriteLine($"Unexpected error reading evdev keyboards: {errno}");
 					break;
 				}
 
 				if (res != kbEventSize)
 				{
-					Debug.WriteLine("Unexpected incomplete read");
+					Debug.WriteLine("Unexpected incomplete evdev read");
 					break;
 				}
 
@@ -426,7 +442,7 @@ internal class EvDevKeyInput : IKeyInput
 							// probably not particularly useful to do so
 							break;
 						default:
-							Debug.WriteLine($"Unexpected event value {kbEvent.value}");
+							Debug.WriteLine($"Unexpected evdev event value {kbEvent.value}");
 							break;
 					}
 				}
@@ -435,7 +451,7 @@ internal class EvDevKeyInput : IKeyInput
 
 		foreach (var path in kbsToClose)
 		{
-			MaybeRemoveKeyboard(path);
+			TryRemoveKeyboard(path);
 		}
 
 		return keyEvents;

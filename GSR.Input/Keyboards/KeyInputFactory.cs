@@ -31,17 +31,17 @@ internal static class KeyInputFactory
 			// in this case, we're using XWayland, which would not allow background input with the X11 backend
 			// we can still do background input however, if we have root access (and thus can use evdev directly)
 			// we still of course want to grab a new wayland connection just to obtain a keymap
-			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 when WlImports.HasDisplay && EvDevImports.IsAvailable && LibcImports.HasRoot:
+			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 or SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB when WlImports.HasDisplay && EvDevImports.HasEvDev && LibcImports.HasRoot:
 				return new WlKeyInput(IntPtr.Zero);
-			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 when X11Imports.HasDisplay:
+			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 or SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB when X11Imports.HasDisplay:
 				return new X11KeyInput();
-			case SDL_SYSWM_TYPE.SDL_SYSWM_KMSDRM or SDL_SYSWM_TYPE.SDL_SYSWM_VIVANTE when EvDevImports.IsAvailable:
+			case SDL_SYSWM_TYPE.SDL_SYSWM_KMSDRM or SDL_SYSWM_TYPE.SDL_SYSWM_VIVANTE when EvDevImports.HasEvDev:
 				// these subsystems just use evdev directly for keyboard input, and don't need root to use it
 				return new EvDevKeyInput();
 		}
 
 		// assume that we need root to use evdev otherwise
-		if (LibcImports.HasRoot && EvDevImports.IsAvailable)
+		if (LibcImports.HasRoot && EvDevImports.HasEvDev)
 		{
 			return new EvDevKeyInput();
 		}

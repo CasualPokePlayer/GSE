@@ -7,7 +7,7 @@ namespace GSR.Input.Keyboards;
 internal static class EvDevImports
 {
 	// note that this isn't a solid check of availability, as root might be required
-	public static readonly bool IsAvailable = Directory.Exists("/dev/input/");
+	public static readonly bool HasEvDev = Directory.Exists("/dev/input/");
 
 	public enum EvDevEventType : ushort
 	{

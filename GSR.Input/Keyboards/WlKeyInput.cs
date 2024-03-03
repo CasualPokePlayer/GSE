@@ -389,6 +389,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private IntPtr XkbState;
 
 	public WlKeyInput(IntPtr wlDisplay)
+		: base(true)
 	{
 		_wlDisplay = wlDisplay;
 
@@ -539,8 +540,8 @@ internal sealed class WlKeyInput : EvDevKeyInput
 
 	public override IEnumerable<KeyEvent> GetEvents()
 	{
-		// if we have root, then we can use our underlying evdev handler to get inputs 
-		if (HasRoot && EvDevImports.IsAvailable)
+		// if can use evdev, prefer that to get inputs
+		if (CanUseEvDev)
 		{
 			return base.GetEvents();
 		}
