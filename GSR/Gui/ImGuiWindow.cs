@@ -589,7 +589,13 @@ internal sealed class ImGuiWindow : IDisposable
 			var hwnd = SdlSysWMInfo.info.win.window;
 			if (hwnd != IntPtr.Zero)
 			{
-				_ = PInvoke.RemoveProp(new(hwnd), "UseImmersiveDarkModeColors");
+				unsafe
+				{
+					fixed (char* useImmersiveDarkModeColors = "UseImmersiveDarkModeColors")
+					{
+						_ = PInvoke.RemoveProp(new(hwnd), useImmersiveDarkModeColors);
+					}
+				}
 			}
 		}
 #endif
