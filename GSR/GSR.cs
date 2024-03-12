@@ -196,7 +196,7 @@ internal sealed class GSR : IDisposable
 			_romLoader = new(_config, _emuManager, _postProcessor, _osdManager, _gbController, _gbaController, _mainWindow);
 			_stateManager = new(_config, _emuManager, _osdManager);
 			_hotkeyManager = new(_config, _emuManager, _inputManager, _stateManager, _mainWindow, HotkeyInputGateCallback);
-			_imGuiModals = new(_config, _emuManager, _inputManager, _audioManager, _mainWindow);
+			_imGuiModals = new(_config, _emuManager, _inputManager, _audioManager, _hotkeyManager, _mainWindow);
 			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _stateManager, _mainWindow, _imGuiModals);
 			_mainWindow.SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			_mainWindow.SetVisible(true);
@@ -339,6 +339,11 @@ internal sealed class GSR : IDisposable
 			if (_audioManager.RecoverLostAudioDeviceIfNeeded())
 			{
 				_config.AudioDeviceName = _audioManager.AudioDeviceName;
+			}
+
+			if (_hotkeyManager.InputBindingsChanged && !_imGuiModals.ModalIsOpened)
+			{
+				_hotkeyManager.OnInputBindingsChange();
 			}
 
 			_hotkeyManager.ProcessHotkeys();

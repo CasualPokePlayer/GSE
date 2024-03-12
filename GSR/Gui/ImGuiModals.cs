@@ -25,6 +25,7 @@ internal sealed class ImGuiModals
 	private readonly EmuManager _emuManager;
 	private readonly InputManager _inputManager;
 	private readonly AudioManager _audioManager;
+	private readonly HotkeyManager _hotkeyManager;
 	private readonly ImGuiWindow _mainWindow;
 
 	private readonly record struct InputConfig(string InputName, List<InputBinding> InputBindings);
@@ -92,12 +93,13 @@ internal sealed class ImGuiModals
 
 	private bool _didPause;
 
-	public ImGuiModals(Config config, EmuManager emuManager, InputManager inputManager, AudioManager audioManager, ImGuiWindow mainWindow)
+	public ImGuiModals(Config config, EmuManager emuManager, InputManager inputManager, AudioManager audioManager, HotkeyManager hotkeyManager, ImGuiWindow mainWindow)
 	{
 		_config = config;
 		_emuManager = emuManager;
 		_inputManager = inputManager;
 		_audioManager = audioManager;
+		_hotkeyManager = hotkeyManager;
 		_mainWindow = mainWindow;
 
 		_gameInputConfigs =
@@ -437,6 +439,8 @@ internal sealed class ImGuiModals
 
 						StopInputBinding();
 						ImGui.CloseCurrentPopup();
+
+						_hotkeyManager.InputBindingsChanged = true;
 					}
 
 					ImGui.EndPopup();

@@ -316,9 +316,9 @@ public sealed class InputManager : IDisposable
 	/// <summary>
 	/// NOTE: CALLED ON GUI OR EMU THREAD
 	/// </summary>
-	public bool GetInputForBindings(IEnumerable<InputBinding> bindings, InputGate inputGate)
+	public bool GetInputForBindings(List<InputBinding> bindings, InputGate inputGate)
 	{
-		// ReSharper disable once LoopCanBeConvertedToQuery
+		// ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 		foreach (var binding in bindings)
 		{
 			var modifierState = binding.ModifierLabel == null || GetInputState(binding.ModifierLabel, inputGate);

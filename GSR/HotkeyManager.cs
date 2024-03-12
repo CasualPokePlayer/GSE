@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
+using System.Linq;
 using GSR.Emu;
 using GSR.Gui;
 using GSR.Input;
@@ -12,28 +12,39 @@ internal sealed class HotkeyManager
 {
 	private interface IHotkey
 	{
+		public List<InputBinding> InputBindings { get; }
+		public List<InputBinding> SuppressingBindings { get; }
 		void UpdateHotkeyState(InputGate inputGate);
 	}
 
-	private class PressTriggerHotkeyState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action onPress) : IHotkey
+	private class PressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress) : IHotkey
 	{
 		private bool _wasPressed;
+
+		public List<InputBinding> InputBindings => inputBindings;
+		public List<InputBinding> SuppressingBindings { get; } = [];
 
 		public void UpdateHotkeyState(InputGate inputGate)
 		{
 			var newState = inputManager.GetInputForBindings(inputBindings, inputGate);
 			if (newState && !_wasPressed)
 			{
-				onPress();
+				if (!inputManager.GetInputForBindings(SuppressingBindings, inputGate))
+				{
+					onPress();
+				}
 			}
 
 			_wasPressed = newState;
 		}
 	}
 
-	private class PressUnpressTriggerHotkeyState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action onPress, Action onUnpress) : IHotkey
+	private class PressUnpressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress, Action onUnpress) : IHotkey
 	{
 		private bool _wasPressed;
+
+		public List<InputBinding> InputBindings => inputBindings;
+		public List<InputBinding> SuppressingBindings { get; } = [];
 
 		public void UpdateHotkeyState(InputGate inputGate)
 		{
@@ -45,7 +56,10 @@ internal sealed class HotkeyManager
 
 			if (newState)
 			{
-				onPress();
+				if (!inputManager.GetInputForBindings(SuppressingBindings, inputGate))
+				{
+					onPress();
+				}
 			}
 			else
 			{
@@ -56,16 +70,22 @@ internal sealed class HotkeyManager
 		}
 	}
 
-	private class PressTriggerHotkeySlotState(InputManager inputManager, IEnumerable<InputBinding> inputBindings, Action<int> onPress, int slot) : IHotkey
+	private class PressTriggerHotkeySlotState(InputManager inputManager, List<InputBinding> inputBindings, Action<int> onPress, int slot) : IHotkey
 	{
 		private bool _wasPressed;
+
+		public List<InputBinding> InputBindings => inputBindings;
+		public List<InputBinding> SuppressingBindings { get; } = [];
 
 		public void UpdateHotkeyState(InputGate inputGate)
 		{
 			var newState = inputManager.GetInputForBindings(inputBindings, inputGate);
 			if (newState && !_wasPressed)
 			{
-				onPress(slot);
+				if (!inputManager.GetInputForBindings(SuppressingBindings, inputGate))
+				{
+					onPress(slot);
+				}
 			}
 
 			_wasPressed = newState;
@@ -76,6 +96,8 @@ internal sealed class HotkeyManager
 	private readonly EmuManager _emuManager;
 	private readonly Func<InputGate> _inputGateCallback;
 	private readonly ImmutableArray<IHotkey> _hotkeys;
+
+	public bool InputBindingsChanged;
 
 	public HotkeyManager(Config config, EmuManager emuManager, InputManager inputManager, StateManager stateManager, ImGuiWindow mainWindow, Func<InputGate> inputGateCallback)
 	{
@@ -125,16 +147,37 @@ internal sealed class HotkeyManager
 			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot9ButtonBindings, stateManager.LoadStateSlot, 8),
 			new PressTriggerHotkeySlotState(inputManager, config.HotkeyBindings.LoadStateSlot10ButtonBindings, stateManager.LoadStateSlot, 9)
 		];
+
+		InputBindingsChanged = true;
 	}
 
-	public void EnableFastForward()
+	private void EnableFastForward()
 	{
 		_emuManager.SetSpeedFactor(_config.FastForwardSpeed);
 	}
 
-	public void DisableFastForward()
+	private void DisableFastForward()
 	{
 		_emuManager.SetSpeedFactor(1);
+	}
+
+	public void OnInputBindingsChange()
+	{
+		foreach (var hotkey in _hotkeys)
+		{
+			var suppressingBindings = (from inputBinding in hotkey.InputBindings
+				where inputBinding.ModifierLabel == null
+				from otherHotkey in _hotkeys
+				where hotkey != otherHotkey
+				from otherHotkeyBindings in otherHotkey.InputBindings
+				where otherHotkeyBindings.ModifierLabel != null && otherHotkeyBindings.MainInputLabel == inputBinding.MainInputLabel
+				select otherHotkeyBindings).ToArray();
+
+			hotkey.SuppressingBindings.Clear();
+			hotkey.SuppressingBindings.AddRange(suppressingBindings.Distinct());
+		}
+
+		InputBindingsChanged = false;
 	}
 
 	public void ProcessHotkeys()
