@@ -6,5 +6,12 @@ ChangeWindowMessageFilter
 WM_DROPFILES
 WM_COPYDATA
 
+GetWindowLongW
+SetWindowLongW
+WINDOW_EX_STYLE
+
+SetPropW
+RemovePropW
+
 DwmSetWindowAttribute
 DWM_WINDOW_CORNER_PREFERENCE

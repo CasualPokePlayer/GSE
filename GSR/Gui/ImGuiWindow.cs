@@ -13,7 +13,9 @@ using static SDL2.SDL;
 
 #if GSR_WINDOWS
 using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
+using Windows.Win32.UI.WindowsAndMessaging;
 #endif
 
 namespace GSR.Gui;
@@ -439,6 +441,47 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 
 #if GSR_WINDOWS
+			// kind of a hack to get rid of the window icon
+			if (OperatingSystem.IsWindowsVersionAtLeast(5))
+			{
+				var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+				curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+				PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+			}
+
+			// set dark mode if the windows version is new enough
+			// this mode technically isn't supported until windows 11
+			// but unofficially it was available in windows 10
+			// TODO: this probably should be configurable along with imgui dark/light mode
+			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+			{
+				unsafe
+				{
+					BOOL darkMode = true;
+					if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18985))
+					{
+						// windows 10 20H1 and above has the same documented dark mode api
+						_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, (uint)sizeof(BOOL));
+					}
+					else
+					{
+						// before windows 10 1903, the UseImmersiveDarkModeColors window property needed to be set in order to use the unofficial dark mode api
+						if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+						{
+							fixed (char* useImmersiveDarkModeColors = "UseImmersiveDarkModeColors")
+							{
+								_ = PInvoke.SetProp(new(SdlSysWMInfo.info.win.window), useImmersiveDarkModeColors, new(darkMode));
+							}
+						}
+
+						// before windows 10 20H1 the DWMWA_USE_IMMERSIVE_DARK_MODE flag was -1 the final value
+						_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkMode, (uint)sizeof(BOOL));
+					}
+				}
+			}
+
+			// disable windows 11 round corners, if the user wants that
+			// windows 11 is windows 10 build 22000 and above
 			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{
 				unsafe
@@ -538,6 +581,19 @@ internal sealed class ImGuiWindow : IDisposable
 
 		SDL_DestroyTexture(_fontSdlTexture);
 		SDL_DestroyRenderer(SdlRenderer);
+
+#if GSR_WINDOWS
+		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763) &&
+		    !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+		{
+			var hwnd = SdlSysWMInfo.info.win.window;
+			if (hwnd != IntPtr.Zero)
+			{
+				_ = PInvoke.RemoveProp(new(hwnd), "UseImmersiveDarkModeColors");
+			}
+		}
+#endif
+
 		SDL_DestroyWindow(SdlWindow);
 
 		SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
