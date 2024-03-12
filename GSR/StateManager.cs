@@ -45,7 +45,7 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 	private void SetStateSet(int set)
 	{
 		config.SaveStateSet = set;
-		osdManager.QueueMessage($"Current state  set to {GetStateSlot(config.SaveStateSlot)}");
+		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
 	}
 
 	public void SetStateSlot(int slot)
