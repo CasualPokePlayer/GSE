@@ -619,6 +619,23 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
 		}
+
+#if GSR_WINDOWS
+		if (OperatingSystem.IsWindowsVersionAtLeast(5))
+		{
+			var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+			if (_isFullscreen)
+			{
+				curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+			}
+			else
+			{
+				curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+			}
+
+			PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+		}
+#endif
 	}
 
 	public void SetWindowSize(int w, int h, int scale, int bars)
