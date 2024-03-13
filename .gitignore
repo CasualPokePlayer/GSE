@@ -11,4 +11,3 @@
 **/runtimes/**/*.dll
 **/runtimes/**/*.so
 **/runtimes/**/*.dylib
-global.json
