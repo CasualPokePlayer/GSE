@@ -10,6 +10,7 @@ internal static partial class ExportHelper
 	{
 		GB_WRAM,
 		GB_SRAM,
+		GB_HRAM,
 		GBA_IWRAM,
 		GBA_EWRAM,
 		GBA_SRAM,

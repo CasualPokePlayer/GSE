@@ -324,6 +324,7 @@ internal sealed class GambatteCore : IEmuCore
 		{
 			ExportHelper.MemExport.GB_WRAM => MemoryAreas.WRAM,
 			ExportHelper.MemExport.GB_SRAM => MemoryAreas.CARTRAM,
+			ExportHelper.MemExport.GB_HRAM => MemoryAreas.HRAM,
 			_ => MemoryAreas.END
 		};
 
