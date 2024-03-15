@@ -120,6 +120,7 @@ internal sealed class ImGuiModals
 		_playInputConfigs =
 		[
 			new("Pause", _config.HotkeyBindings.PauseButtonBindings),
+			new("Frame Step", _config.HotkeyBindings.FrameStepButtonBindings),
 			new("Fast Forward", _config.HotkeyBindings.FastForwardButtonBindings),
 			new("Fullscreen", _config.HotkeyBindings.FullScreenButtonBindings),
 		];

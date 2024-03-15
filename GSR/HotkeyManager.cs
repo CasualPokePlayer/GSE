@@ -12,6 +12,7 @@ internal sealed class HotkeyManager
 {
 	private interface IHotkey
 	{
+		// ReSharper disable once ReturnTypeCanBeEnumerable.Global
 		public List<InputBinding> InputBindings { get; }
 		public List<InputBinding> SuppressingBindings { get; }
 		void UpdateHotkeyState(InputGate inputGate);
@@ -110,6 +111,7 @@ internal sealed class HotkeyManager
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, emuManager.TogglePause),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
 			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, emuManager.DoFrameStep),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.SaveStateButtonBindings, stateManager.SaveStateCurSlot),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.LoadStateButtonBindings, stateManager.LoadStateCurSlot),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PrevStateSetButtonBindings, stateManager.DecStateSet),

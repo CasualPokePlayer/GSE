@@ -11,6 +11,7 @@ internal sealed class HotkeyBindings
 	public List<InputBinding> PauseButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_P) ];
 	public List<InputBinding> FullScreenButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_F, ScanCode.SC_LEFTSHIFT) ];
 	public List<InputBinding> FastForwardButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_TAB) ];
+	public List<InputBinding> FrameStepButtonBindings { get; set; } = [];
 	public List<InputBinding> SaveStateButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_LEFTBRACKET) ];
 	public List<InputBinding> LoadStateButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_RIGHTBRACKET) ];
 	public List<InputBinding> PrevStateSetButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_MINUS, ScanCode.SC_LEFTSHIFT) ];

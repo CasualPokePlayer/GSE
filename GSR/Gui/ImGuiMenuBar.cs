@@ -145,6 +145,11 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 					emuManager.TogglePause();
 				}
 
+				if (ImGui.MenuItem("Frame Step"))
+				{
+					emuManager.DoFrameStep();
+				}
+
 				ImGui.EndMenu();
 			}
 

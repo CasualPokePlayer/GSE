@@ -29,6 +29,9 @@ public sealed class EmuManager : IDisposable
 	private bool _emuPaused;
 	private ulong _emuCycleCount;
 
+	private bool _doFrameStep;
+	private readonly AutoResetEvent _frameStepDoneEvent = new(false);
+
 	public bool EmuAcceptingInputs => RomIsLoaded && !_emuPaused;
 	public bool RomIsLoaded { get; private set; }
 	public string CurrentRomDirectory { get; private set; }
@@ -122,11 +125,17 @@ public sealed class EmuManager : IDisposable
 					uint samples, cpuCycles;
 					lock (_emuCoreLock)
 					{
-						if (!_emuPaused)
+						if (!_emuPaused || _doFrameStep)
 						{
 							var controllerState = _emuController.GetState(_speedFactor == 1);
 							_emuCore.Advance(controllerState, out completedFrame, out samples, out cpuCycles);
 							_emuCycleCount += cpuCycles;
+
+							if (_doFrameStep)
+							{
+								_doFrameStep = false;
+								_frameStepDoneEvent.Set();
+							}
 						}
 						else
 						{
@@ -193,6 +202,7 @@ public sealed class EmuManager : IDisposable
 		}
 
 		_emuCore.Dispose();
+		_frameStepDoneEvent.Dispose();
 	}
 
 	private void SetToNullCore()
@@ -253,6 +263,23 @@ public sealed class EmuManager : IDisposable
 		else
 		{
 			Pause();
+		}
+	}
+
+	public void DoFrameStep()
+	{
+		lock (_emuCoreLock)
+		{
+			Pause();
+			_doFrameStep = true;
+		}
+
+		// frame stepping is awkward, as it allows the core to run while "paused"
+		// we rely on pausing in some places as a thread safety measure
+		// due to this, we need to wait for the frame step to finish here
+		while (!_frameStepDoneEvent.WaitOne(20))
+		{
+			CheckEmuThreadException();
 		}
 	}
 
