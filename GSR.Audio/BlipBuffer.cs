@@ -96,8 +96,9 @@ internal sealed unsafe class BlipBuffer : IDisposable
 		NativeMemory.Clear(_rightSamples + remain, count * sizeof(int));
 	}
 
-	public uint ReadSamples(Span<short> output)
+	public uint ReadSamples(Span<short> output, int volume)
 	{
+		var dbVolume = volume < 100 ? _volumeDbScaled[volume] : 1.0;
 		var count = Math.Min((uint)(output.Length / 2), SamplesAvail);
 		if (count != 0)
 		{
@@ -107,12 +108,12 @@ internal sealed unsafe class BlipBuffer : IDisposable
 			for (var i = 0; i < count; i++)
 			{
 				var s = Math.Clamp(sumL >> DeltaBits, short.MinValue, short.MaxValue);
-				output[i * 2 + 0] = (short)s;
+				output[i * 2 + 0] = (short)Math.Round(s * dbVolume, MidpointRounding.AwayFromZero);
 				sumL += _leftSamples[i];
 				sumL -= s << (DeltaBits - BassShift);
 
 				s = Math.Clamp(sumR >> DeltaBits, short.MinValue, short.MaxValue);
-				output[i * 2 + 1] = (short)s;
+				output[i * 2 + 1] = (short)Math.Round(s * dbVolume, MidpointRounding.AwayFromZero);
 				sumR += _rightSamples[i];
 				sumR -= s << (DeltaBits - BassShift);
 			}
@@ -184,17 +185,8 @@ internal sealed unsafe class BlipBuffer : IDisposable
 		}
 	}
 
-	public void AddDelta(uint time, int deltaL, int deltaR, int volume)
+	public void AddDelta(uint time, int deltaL, int deltaR)
 	{
-		// TODO: is this the right place for this?
-		// might be better overall if this is done during ReadSamples
-		if (volume < 100)
-		{
-			var dbVolume = _volumeDbScaled[volume];
-			deltaL = (int)Math.Round(deltaL * dbVolume, MidpointRounding.AwayFromZero);
-			deltaR = (int)Math.Round(deltaR * dbVolume, MidpointRounding.AwayFromZero);
-		}
-
 		// TODO: optimize this thing with SIMD intrinsics
 		if ((deltaL | deltaR) != 0)
 		{

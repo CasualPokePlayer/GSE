@@ -226,7 +226,7 @@ public sealed class AudioManager : IDisposable
 			{
 				int l = samples[i + 0];
 				int r = samples[i + 1];
-				_resampler.AddDelta(resamplerTime++, l - _lastL, r - _lastR, _volume);
+				_resampler.AddDelta(resamplerTime++, l - _lastL, r - _lastR);
 				_lastL = l;
 				_lastR = r;
 			}
@@ -238,7 +238,7 @@ public sealed class AudioManager : IDisposable
 				_resamplingBuffer = new short[samplesAvail];
 			}
 
-			var samplesRead = _resampler.ReadSamples(_resamplingBuffer);
+			var samplesRead = _resampler.ReadSamples(_resamplingBuffer, _volume);
 			OutputAudioBuffer.Write(_resamplingBuffer.AsSpan()[..((int)samplesRead * 2)]);
 		}
 	}
