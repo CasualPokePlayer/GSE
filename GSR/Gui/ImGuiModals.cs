@@ -176,7 +176,7 @@ internal sealed class ImGuiModals
 			{
 				for (var j = i + 1; j < inputConfig.InputBindings.Count; j++)
 				{
-					if (InputsOverlap(inputConfig.InputBindings[^i], inputConfig.InputBindings[^j]))
+					if (InputsOverlap(inputConfig.InputBindings[inputConfig.InputBindings.Count - i - 1], inputConfig.InputBindings[^j]))
 					{
 						inputConfig.InputBindings.RemoveAt(inputConfig.InputBindings.Count - j);
 						j--;
