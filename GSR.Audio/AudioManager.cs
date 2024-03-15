@@ -165,24 +165,28 @@ public sealed class AudioManager : IDisposable
 		{
 			lock (_audioLock)
 			{
-				if (AudioDeviceName != audioDeviceName)
-				{
-					_resampler?.Dispose();
-					_resampler = null;
+				_volume = volume;
 
-					if (_sdlAudioDeviceId != 0)
+				if (AudioDeviceName != audioDeviceName || _latencyMs != latencyMs)
+				{
+					if (AudioDeviceName != audioDeviceName)
 					{
-						SDL_CloseAudioDevice(_sdlAudioDeviceId);
-						_sdlAudioDeviceId = 0;
+						_resampler?.Dispose();
+						_resampler = null;
+
+						if (_sdlAudioDeviceId != 0)
+						{
+							SDL_CloseAudioDevice(_sdlAudioDeviceId);
+							_sdlAudioDeviceId = 0;
+						}
+
+						OpenAudioDevice(audioDeviceName);
+						_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
 					}
 
-					OpenAudioDevice(audioDeviceName);
-					_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
+					_latencyMs = latencyMs;
+					Reset();
 				}
-
-				_latencyMs = latencyMs;
-				_volume = volume;
-				Reset();
 			}
 		}
 	}
