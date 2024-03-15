@@ -162,12 +162,37 @@ internal sealed unsafe class BlipBuffer : IDisposable
 		{ 0,  43,  -115,  350, -488, 1136,  -914, 5861  }
 	};
 
+	// humans don't hear perceive loudness linearly, but rather in a logarithmic scale
+	// due to this, we want to adjust volume by a decibel (dB) scale
+	private static readonly double[] _volumeDbScaled;
+
+	static BlipBuffer()
+	{
+		_volumeDbScaled = new double[100];
+
+		// 0 in logarithmic scale is meaningless
+		// for our purposes we'll just force it as the "muted" value
+		_volumeDbScaled[0] = 0;
+
+		// this is rather -60 to 0
+		// TODO: should this range be larger/smaller?
+		const int DB_RANGE = 60;
+		for (var i = 1; i < 100; i++)
+		{
+			var db = DB_RANGE - i / 100.0 * DB_RANGE;
+			_volumeDbScaled[i] = Math.Pow(10, -db / 20);
+		}
+	}
+
 	public void AddDelta(uint time, int deltaL, int deltaR, int volume)
 	{
-		if (volume != 100)
+		// TODO: is this the right place for this?
+		// might be better overall if this is done during ReadSamples
+		if (volume < 100)
 		{
-			deltaL = deltaL * volume / 100;
-			deltaR = deltaR * volume / 100;
+			var dbVolume = _volumeDbScaled[volume];
+			deltaL = (int)Math.Round(deltaL * dbVolume, MidpointRounding.AwayFromZero);
+			deltaR = (int)Math.Round(deltaR * dbVolume, MidpointRounding.AwayFromZero);
 		}
 
 		// TODO: optimize this thing with SIMD intrinsics

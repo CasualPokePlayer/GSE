@@ -123,6 +123,10 @@ internal sealed class ImGuiModals
 			new("Frame Step", _config.HotkeyBindings.FrameStepButtonBindings),
 			new("Fast Forward", _config.HotkeyBindings.FastForwardButtonBindings),
 			new("Fullscreen", _config.HotkeyBindings.FullScreenButtonBindings),
+			new("Volume Up", _config.HotkeyBindings.VolumeUpButtonBindings),
+			new("Volume Down", _config.HotkeyBindings.VolumeDownButtonBindings),
+			new("Volume Up by 10", _config.HotkeyBindings.VolumeUp10ButtonBindings),
+			new("Volume Down by 10", _config.HotkeyBindings.VolumeDown10ButtonBindings),
 		];
 
 		_stateInputConfigs =
@@ -366,7 +370,7 @@ internal sealed class ImGuiModals
 
 				if (ImGui.BeginTabItem("Play"))
 				{
-					DoInputTab(_playInputConfigs, 7.5f);
+					DoInputTab(_playInputConfigs, 10.5f);
 					ImGui.EndTabItem();
 				}
 

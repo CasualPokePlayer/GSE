@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using GSR.Audio;
 using GSR.Emu;
 using GSR.Gui;
 using GSR.Input;
@@ -95,15 +96,20 @@ internal sealed class HotkeyManager
 
 	private readonly Config _config;
 	private readonly EmuManager _emuManager;
+	private readonly AudioManager _audioManager;
+	private readonly OSDManager _osdManager;
 	private readonly Func<InputGate> _inputGateCallback;
 	private readonly ImmutableArray<IHotkey> _hotkeys;
 
 	public bool InputBindingsChanged;
 
-	public HotkeyManager(Config config, EmuManager emuManager, InputManager inputManager, StateManager stateManager, ImGuiWindow mainWindow, Func<InputGate> inputGateCallback)
+	public HotkeyManager(Config config, EmuManager emuManager, AudioManager audioManager, OSDManager osdManager,
+		InputManager inputManager, StateManager stateManager, ImGuiWindow mainWindow, Func<InputGate> inputGateCallback)
 	{
 		_config = config;
 		_emuManager = emuManager;
+		_audioManager = audioManager;
+		_osdManager = osdManager;
 		_inputGateCallback = inputGateCallback;
 
 		_hotkeys =
@@ -112,6 +118,10 @@ internal sealed class HotkeyManager
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
 			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, emuManager.DoFrameStep),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeUpButtonBindings, VolumeUp),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeDownButtonBindings, VolumeDown),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeUp10ButtonBindings, VolumeUp10),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeDown10ButtonBindings, VolumeDown10),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.SaveStateButtonBindings, stateManager.SaveStateCurSlot),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.LoadStateButtonBindings, stateManager.LoadStateCurSlot),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PrevStateSetButtonBindings, stateManager.DecStateSet),
@@ -161,6 +171,50 @@ internal sealed class HotkeyManager
 	private void DisableFastForward()
 	{
 		_emuManager.SetSpeedFactor(1);
+	}
+
+	private void VolumeUp()
+	{
+		if (_config.Volume < 100)
+		{
+			_config.Volume++;
+			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+		}
+
+		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
+	}
+
+	private void VolumeDown()
+	{
+		if (_config.Volume > 0)
+		{
+			_config.Volume--;
+			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+		}
+
+		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
+	}
+
+	private void VolumeUp10()
+	{
+		if (_config.Volume < 100)
+		{
+			_config.Volume = Math.Min(_config.Volume + 10, 100);
+			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+		}
+
+		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
+	}
+
+	private void VolumeDown10()
+	{
+		if (_config.Volume > 0)
+		{
+			_config.Volume = Math.Max(_config.Volume - 10, 0);
+			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+		}
+
+		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
 	}
 
 	public void OnInputBindingsChange()
