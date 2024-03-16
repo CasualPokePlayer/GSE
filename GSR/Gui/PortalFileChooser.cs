@@ -219,9 +219,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	[LibraryImport("libglib-2.0.so.0", StringMarshalling = StringMarshalling.Utf8)]
-	private static partial IntPtr g_canonicalize_filename(string filename, IntPtr relative_to);
-
 	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
@@ -258,12 +255,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
-
-			Console.WriteLine(initialPath);
-			var path = g_canonicalize_filename(initialPath, IntPtr.Zero);
-			Console.WriteLine(Marshal.PtrToStringUTF8(path));
-
-			SetCurrentFolder(ref optionsIter, initialPath);
+			SetCurrentFolder(ref optionsIter, initialPath.EndsWith('/') ? initialPath[..^1] : initialPath);
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
 			return new(query);
