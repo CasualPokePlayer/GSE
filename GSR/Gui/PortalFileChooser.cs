@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 using static SDL2.SDL;
 
@@ -294,7 +296,22 @@ internal sealed partial class PortalFileChooser : IDisposable
 	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
-		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
+
+		static IntPtr QueryFunc(object param)
+		{
+			var p = ((IntPtr conn, IntPtr message, DBusErrorWrapper dbusError))param;
+			return dbus_connection_send_with_reply_and_block(p.conn, p.message, DBUS_TIMEOUT_INFINITE, ref p.dbusError.Native);
+		}
+
+		var queryTask = Task.Factory.StartNew(QueryFunc, (_conn, query.Message, dbusError));
+		while (!queryTask.IsCompleted)
+		{
+			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			SDL_PumpEvents();
+			Thread.Sleep(50);
+		}
+
+		var reply = queryTask.Result;
 		if (reply == IntPtr.Zero)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
