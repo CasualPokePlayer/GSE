@@ -31,11 +31,8 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 	public static bool IsAvailable;
 
-	private static readonly string HANDLE_TOKEN = "handle_token";
-	private static readonly string MODAL = "modal";
 	private static readonly string FILTERS = "filters";
 	private static readonly string CURRENT_FILTER = "current_filter";
-	private static readonly string CURRENT_NAME = "current_name";
 	private static readonly string CURRENT_FOLDER = "current_folder";
 	private static readonly string CURRENT_FILE = "current_file";
 
@@ -116,16 +113,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	private static void SetHandleToken(ref DBusMessageIter iter, string handleToken)
-	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in HANDLE_TOKEN);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter);
-		dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in handleToken);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
-	}
-
 	private static void SetStringOption(ref DBusMessageIter iter, string key, string option)
 	{
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
@@ -184,16 +171,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in CURRENT_FILTER);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "(sa(us))", out var variantIter);
 		AddFilter(ref variantIter, description, extensions);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
-	}
-
-	private static void SetCurrentName(ref DBusMessageIter iter, string filename)
-	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in CURRENT_NAME);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter);
-		dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in filename);
 		dbus_message_iter_close_container(ref subIter, ref variantIter);
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
@@ -270,14 +247,15 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
-			SetHandleToken(ref optionsIter, _uniqueToken);
+			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
 			SetBoolOption(ref optionsIter, "multiple", false);
 			SetBoolOption(ref optionsIter, "directory", false);
-			SetStringOption(ref optionsIter, "accept_label", "Open");
-			SetStringOption(ref optionsIter, "cancel_label", "Cancel");
+			SetStringOption(ref optionsIter, "accept_label", "_Open");
+			SetStringOption(ref optionsIter, "cancel_label", "_Cancel");
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
+			Console.WriteLine(initialPath);
 			SetCurrentFolder(ref optionsIter, initialPath);
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
@@ -318,15 +296,15 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
-			SetHandleToken(ref optionsIter, _uniqueToken);
+			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
 			SetBoolOption(ref optionsIter, "multiple", false);
 			SetBoolOption(ref optionsIter, "directory", false);
-			SetStringOption(ref optionsIter, "accept_label", "Save");
-			SetStringOption(ref optionsIter, "cancel_label", "Cancel");
+			SetStringOption(ref optionsIter, "accept_label", "_Save");
+			SetStringOption(ref optionsIter, "cancel_label", "_Cancel");
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, [ext]);
 			SetCurrentFilter(ref optionsIter, description, [ext]);
-			SetCurrentName(ref optionsIter, filename);
+			SetStringOption(ref optionsIter, "current_name", filename);
 			SetCurrentFolder(ref optionsIter, initialPath);
 			SetCurrentFile(ref optionsIter, Path.Combine(initialPath, filename, ext));
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
