@@ -126,12 +126,22 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	private static void SetModal(ref DBusMessageIter iter, bool modal)
+	private static void SetStringOption(ref DBusMessageIter iter, string key, string option)
 	{
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in MODAL);
+		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
+		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter);
+		dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in option);
+		dbus_message_iter_close_container(ref subIter, ref variantIter);
+		dbus_message_iter_close_container(ref iter, ref subIter);
+	}
+
+	private static void SetBoolOption(ref DBusMessageIter iter, string key, bool option)
+	{
+		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
+		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "b", out var variantIter);
-		dbus_message_iter_append_basic_bool(ref variantIter, DBusType.DBUS_TYPE_BOOLEAN, in modal);
+		dbus_message_iter_append_basic_bool(ref variantIter, DBusType.DBUS_TYPE_BOOLEAN, in option);
 		dbus_message_iter_close_container(ref subIter, ref variantIter);
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
@@ -261,7 +271,11 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
 			SetHandleToken(ref optionsIter, _uniqueToken);
-			SetModal(ref optionsIter, parentWindowStr != string.Empty);
+			SetBoolOption(ref optionsIter, "multiple", false);
+			SetBoolOption(ref optionsIter, "directory", false);
+			SetStringOption(ref optionsIter, "accept_label", "Open");
+			SetStringOption(ref optionsIter, "cancel_label", "Cancel");
+			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
 			SetCurrentFolder(ref optionsIter, initialPath);
@@ -305,7 +319,11 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
 			SetHandleToken(ref optionsIter, _uniqueToken);
-			SetModal(ref optionsIter, parentWindowStr != string.Empty);
+			SetBoolOption(ref optionsIter, "multiple", false);
+			SetBoolOption(ref optionsIter, "directory", false);
+			SetStringOption(ref optionsIter, "accept_label", "Save");
+			SetStringOption(ref optionsIter, "cancel_label", "Cancel");
+			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, [ext]);
 			SetCurrentFilter(ref optionsIter, description, [ext]);
 			SetCurrentName(ref optionsIter, filename);
