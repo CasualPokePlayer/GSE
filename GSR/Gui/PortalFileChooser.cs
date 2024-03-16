@@ -136,7 +136,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
 		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "a", out var arrayIter);
+		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
 
 		var bytes = Encoding.UTF8.GetBytes(option);
 		foreach (var b in bytes)
@@ -228,7 +228,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
-			SetArrayOption(ref optionsIter, "current_folder", initialPath);
+			SetArrayOption(ref optionsIter, "current_folder", initialPath.TrimEnd('/'));
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
 			return new(query);
