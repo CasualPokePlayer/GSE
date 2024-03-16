@@ -31,9 +31,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 	public static bool IsAvailable;
 
-	private static readonly string FILTERS = "filters";
-	private static readonly string CURRENT_FILTER = "current_filter";
-
 	private readonly IntPtr _conn;
 	private readonly string _busUniqueName;
 	private readonly string _uniqueToken;
@@ -173,7 +170,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private static void SetFilters(ref DBusMessageIter iter, string description, IEnumerable<string> extensions)
 	{
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in FILTERS);
+		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "filters");
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "a(sa(us))", out var variantIter);
 		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "(sa(us))", out var filterListIter);
 		AddFilter(ref filterListIter, description, extensions);
@@ -185,7 +182,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private static void SetCurrentFilter(ref DBusMessageIter iter, string description, IEnumerable<string> extensions)
 	{
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in CURRENT_FILTER);
+		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "current_filter");
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "(sa(us))", out var variantIter);
 		AddFilter(ref variantIter, description, extensions);
 		dbus_message_iter_close_container(ref subIter, ref variantIter);
@@ -277,7 +274,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetFilters(ref optionsIter, description, [ext]);
 			SetCurrentFilter(ref optionsIter, description, [ext]);
 			SetStringOption(ref optionsIter, "current_name", filename);
-			SetArrayOption(ref optionsIter, "current_folder", initialPath);
+			SetArrayOption(ref optionsIter, "current_folder", initialPath.TrimEnd('/'));
 			var targetFile = Path.Combine(initialPath, filename, ext);
 			if (File.Exists(targetFile))
 			{
@@ -298,8 +295,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 	{
 		using var dbusError = new DBusErrorWrapper();
 		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
-		Console.WriteLine("Ran query, got reply");
-		System.Threading.Thread.Sleep(1000 * 30);
 		if (reply == IntPtr.Zero)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
@@ -552,26 +547,32 @@ internal sealed partial class PortalFileChooser : IDisposable
 		DBUS_TYPE_VARIANT = 'v',
 	}
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_string(ref DBusMessageIter iter, DBusType type, in string value);
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_bool(ref DBusMessageIter iter, DBusType type, [MarshalAs(UnmanagedType.Bool)] in bool value);
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_byte(ref DBusMessageIter iter, DBusType type, in byte value);
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_uint(ref DBusMessageIter iter, DBusType type, in uint value);
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_open_container(ref DBusMessageIter iter, DBusType type, string contained_signature, out DBusMessageIter sub);
 
+	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_close_container(ref DBusMessageIter iter, ref DBusMessageIter sub);
