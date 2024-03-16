@@ -219,7 +219,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Open {description}");
 
 			// set options
-			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "a{sv}", out var optionsIter);
+			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
 			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
 			SetBoolOption(ref optionsIter, "multiple", false);
 			SetBoolOption(ref optionsIter, "directory", false);
@@ -297,6 +297,8 @@ internal sealed partial class PortalFileChooser : IDisposable
 	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
+		Console.WriteLine("About to run query");
+		System.Threading.Thread.Sleep(1000 * 30);
 		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
 		if (reply == IntPtr.Zero)
 		{
