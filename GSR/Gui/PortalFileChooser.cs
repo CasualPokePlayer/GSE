@@ -33,8 +33,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 	private static readonly string FILTERS = "filters";
 	private static readonly string CURRENT_FILTER = "current_filter";
-	private static readonly string CURRENT_FOLDER = "current_folder";
-	private static readonly string CURRENT_FILE = "current_file";
 
 	private readonly IntPtr _conn;
 	private readonly string _busUniqueName;
@@ -138,16 +136,14 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
 		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
 
 		var bytes = Encoding.UTF8.GetBytes(option);
 		foreach (var b in bytes)
 		{
-			dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b);
+			dbus_message_iter_append_basic_byte(ref variantIter, DBusType.DBUS_TYPE_BYTE, in b);
 		}
-		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
+		dbus_message_iter_append_basic_byte(ref variantIter, DBusType.DBUS_TYPE_BYTE, 0);
 
-		dbus_message_iter_close_container(ref variantIter, ref arrayIter);
 		dbus_message_iter_close_container(ref subIter, ref variantIter);
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
@@ -194,50 +190,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	private static void SetCurrentFolder(ref DBusMessageIter iter, string path)
-	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in CURRENT_FOLDER);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
-
-		var bytes = Encoding.UTF8.GetBytes(path);
-		foreach (var b in bytes)
-		{
-			dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b);
-		}
-		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
-
-		dbus_message_iter_close_container(ref variantIter, ref arrayIter);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
-	}
-
-	private static void SetCurrentFile(ref DBusMessageIter iter, string path)
-	{
-		// don't set this if the file does not exist
-		if (!File.Exists(path))
-		{
-			return;
-		}
-
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in CURRENT_FILE);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
-
-		var bytes = Encoding.UTF8.GetBytes(path);
-		foreach (var b in bytes)
-		{
-			dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b);
-		}
-		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
-
-		dbus_message_iter_close_container(ref variantIter, ref arrayIter);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
-	}
-
 	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
@@ -274,8 +226,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
-			SetCurrentFolder(ref optionsIter, Path.GetFullPath(initialPath)[..^1]);
-			SetArrayOption(ref optionsIter, "current_file", Path.GetFullPath(initialPath)[..^1]);
+			SetArrayOption(ref optionsIter, "current_folder", initialPath);
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
 			return new(query);
@@ -324,8 +275,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetFilters(ref optionsIter, description, [ext]);
 			SetCurrentFilter(ref optionsIter, description, [ext]);
 			SetStringOption(ref optionsIter, "current_name", filename);
-			SetCurrentFolder(ref optionsIter, initialPath);
-			SetCurrentFile(ref optionsIter, Path.Combine(initialPath, filename, ext));
+			SetArrayOption(ref optionsIter, "current_folder", initialPath);
+			var targetFile = Path.Combine(initialPath, filename, ext);
+			if (File.Exists(targetFile))
+			{
+				SetArrayOption(ref optionsIter, "current_file", targetFile);
+			}
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
 			return new(query);
