@@ -1,5 +1,3 @@
-#define GSR_LINUX
-#undef GSR_WINDOWS
 using System;
 
 using static SDL2.SDL;
