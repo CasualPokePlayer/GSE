@@ -1,5 +1,3 @@
-#undef GSR_WINDOWS
-#define GSR_LINUX
 using System;
 using System.Collections.Generic;
 #if GSR_OSX || GSR_LINUX
