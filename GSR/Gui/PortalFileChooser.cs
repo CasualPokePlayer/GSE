@@ -219,7 +219,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	[LibraryImport("libgtk", StringMarshalling = StringMarshalling.Utf8)]
+	[LibraryImport("libglib-2.0.so.0", StringMarshalling = StringMarshalling.Utf8)]
 	private static partial IntPtr g_canonicalize_filename(string filename, IntPtr relative_to);
 
 	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
