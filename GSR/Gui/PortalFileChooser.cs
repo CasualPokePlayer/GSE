@@ -383,13 +383,14 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_get_basic(ref iter, out uint responseCode);
 			if (responseCode != 0)
 			{
-				if (responseCode == 1)
+				if (responseCode is 1 or 2)
 				{
-					// cancel was pressed
+					// cancel or the X button was pressed
 					return null;
 				}
 
-				throw new($"D-Bus response errored with response code {responseCode}");
+				Console.Error.WriteLine($"D-Bus response errored with response code {responseCode}");
+				return null;
 			}
 
 			if (!dbus_message_iter_next(ref iter))

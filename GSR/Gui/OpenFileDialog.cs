@@ -108,9 +108,8 @@ internal static class OpenFileDialog
 				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory, in sdlSysWmInfo);
 				return portal.RunQuery(openQuery);
 			}
-			catch (Exception ex)
+			catch
 			{
-				Console.WriteLine(ex);
 				PortalFileChooser.IsAvailable = false;
 			}
 		}
