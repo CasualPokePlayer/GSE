@@ -297,9 +297,9 @@ internal sealed partial class PortalFileChooser : IDisposable
 	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
-		Console.WriteLine("About to run query");
-		System.Threading.Thread.Sleep(1000 * 30);
 		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
+		Console.WriteLine("Ran query, got reply");
+		System.Threading.Thread.Sleep(1000 * 30);
 		if (reply == IntPtr.Zero)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
