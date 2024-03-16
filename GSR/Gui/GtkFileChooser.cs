@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+using static SDL2.SDL;
 
 namespace GSR.Gui;
 
@@ -142,7 +146,21 @@ internal sealed partial class GtkFileChooser : IDisposable
 
 	public Response RunDialog()
 	{
-		return gtk_dialog_run(_chooser);
+		static Response DialogFunc(object param)
+		{
+			var chooser = (IntPtr)param;
+			return gtk_dialog_run(chooser);
+		}
+
+		var dialogTask = Task.Factory.StartNew(DialogFunc, _chooser);
+		while (!dialogTask.IsCompleted)
+		{
+			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			SDL_PumpEvents();
+			Thread.Sleep(50);
+		}
+
+		return dialogTask.Result;
 	}
 
 	public string GetFilename()

@@ -100,7 +100,7 @@ internal static class OpenFileDialog
 	{
 		var extensions = fileTypes.ToArray();
 
-		if (PortalFileChooser.IsAvailable)
+		if (PortalFileChooser.IsAvailable && false)
 		{
 			try
 			{
