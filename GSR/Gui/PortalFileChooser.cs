@@ -136,14 +136,13 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
 		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
+		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "a", out var arrayIter);
 
 		var bytes = Encoding.UTF8.GetBytes(option);
 		foreach (var b in bytes)
 		{
 			dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b);
 		}
-		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
 		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
 
 		dbus_message_iter_close_container(ref variantIter, ref arrayIter);
