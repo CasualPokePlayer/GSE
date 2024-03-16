@@ -255,7 +255,10 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
-			SetCurrentFolder(ref optionsIter, initialPath.EndsWith('/') ? initialPath[..^1] : initialPath);
+			Console.WriteLine(initialPath);
+			Console.WriteLine(initialPath.EndsWith('/') ? initialPath[..^1] : initialPath);
+			Console.WriteLine(Path.GetFullPath(initialPath));
+			SetCurrentFolder(ref optionsIter, Path.GetFullPath(initialPath));
 			dbus_message_iter_close_container(ref iter, ref optionsIter);
 
 			return new(query);
