@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 #endif
 
+using static SDL2.SDL;
+
 #if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.UI.Controls.Dialogs;
@@ -23,7 +25,7 @@ internal static class OpenFileDialog
 {
 #if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
+	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
 	{
 		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
 		{
@@ -38,6 +40,7 @@ internal static class OpenFileDialog
 		{
 			var ofn = default(OPENFILENAMEW);
 			ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
+			ofn.hwndOwner = new(sdlSysWmInfo.info.win.window);
 			ofn.lpstrFilter = filterPtr;
 			ofn.nFilterIndex = 1;
 			ofn.lpstrFile = fileBufferPtr;
@@ -56,8 +59,9 @@ internal static class OpenFileDialog
 #endif
 
 #if GSR_OSX
-	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
 	{
+		_ = sdlSysWmInfo;
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
 		{
@@ -92,16 +96,16 @@ internal static class OpenFileDialog
 #endif
 
 #if GSR_LINUX
-	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes)
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
 	{
 		var extensions = fileTypes.ToArray();
 
-		if (PortalFileChooser.Preferred && PortalFileChooser.IsAvailable)
+		if (PortalFileChooser.IsAvailable)
 		{
 			try
 			{
 				using var portal = new PortalFileChooser();
-				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory);
+				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory, in sdlSysWmInfo);
 				return portal.RunQuery(openQuery);
 			}
 			catch
@@ -124,21 +128,6 @@ internal static class OpenFileDialog
 			catch
 			{
 				GtkFileChooser.IsAvailable = false;
-			}
-		}
-
-		// kind of lame copy paste
-		if (PortalFileChooser.IsAvailable)
-		{
-			try
-			{
-				using var portal = new PortalFileChooser();
-				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory);
-				return portal.RunQuery(openQuery);
-			}
-			catch
-			{
-				PortalFileChooser.IsAvailable = false;
 			}
 		}
 

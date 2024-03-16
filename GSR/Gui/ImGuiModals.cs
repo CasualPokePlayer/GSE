@@ -328,7 +328,7 @@ internal sealed class ImGuiModals
 		var biosPathOpen = true;
 		if (ImGui.BeginPopupModal(BIOS_PATH_SETTINGS, ref biosPathOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
 		{
-			static string AddBiosPathButton(string system, string biosPathConfig)
+			static string AddBiosPathButton(string system, string biosPathConfig, in SDL_SysWMinfo sdlSysWmInfo)
 			{
 				ImGui.AlignTextToFramePadding();
 				ImGui.TextUnformatted($"{system} BIOS:");
@@ -337,7 +337,7 @@ internal sealed class ImGuiModals
 
 				if (ImGui.Button($"{biosPathConfig ?? "Path not set..."}##{system}"))
 				{
-					var biosPath = OpenFileDialog.ShowDialog($"{system} BIOS File", null, RomLoader.BiosAndCompressionExtensions);
+					var biosPath = OpenFileDialog.ShowDialog($"{system} BIOS File", null, RomLoader.BiosAndCompressionExtensions, in sdlSysWmInfo);
 					if (biosPath != null)
 					{
 						biosPathConfig = biosPath;
@@ -347,10 +347,10 @@ internal sealed class ImGuiModals
 				return biosPathConfig;
 			}
 
-			_config.GbBiosPath = AddBiosPathButton("GB", _config.GbBiosPath);
-			_config.GbcBiosPath = AddBiosPathButton("GBC", _config.GbcBiosPath);
-			_config.Sgb2BiosPath = AddBiosPathButton("SGB2", _config.Sgb2BiosPath);
-			_config.GbaBiosPath = AddBiosPathButton("GBA", _config.GbaBiosPath);
+			_config.GbBiosPath = AddBiosPathButton("GB", _config.GbBiosPath, in _mainWindow.SdlSysWMInfo);
+			_config.GbcBiosPath = AddBiosPathButton("GBC", _config.GbcBiosPath, in _mainWindow.SdlSysWMInfo);
+			_config.Sgb2BiosPath = AddBiosPathButton("SGB2", _config.Sgb2BiosPath, in _mainWindow.SdlSysWMInfo);
+			_config.GbaBiosPath = AddBiosPathButton("GBA", _config.GbaBiosPath, in _mainWindow.SdlSysWMInfo);
 
 			ImGui.EndPopup();
 		}

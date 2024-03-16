@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using static SDL2.SDL;
+
 namespace GSR.Gui;
 
 // based on https://github.com/btzy/nativefiledialog-extended/blob/6dc1272/src/nfd_portal.cpp
@@ -25,17 +27,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 		{
 			// ignored
 		}
-
-		// the portal chooser is not ideal for choosing files, so we only prefer it when this environment variable is set
-		// if gtk is unavailable, we'll try portal regardless
-		var env = Environment.GetEnvironmentVariable("GSR_PREFER_PORTAL");
-		Preferred = int.TryParse(env, out var ret) && ret != 0;
 	}
 
 	public static bool IsAvailable;
-	public static readonly bool Preferred;
 
 	private static readonly string HANDLE_TOKEN = "handle_token";
+	private static readonly string MODAL = "modal";
 	private static readonly string FILTERS = "filters";
 	private static readonly string CURRENT_FILTER = "current_filter";
 	private static readonly string CURRENT_NAME = "current_name";
@@ -125,6 +122,16 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in HANDLE_TOKEN);
 		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter);
 		dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in handleToken);
+		dbus_message_iter_close_container(ref subIter, ref variantIter);
+		dbus_message_iter_close_container(ref iter, ref subIter);
+	}
+
+	private static void SetModal(ref DBusMessageIter iter, bool modal)
+	{
+		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
+		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in MODAL);
+		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "b", out var variantIter);
+		dbus_message_iter_append_basic_bool(ref variantIter, DBusType.DBUS_TYPE_BOOLEAN, in modal);
 		dbus_message_iter_close_container(ref subIter, ref variantIter);
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
@@ -225,7 +232,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath)
+	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "OpenFile");
@@ -238,9 +245,15 @@ internal sealed partial class PortalFileChooser : IDisposable
 		{
 			dbus_message_iter_init_append(query, out var iter);
 
-			// set "parent window" (for simplicity we just always set this to nothing)
-			// TODO: it's probably easy enough for us to set the parent window to the main window
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in string.Empty);
+			// set "parent window"
+			var parentWindowStr = sdlSysWMinfo.subsystem switch
+			{
+				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{sdlSysWMinfo.info.x11.window:X}",
+				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
+				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
+				_ => string.Empty,
+			};
+			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr);
 
 			// set title
 			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Open {description}");
@@ -248,6 +261,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
 			SetHandleToken(ref optionsIter, _uniqueToken);
+			SetModal(ref optionsIter, parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
 			SetCurrentFolder(ref optionsIter, initialPath);
@@ -262,7 +276,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	public DBusMessageWrapper CreateSaveFileQuery(string description, string ext, string filename, string initialPath)
+	public DBusMessageWrapper CreateSaveFileQuery(string description, string ext, string filename, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "SaveFile");
@@ -275,9 +289,15 @@ internal sealed partial class PortalFileChooser : IDisposable
 		{
 			dbus_message_iter_init_append(query, out var iter);
 
-			// set "parent window" (for simplicity we just always set this to nothing)
-			// TODO: it's probably easy enough for us to set the parent window to the main window
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in string.Empty);
+			// set "parent window"
+			var parentWindowStr = sdlSysWMinfo.subsystem switch
+			{
+				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{sdlSysWMinfo.info.x11.window:X}",
+				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
+				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
+				_ => string.Empty,
+			};
+			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr);
 
 			// set title
 			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Save {description}");
@@ -285,6 +305,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// set options
 			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
 			SetHandleToken(ref optionsIter, _uniqueToken);
+			SetModal(ref optionsIter, parentWindowStr != string.Empty);
 			SetFilters(ref optionsIter, description, [ext]);
 			SetCurrentFilter(ref optionsIter, description, [ext]);
 			SetCurrentName(ref optionsIter, filename);
@@ -547,6 +568,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private enum DBusType
 	{
 		DBUS_TYPE_ARRAY = 'a',
+		DBUS_TYPE_BOOLEAN = 'b',
 		DBUS_TYPE_BYTE = 'y',
 		DBUS_TYPE_DICT_ENTRY = 'e',
 		DBUS_TYPE_OBJECT_PATH = 'o',
@@ -559,6 +581,10 @@ internal sealed partial class PortalFileChooser : IDisposable
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_string(ref DBusMessageIter iter, DBusType type, in string value);
+
+	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	private static partial bool dbus_message_iter_append_basic_bool(ref DBusMessageIter iter, DBusType type, in bool value);
 
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
