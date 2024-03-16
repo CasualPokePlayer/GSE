@@ -1,3 +1,5 @@
+#undef GSR_WINDOWS
+#define GSR_LINUX
 using System;
 using System.Collections.Generic;
 #if GSR_OSX || GSR_LINUX
@@ -25,7 +27,7 @@ internal static class OpenFileDialog
 {
 #if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
+	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
 		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
 		{
@@ -40,7 +42,7 @@ internal static class OpenFileDialog
 		{
 			var ofn = default(OPENFILENAMEW);
 			ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
-			ofn.hwndOwner = new(sdlSysWmInfo.info.win.window);
+			ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
 			ofn.lpstrFilter = filterPtr;
 			ofn.nFilterIndex = 1;
 			ofn.lpstrFile = fileBufferPtr;
@@ -59,9 +61,9 @@ internal static class OpenFileDialog
 #endif
 
 #if GSR_OSX
-	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
-		_ = sdlSysWmInfo;
+		_ = mainWindow;
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
 		{
@@ -96,17 +98,16 @@ internal static class OpenFileDialog
 #endif
 
 #if GSR_LINUX
-	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, in SDL_SysWMinfo sdlSysWmInfo)
+	private	static bool RunPortalFileChooser(string description, string baseDir, string[] extensions, ImGuiWindow mainWindow, out string path)
 	{
-		var extensions = fileTypes.ToArray();
-
-		if (PortalFileChooser.IsAvailable && false)
+		if (PortalFileChooser.IsAvailable)
 		{
 			try
 			{
 				using var portal = new PortalFileChooser();
-				using var openQuery = portal.CreateOpenFileQuery(description, extensions, baseDir ?? AppContext.BaseDirectory, in sdlSysWmInfo);
-				return portal.RunQuery(openQuery);
+				using var openQuery = portal.CreateOpenFileQuery(description, baseDir ?? AppContext.BaseDirectory, extensions, mainWindow);
+				path = portal.RunQuery(openQuery, mainWindow);
+				return true;
 			}
 			catch
 			{
@@ -114,6 +115,12 @@ internal static class OpenFileDialog
 			}
 		}
 
+		path = null;
+		return false;
+	}
+
+	private	static bool RunGtkFileChooser(string description, string baseDir, IEnumerable<string> extensions, ImGuiWindow mainWindow, out string path)
+	{
 		if (GtkFileChooser.IsAvailable)
 		{
 			try
@@ -123,7 +130,8 @@ internal static class OpenFileDialog
 				dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
 				dialog.AddFilter(description, extensions.Select(ft => $"*{ft}"));
 				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+				path = dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+				return true;
 			}
 			catch
 			{
@@ -131,7 +139,25 @@ internal static class OpenFileDialog
 			}
 		}
 
-		return null;
+		path = null;
+		return false;
+	}
+
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
+	{
+		var extensions = fileTypes.ToArray();
+
+		if (PortalFileChooser.IsPreferred && RunPortalFileChooser(description, baseDir, extensions, mainWindow, out var path))
+		{
+			return path;
+		}
+
+		if (RunGtkFileChooser(description, baseDir, extensions, mainWindow, out path))
+		{
+			return path;
+		}
+
+		return RunPortalFileChooser(description, baseDir, extensions, mainWindow, out path) ? path : null;
 	}
 #endif
 }

@@ -20,7 +20,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					using (new EmuPause(emuManager))
 					{
-						var filePath = OpenFileDialog.ShowDialog("GB/C/A ROM File", null, RomLoader.RomAndCompressionExtensions, in mainWindow.SdlSysWMInfo);
+						var filePath = OpenFileDialog.ShowDialog("GB/C/A ROM File", null, RomLoader.RomAndCompressionExtensions, mainWindow);
 						if (filePath != null)
 						{
 							romLoader.LoadRomFile(filePath);
@@ -54,7 +54,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					using (new EmuPause(emuManager))
 					{
-						var filePath = SaveFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, emuManager.CurrentRomName, ".gqs", in mainWindow.SdlSysWMInfo);
+						var filePath = SaveFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, emuManager.CurrentRomName, ".gqs", mainWindow);
 						if (filePath != null)
 						{
 							// TODO: OSD message on success/fail
@@ -67,7 +67,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					using (new EmuPause(emuManager))
 					{
-						var filePath = OpenFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, [".gqs"], in mainWindow.SdlSysWMInfo);
+						var filePath = OpenFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, [".gqs"], mainWindow);
 						if (filePath != null)
 						{
 							// TODO: OSD message on success/fail

@@ -144,7 +144,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	public Response RunDialog()
+	public Response RunDialog(ImGuiWindow mainWindow)
 	{
 		static Response DialogFunc(object param)
 		{
@@ -157,7 +157,9 @@ internal sealed partial class GtkFileChooser : IDisposable
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
 			SDL_PumpEvents();
-			Thread.Sleep(50);
+			// also need to keep re-presenting the window (yes, this is required it seems...)
+			SDL_RenderPresent(mainWindow.SdlRenderer);
+			Thread.Sleep(20);
 		}
 
 		return dialogTask.Result;

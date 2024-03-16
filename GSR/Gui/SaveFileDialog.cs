@@ -1,3 +1,5 @@
+#define GSR_LINUX
+#undef GSR_WINDOWS
 using System;
 
 using static SDL2.SDL;
@@ -21,7 +23,7 @@ internal static class SaveFileDialog
 {
 #if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, in SDL_SysWMinfo sdlSysWmInfo)
+	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
 		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
 		{
@@ -38,7 +40,7 @@ internal static class SaveFileDialog
 			{
 				var ofn = default(OPENFILENAMEW);
 				ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
-				ofn.hwndOwner = new(sdlSysWmInfo.info.win.window);
+				ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
 				ofn.lpstrFilter = filterPtr;
 				ofn.nFilterIndex = 1;
 				ofn.lpstrFile = fileBufferPtr;
@@ -62,9 +64,9 @@ internal static class SaveFileDialog
 #endif
 
 #if GSR_OSX
-	public static string ShowDialog(string description, string baseDir, string filename, string ext, in SDL_SysWMinfo sdlSysWmInfo)
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
-		_ = sdlSysWmInfo;
+		_ = mainWindow;
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
 		{
@@ -97,24 +99,28 @@ internal static class SaveFileDialog
 #endif
 
 #if GSR_LINUX
-	public static string ShowDialog(string description, string baseDir, string filename, string ext, in SDL_SysWMinfo sdlSysWmInfo)
+	private	static bool RunPortalFileChooser(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow, out string path)
 	{
-		if (PortalFileChooser.IsAvailable)
+		try
 		{
-			try
-			{
-				using var portal = new PortalFileChooser();
-				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir ?? AppContext.BaseDirectory, in sdlSysWmInfo);
-				// the path returned won't have an extension, so add one in
-				var ret = portal.RunQuery(saveQuery);
-				return ret != null ? ret + ext : null;
-			}
-			catch
-			{
-				PortalFileChooser.IsAvailable = false;
-			}
+			using var portal = new PortalFileChooser();
+			using var saveQuery = portal.CreateSaveFileQuery(description, baseDir ?? AppContext.BaseDirectory, filename, ext, mainWindow);
+			// the path returned won't have an extension, so add one in
+			var ret = portal.RunQuery(saveQuery, mainWindow);
+			path = ret != null ? ret + ext : null;
+			return true;
+		}
+		catch
+		{
+			PortalFileChooser.IsAvailable = false;
 		}
 
+		path = null;
+		return false;
+	}
+
+	private	static bool RunGtkFileChooser(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow, out string path)
+	{
 		if (GtkFileChooser.IsAvailable)
 		{
 			try
@@ -126,7 +132,8 @@ internal static class SaveFileDialog
 				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
 				dialog.SetCurrentName($"{filename}{ext}");
 				dialog.SetOverwriteConfirmation(true);
-				return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+				path = dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+				return true;
 			}
 			catch
 			{
@@ -134,7 +141,23 @@ internal static class SaveFileDialog
 			}
 		}
 
-		return null;
+		path = null;
+		return false;
+	}
+
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
+	{
+		if (PortalFileChooser.IsPreferred && RunPortalFileChooser(description, baseDir, filename, ext, mainWindow, out var path))
+		{
+			return path;
+		}
+
+		if (RunGtkFileChooser(description, baseDir, filename, ext, mainWindow, out path))
+		{
+			return path;
+		}
+
+		return RunPortalFileChooser(description, baseDir, filename, ext, mainWindow, out path) ? path : null;
 	}
 #endif
 }

@@ -24,6 +24,10 @@ internal sealed partial class PortalFileChooser : IDisposable
 			var conn = dbus_bus_get(DBusBusType.DBUS_BUS_SESSION, ref dbusError.Native);
 			dbus_connection_unref(conn);
 			IsAvailable = conn != IntPtr.Zero;
+
+			if (IsAvailable)
+			{
+			}
 		}
 		catch
 		{
@@ -32,6 +36,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	}
 
 	public static bool IsAvailable;
+	public static readonly bool IsPreferred;
 
 	private readonly IntPtr _conn;
 	private readonly string _busUniqueName;
@@ -191,7 +196,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		dbus_message_iter_close_container(ref iter, ref subIter);
 	}
 
-	public DBusMessageWrapper CreateOpenFileQuery(string description, string[] extensions, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
+	public DBusMessageWrapper CreateOpenFileQuery(string description, string initialPath, string[] extensions, ImGuiWindow parentWindow)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "OpenFile");
@@ -205,9 +210,9 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_init_append(query, out var iter);
 
 			// set "parent window"
-			var parentWindowStr = sdlSysWMinfo.subsystem switch
+			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
 			{
-				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{sdlSysWMinfo.info.x11.window:X}",
+				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
 				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
 				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
 				_ => string.Empty,
@@ -239,7 +244,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	public DBusMessageWrapper CreateSaveFileQuery(string description, string ext, string filename, string initialPath, in SDL_SysWMinfo sdlSysWMinfo)
+	public DBusMessageWrapper CreateSaveFileQuery(string description, string initialPath, string filename, string ext, ImGuiWindow parentWindow)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "SaveFile");
@@ -253,9 +258,9 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_init_append(query, out var iter);
 
 			// set "parent window"
-			var parentWindowStr = sdlSysWMinfo.subsystem switch
+			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
 			{
-				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{sdlSysWMinfo.info.x11.window:X}",
+				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
 				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
 				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
 				_ => string.Empty,
@@ -293,7 +298,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	public string RunQuery(DBusMessageWrapper query)
+	public string RunQuery(DBusMessageWrapper query, ImGuiWindow parentWindow)
 	{
 		using var dbusError = new DBusErrorWrapper();
 
@@ -308,7 +313,9 @@ internal sealed partial class PortalFileChooser : IDisposable
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
 			SDL_PumpEvents();
-			Thread.Sleep(50);
+			// also need to keep re-presenting the window (yes, this is required it seems...)
+			SDL_RenderPresent(parentWindow.SdlRenderer);
+			Thread.Sleep(20);
 		}
 
 		var reply = queryTask.Result;
