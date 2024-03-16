@@ -584,7 +584,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool dbus_message_iter_append_basic_bool(ref DBusMessageIter iter, DBusType type, in bool value);
+	private static partial bool dbus_message_iter_append_basic_bool(ref DBusMessageIter iter, DBusType type, [MarshalAs(UnmanagedType.Bool)] in bool value);
 
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
