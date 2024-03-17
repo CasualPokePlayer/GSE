@@ -11,7 +11,6 @@ using static SDL2.SDL;
 namespace GSR.Gui;
 
 // based on https://github.com/btzy/nativefiledialog-extended/blob/6dc1272/src/nfd_portal.cpp
-// TODO: better check against errors
 
 internal sealed partial class PortalFileChooser : IDisposable
 {

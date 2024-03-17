@@ -65,7 +65,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 			// prevent gtk log spam
 			unsafe
 			{
-				_ = g_log_set_default_handler(&StubGtkLogger, IntPtr.Zero);
+				//_ = g_log_set_default_handler(&StubGtkLogger, IntPtr.Zero);
 			}
 		}
 		catch
