@@ -353,6 +353,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
 		}
 
+		Console.WriteLine("Going through message");
 		using (new DBusMessageWrapper(reply))
 		{
 			if (!dbus_message_iter_init(reply, out var iter))
@@ -376,6 +377,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		var response = IntPtr.Zero;
 		do
 		{
+			Console.WriteLine("Popping messages");
 			IntPtr message;
 			while ((message = dbus_connection_pop_message(_conn)) != IntPtr.Zero)
 			{
@@ -398,6 +400,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			}
 		} while (response == IntPtr.Zero && dbus_connection_read_write(_conn, -1));
 
+		Console.WriteLine("Got response");
 		if (response == IntPtr.Zero)
 		{
 			throw new("Failed to obtain response from D-Bus portal");
