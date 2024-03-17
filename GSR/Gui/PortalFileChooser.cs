@@ -319,41 +319,20 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	private record QueryThreadParam(IntPtr Conn, IntPtr Message, DBusErrorWrapper DbusError)
+	private record QueryThreadParam(IntPtr Conn)
 	{
-		public IntPtr Reply;
+		public IntPtr Response;
 	}
 
 	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
-
-		static void QueryThreadProc(object param)
-		{
-			var queryThreadParam = (QueryThreadParam)param;
-			queryThreadParam.Reply = dbus_connection_send_with_reply_and_block(queryThreadParam.Conn, queryThreadParam.Message, DBUS_TIMEOUT_INFINITE, ref queryThreadParam.DbusError.Native);
-		}
-
-		var queryThread = new Thread(QueryThreadProc) { IsBackground = true };
-		var queryThreadParam = new QueryThreadParam(_conn, query.Message, dbusError);
-		queryThread.Start(queryThreadParam);
-		while (queryThread.IsAlive)
-		{
-			// keep events pumping while we wait (don't want annoying "not responding" messages)
-			Console.WriteLine("Pumping events");
-			SDL_PumpEvents();
-			Thread.Sleep(50);
-		}
-
-		Console.WriteLine("Completed, getting reply");
-		queryThread.Join();
-		var reply = queryThreadParam.Reply;
+		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
 		if (reply == IntPtr.Zero)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
 		}
 
-		Console.WriteLine("Going through message");
 		using (new DBusMessageWrapper(reply))
 		{
 			if (!dbus_message_iter_init(reply, out var iter))
@@ -374,33 +353,45 @@ internal sealed partial class PortalFileChooser : IDisposable
 			}
 		}
 
-		var response = IntPtr.Zero;
-		do
+		static void QueryThreadProc(object param)
 		{
-			Console.WriteLine("Popping messages");
-			IntPtr message;
-			while ((message = dbus_connection_pop_message(_conn)) != IntPtr.Zero)
+			var queryThreadParam = (QueryThreadParam)param;
+			do
 			{
-				try
+				IntPtr message;
+				while ((message = dbus_connection_pop_message(queryThreadParam.Conn)) != IntPtr.Zero)
 				{
-					if (dbus_message_is_signal(message, "org.freedesktop.portal.Request", "Response"))
+					try
 					{
-						response = message;
-						message = IntPtr.Zero;
-						break;
+						if (dbus_message_is_signal(message, "org.freedesktop.portal.Request", "Response"))
+						{
+							queryThreadParam.Response = message;
+							message = IntPtr.Zero;
+							break;
+						}
+					}
+					finally
+					{
+						if (message != IntPtr.Zero)
+						{
+							dbus_message_unref(message);
+						}
 					}
 				}
-				finally
-				{
-					if (message != IntPtr.Zero)
-					{
-						dbus_message_unref(message);
-					}
-				}
-			}
-		} while (response == IntPtr.Zero && dbus_connection_read_write(_conn, -1));
+			} while (queryThreadParam.Response == IntPtr.Zero && dbus_connection_read_write(queryThreadParam.Conn, -1));
+		}
 
-		Console.WriteLine("Got response");
+		var queryThread = new Thread(QueryThreadProc) { IsBackground = true };
+		var queryThreadParam = new QueryThreadParam(_conn);
+		queryThread.Start(queryThreadParam);
+		while (queryThread.IsAlive)
+		{
+			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			SDL_PumpEvents();
+			Thread.Sleep(50);
+		}
+
+		var response = queryThreadParam.Response;
 		if (response == IntPtr.Zero)
 		{
 			throw new("Failed to obtain response from D-Bus portal");

@@ -166,7 +166,6 @@ internal sealed partial class GtkFileChooser : IDisposable
 			Thread.Sleep(50);
 		}
 
-		dialogThread.Join();
 		return dialogThreadParam.Response;
 	}
 
