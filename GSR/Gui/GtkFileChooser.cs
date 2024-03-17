@@ -50,6 +50,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 	[UnmanagedCallersOnly]
 	private static void StubGtkLogger(IntPtr log_domain, int log_level, IntPtr message, IntPtr user_data)
 	{
+		Console.WriteLine(Marshal.PtrToStringUTF8(message));
 	}
 
 	static GtkFileChooser()
@@ -65,7 +66,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 			// prevent gtk log spam
 			unsafe
 			{
-				//_ = g_log_set_default_handler(&StubGtkLogger, IntPtr.Zero);
+				_ = g_log_set_default_handler(&StubGtkLogger, IntPtr.Zero);
 			}
 		}
 		catch
@@ -156,7 +157,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		while (!dialogTask.IsCompleted)
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
-			SDL_PumpEvents();
+			//SDL_PumpEvents();
 			// also need to keep re-presenting the window (yes, this is required it seems...)
 			SDL_RenderPresent(mainWindow.SdlRenderer);
 			Thread.Sleep(20);
