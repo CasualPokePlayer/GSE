@@ -19,7 +19,7 @@ internal static class SaveFileDialog
 {
 #if GSR_WINDOWS
 	// TODO: Check if using the newer IFileOpenDialog has any worth
-	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext)
+	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
 		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
 		{
@@ -36,6 +36,7 @@ internal static class SaveFileDialog
 			{
 				var ofn = default(OPENFILENAMEW);
 				ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
+				ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
 				ofn.lpstrFilter = filterPtr;
 				ofn.nFilterIndex = 1;
 				ofn.lpstrFile = fileBufferPtr;
@@ -59,8 +60,9 @@ internal static class SaveFileDialog
 #endif
 
 #if GSR_OSX
-	public static string ShowDialog(string description, string baseDir, string filename, string ext)
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
+		_ = mainWindow;
 		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
 		try
 		{
@@ -93,58 +95,38 @@ internal static class SaveFileDialog
 #endif
 
 #if GSR_LINUX
-	public static string ShowDialog(string description, string baseDir, string filename, string ext)
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
-		if (PortalFileChooser.Preferred && PortalFileChooser.IsAvailable)
+		try
 		{
-			try
+			using var portal = new PortalFileChooser();
+			using var saveQuery = portal.CreateSaveFileQuery(description, baseDir ?? AppContext.BaseDirectory, filename, ext, mainWindow);
+			// the path returned won't have an extension, so add one in
+			var ret = portal.RunQuery(saveQuery);
+			return ret != null ? ret + ext : null;
+		}
+		catch (Exception ex)
+		{
+			Console.Error.WriteLine(ex);
+			// we'll only mark portal as "unavailable" if the gtk file chooser is available
+			// just in case something oddly goes wrong with the portal and yet still be usable
+			if (GtkFileChooser.IsAvailable)
 			{
-				using var portal = new PortalFileChooser();
-				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir ?? AppContext.BaseDirectory);
-				// the path returned won't have an extension, so add one in
-				var ret = portal.RunQuery(saveQuery);
-				return ret != null ? ret + ext : null;
-			}
-			catch
-			{
+				Console.WriteLine("Portal file chooser assumed to be unavailable, falling back on GTK file chooser");
 				PortalFileChooser.IsAvailable = false;
 			}
 		}
 
 		if (GtkFileChooser.IsAvailable)
 		{
-			try
-			{
-				using var dialog = new GtkFileChooser($"Save {description}", GtkFileChooser.FileChooserAction.Save);
-				dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
-				dialog.AddButton("_Save", GtkFileChooser.Response.Accept);
-				dialog.AddFilter(description, [ $"*{ext}" ]);
-				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				dialog.SetCurrentName($"{filename}{ext}");
-				dialog.SetOverwriteConfirmation(true);
-				return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
-			}
-			catch
-			{
-				GtkFileChooser.IsAvailable = false;
-			}
-		}
-
-		// kind of lame copy paste
-		if (PortalFileChooser.IsAvailable)
-		{
-			try
-			{
-				using var portal = new PortalFileChooser();
-				using var saveQuery = portal.CreateSaveFileQuery(description, ext, filename, baseDir ?? AppContext.BaseDirectory);
-				// the path returned won't have an extension, so add one in
-				var ret = portal.RunQuery(saveQuery);
-				return ret != null ? ret + ext : null;
-			}
-			catch
-			{
-				PortalFileChooser.IsAvailable = false;
-			}
+			using var dialog = new GtkFileChooser($"Save {description}", GtkFileChooser.FileChooserAction.Save);
+			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+			dialog.AddButton("_Save", GtkFileChooser.Response.Accept);
+			dialog.AddFilter(description, [ $"*{ext}" ]);
+			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+			dialog.SetCurrentName($"{filename}{ext}");
+			dialog.SetOverwriteConfirmation(true);
+			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 
 		return null;

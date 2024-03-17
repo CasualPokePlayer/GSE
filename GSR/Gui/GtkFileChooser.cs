@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
+
+using static SDL2.SDL;
 
 namespace GSR.Gui;
 
@@ -13,10 +16,10 @@ internal sealed partial class GtkFileChooser : IDisposable
 	// most of the file chooser apis used only need at least gtk 2.4
 	private static readonly ImmutableArray<string> _gtkLibraryNames = 
 	[
-		"libgtk-3.so",
 		"libgtk-3.so.0",
-		"libgtk-x11-2.0.so",
+		"libgtk-3.so",
 		"libgtk-x11-2.0.so.0",
+		"libgtk-x11-2.0.so",
 	];
 
 	private static IntPtr GtkImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -71,7 +74,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	public static bool IsAvailable;
+	public static readonly bool IsAvailable;
 
 	public enum FileChooserAction
 	{
@@ -140,9 +143,30 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
+	private record DialogThreadParam(IntPtr Chooser)
+	{
+		public Response Response;
+	}
+
 	public Response RunDialog()
 	{
-		return gtk_dialog_run(_chooser);
+		static void DialogThreadProc(object param)
+		{
+			var dialogThreadParam = (DialogThreadParam)param;
+			dialogThreadParam.Response = gtk_dialog_run(dialogThreadParam.Chooser);
+		}
+
+		var dialogThread = new Thread(DialogThreadProc) { IsBackground = true };
+		var dialogThreadParam = new DialogThreadParam(_chooser);
+		dialogThread.Start(dialogThreadParam);
+		while (dialogThread.IsAlive)
+		{
+			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			SDL_PumpEvents();
+			Thread.Sleep(50);
+		}
+
+		return dialogThreadParam.Response;
 	}
 
 	public string GetFilename()
