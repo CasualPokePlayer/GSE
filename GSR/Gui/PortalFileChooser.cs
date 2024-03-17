@@ -326,6 +326,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 		static IntPtr QueryFunc(object param)
 		{
+			Console.WriteLine(Thread.CurrentThread.Name);
 			var p = ((IntPtr conn, IntPtr message, DBusErrorWrapper dbusError))param;
 			return dbus_connection_send_with_reply_and_block(p.conn, p.message, DBUS_TIMEOUT_INFINITE, ref p.dbusError.Native);
 		}
