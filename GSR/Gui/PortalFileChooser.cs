@@ -32,7 +32,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		if (IsAvailable)
 		{
 			// check if the user wants to prefer the GTK file chooser
-			// usually portal is better as it's more "native"
+			// usually portal is better as it's more "native" and generally less buggy
 			// but it has a minor flaw in that the "current folder" does not have to be respected
 			var env = Environment.GetEnvironmentVariable("GSR_PREFER_GTK_FILE_CHOOSER");
 			var preferred = int.TryParse(env, out var ret) && ret != 0;
@@ -47,6 +47,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
+	// ReSharper disable once FieldCanBeMadeReadOnly.Global
 	public static bool IsAvailable;
 
 	private readonly IntPtr _conn;
