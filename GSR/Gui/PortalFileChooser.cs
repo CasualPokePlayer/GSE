@@ -334,9 +334,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 		while (!queryTask.IsCompleted)
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			Console.WriteLine("Do pump events");
 			SDL_PumpEvents();
 			// also need to keep re-presenting the window (yes, this is required it seems...)
+			Console.WriteLine("Represent window");
 			SDL_RenderPresent(parentWindow.SdlRenderer);
+			Console.WriteLine("Sleep");
 			Thread.Sleep(20);
 		}
 
