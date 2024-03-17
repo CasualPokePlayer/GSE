@@ -150,13 +150,13 @@ internal sealed partial class GtkFileChooser : IDisposable
 
 	public Response RunDialog()
 	{
-		static void DialogFunc(object param)
+		static void DialogThreadProc(object param)
 		{
 			var dialogThreadParam = (DialogThreadParam)param;
 			dialogThreadParam.Response = gtk_dialog_run(dialogThreadParam.Chooser);
 		}
 
-		var dialogThread = new Thread(DialogFunc);
+		var dialogThread = new Thread(DialogThreadProc) { IsBackground = true };
 		var dialogThreadParam = new DialogThreadParam(_chooser);
 		dialogThread.Start(dialogThreadParam);
 		while (dialogThread.IsAlive)
