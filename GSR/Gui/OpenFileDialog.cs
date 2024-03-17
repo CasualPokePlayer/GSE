@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 #endif
 
-using static SDL2.SDL;
-
 #if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.UI.Controls.Dialogs;
