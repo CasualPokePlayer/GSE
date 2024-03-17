@@ -341,6 +341,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SDL_RenderPresent(parentWindow.SdlRenderer);
 			Console.WriteLine("Sleep");
 			Thread.Sleep(20);
+			Console.WriteLine("Wakeup");
 		}
 
 		var reply = queryTask.Result;
