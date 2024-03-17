@@ -24,19 +24,31 @@ internal sealed partial class PortalFileChooser : IDisposable
 			var conn = dbus_bus_get(DBusBusType.DBUS_BUS_SESSION, ref dbusError.Native);
 			dbus_connection_unref(conn);
 			IsAvailable = conn != IntPtr.Zero;
-
-			if (IsAvailable)
-			{
-			}
 		}
 		catch
 		{
 			// ignored
 		}
+
+		if (IsAvailable)
+		{
+			// check if the user wants to prefer the GTK file chooser
+			// usually portal is better as it's more "native"
+			// but it has a minor flaw in that the "current folder" does not have to be respected
+			var env = Environment.GetEnvironmentVariable("GSR_PREFER_GTK_FILE_CHOOSER");
+			var preferred = int.TryParse(env, out var ret) && ret != 0;
+			if (preferred)
+			{
+				// make sure the gtk file chooser is actually available!
+				if (GtkFileChooser.IsAvailable)
+				{
+					IsAvailable = false;
+				}
+			}
+		}
 	}
 
 	public static bool IsAvailable;
-	public static readonly bool IsPreferred;
 
 	private readonly IntPtr _conn;
 	private readonly string _busUniqueName;
@@ -115,85 +127,95 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
+	// this is for calls which only fail due to running out of memory
+	// (on Linux, this typically never occurs)
+	private static void EnsureSuccess(bool res)
+	{
+		if (!res)
+		{
+			throw new("D-Bus call failed to allocate memory");
+		}
+	}
+
 	private static void SetStringOption(ref DBusMessageIter iter, string key, string option)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter);
-		dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in option);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key));
+		EnsureSuccess(dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "s", out var variantIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref variantIter, DBusType.DBUS_TYPE_STRING, in option));
+		EnsureSuccess(dbus_message_iter_close_container(ref subIter, ref variantIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref subIter));
 	}
 
 	private static void SetBoolOption(ref DBusMessageIter iter, string key, bool option)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "b", out var variantIter);
-		dbus_message_iter_append_basic_bool(ref variantIter, DBusType.DBUS_TYPE_BOOLEAN, in option);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key));
+		EnsureSuccess(dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "b", out var variantIter));
+		EnsureSuccess(dbus_message_iter_append_basic_bool(ref variantIter, DBusType.DBUS_TYPE_BOOLEAN, in option));
+		EnsureSuccess(dbus_message_iter_close_container(ref subIter, ref variantIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref subIter));
 	}
 
 	private static void SetArrayOption(ref DBusMessageIter iter, string key, string option)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key);
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, in key));
+		EnsureSuccess(dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "ay", out var variantIter));
+		EnsureSuccess(dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "y", out var arrayIter));
 
 		var bytes = Encoding.UTF8.GetBytes(option);
 		foreach (var b in bytes)
 		{
-			dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b);
+			EnsureSuccess(dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, in b));
 		}
-		dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0);
+		EnsureSuccess(dbus_message_iter_append_basic_byte(ref arrayIter, DBusType.DBUS_TYPE_BYTE, 0));
 
-		dbus_message_iter_close_container(ref variantIter, ref arrayIter);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
+		EnsureSuccess(dbus_message_iter_close_container(ref variantIter, ref arrayIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref subIter, ref variantIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref subIter));
 	}
 
 	private static void AddFilter(ref DBusMessageIter iter, string description, IEnumerable<string> extensions)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_STRUCT, null, out var filterListStructIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_STRUCT, null, out var filterListStructIter));
 		// friendly name users see
-		dbus_message_iter_append_basic_string(ref filterListStructIter, DBusType.DBUS_TYPE_STRING, in description);
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref filterListStructIter, DBusType.DBUS_TYPE_STRING, in description));
 		// patterns used for delimiting
-		dbus_message_iter_open_container(ref filterListStructIter, DBusType.DBUS_TYPE_ARRAY, "(us)", out var filterSublistIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref filterListStructIter, DBusType.DBUS_TYPE_ARRAY, "(us)", out var filterSublistIter));
 		foreach (var ext in extensions)
 		{
-			dbus_message_iter_open_container(ref filterSublistIter, DBusType.DBUS_TYPE_STRUCT, null, out var filterSublistStructIter);
+			EnsureSuccess(dbus_message_iter_open_container(ref filterSublistIter, DBusType.DBUS_TYPE_STRUCT, null, out var filterSublistStructIter));
 			// 0 indicates glob style
-			dbus_message_iter_append_basic_uint(ref filterSublistStructIter, DBusType.DBUS_TYPE_UINT32, 0);
-			dbus_message_iter_append_basic_string(ref filterSublistStructIter, DBusType.DBUS_TYPE_STRING, $"*{ext}");
-			dbus_message_iter_close_container(ref filterSublistIter, ref filterSublistStructIter);
+			EnsureSuccess(dbus_message_iter_append_basic_uint(ref filterSublistStructIter, DBusType.DBUS_TYPE_UINT32, 0));
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref filterSublistStructIter, DBusType.DBUS_TYPE_STRING, $"*{ext}"));
+			EnsureSuccess(dbus_message_iter_close_container(ref filterSublistIter, ref filterSublistStructIter));
 		}
 
-		dbus_message_iter_close_container(ref filterListStructIter, ref filterSublistIter);
-		dbus_message_iter_close_container(ref iter, ref filterListStructIter);
+		EnsureSuccess(dbus_message_iter_close_container(ref filterListStructIter, ref filterSublistIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref filterListStructIter));
 	}
 
 	private static void SetFilters(ref DBusMessageIter iter, string description, IEnumerable<string> extensions)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "filters");
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "a(sa(us))", out var variantIter);
-		dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "(sa(us))", out var filterListIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "filters"));
+		EnsureSuccess(dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "a(sa(us))", out var variantIter));
+		EnsureSuccess(dbus_message_iter_open_container(ref variantIter, DBusType.DBUS_TYPE_ARRAY, "(sa(us))", out var filterListIter));
 		AddFilter(ref filterListIter, description, extensions);
-		dbus_message_iter_close_container(ref variantIter, ref filterListIter);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
+		EnsureSuccess(dbus_message_iter_close_container(ref variantIter, ref filterListIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref subIter, ref variantIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref subIter));
 	}
 
 	private static void SetCurrentFilter(ref DBusMessageIter iter, string description, IEnumerable<string> extensions)
 	{
-		dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter);
-		dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "current_filter");
-		dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "(sa(us))", out var variantIter);
+		EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_DICT_ENTRY, null, out var subIter));
+		EnsureSuccess(dbus_message_iter_append_basic_string(ref subIter, DBusType.DBUS_TYPE_STRING, "current_filter"));
+		EnsureSuccess(dbus_message_iter_open_container(ref subIter, DBusType.DBUS_TYPE_VARIANT, "(sa(us))", out var variantIter));
 		AddFilter(ref variantIter, description, extensions);
-		dbus_message_iter_close_container(ref subIter, ref variantIter);
-		dbus_message_iter_close_container(ref iter, ref subIter);
+		EnsureSuccess(dbus_message_iter_close_container(ref subIter, ref variantIter));
+		EnsureSuccess(dbus_message_iter_close_container(ref iter, ref subIter));
 	}
 
 	public DBusMessageWrapper CreateOpenFileQuery(string description, string initialPath, string[] extensions, ImGuiWindow parentWindow)
@@ -217,13 +239,13 @@ internal sealed partial class PortalFileChooser : IDisposable
 				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
 				_ => string.Empty,
 			};
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr);
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
 
 			// set title
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Open {description}");
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Open {description}"));
 
 			// set options
-			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
+			EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter));
 			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
 			SetBoolOption(ref optionsIter, "multiple", false);
 			SetBoolOption(ref optionsIter, "directory", false);
@@ -233,7 +255,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			SetFilters(ref optionsIter, description, extensions);
 			SetCurrentFilter(ref optionsIter, description, extensions);
 			SetArrayOption(ref optionsIter, "current_folder", initialPath.TrimEnd('/'));
-			dbus_message_iter_close_container(ref iter, ref optionsIter);
+			EnsureSuccess(dbus_message_iter_close_container(ref iter, ref optionsIter));
 
 			return new(query);
 		}
@@ -265,13 +287,13 @@ internal sealed partial class PortalFileChooser : IDisposable
 				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
 				_ => string.Empty,
 			};
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr);
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
 
 			// set title
-			dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Save {description}");
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Save {description}"));
 
 			// set options
-			dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter);
+			EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter));
 			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
 			SetBoolOption(ref optionsIter, "multiple", false);
 			SetBoolOption(ref optionsIter, "directory", false);
@@ -287,7 +309,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			{
 				SetArrayOption(ref optionsIter, "current_file", targetFile);
 			}
-			dbus_message_iter_close_container(ref iter, ref optionsIter);
+			EnsureSuccess(dbus_message_iter_close_container(ref iter, ref optionsIter));
 
 			return new(query);
 		}
@@ -396,8 +418,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 					return null;
 				}
 
-				Console.Error.WriteLine($"D-Bus response errored with response code {responseCode}");
-				return null;
+				throw new($"D-Bus response errored with unknown response code {responseCode}");
 			}
 
 			if (!dbus_message_iter_next(ref iter))
@@ -572,32 +593,26 @@ internal sealed partial class PortalFileChooser : IDisposable
 		DBUS_TYPE_VARIANT = 'v',
 	}
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_string(ref DBusMessageIter iter, DBusType type, in string value);
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_bool(ref DBusMessageIter iter, DBusType type, [MarshalAs(UnmanagedType.Bool)] in bool value);
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_byte(ref DBusMessageIter iter, DBusType type, in byte value);
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", EntryPoint = "dbus_message_iter_append_basic")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_append_basic_uint(ref DBusMessageIter iter, DBusType type, in uint value);
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_open_container(ref DBusMessageIter iter, DBusType type, string contained_signature, out DBusMessageIter sub);
 
-	// ReSharper disable once UnusedMethodReturnValue.Local
 	[LibraryImport("libdbus-1.so.3")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool dbus_message_iter_close_container(ref DBusMessageIter iter, ref DBusMessageIter sub);

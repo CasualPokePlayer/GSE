@@ -1,3 +1,5 @@
+#undef GSR_WINDOWS
+#define GSR_LINUX
 using System;
 
 using static SDL2.SDL;
@@ -97,7 +99,7 @@ internal static class SaveFileDialog
 #endif
 
 #if GSR_LINUX
-	private	static bool RunPortalFileChooser(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow, out string path)
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
 		try
 		{
@@ -105,57 +107,33 @@ internal static class SaveFileDialog
 			using var saveQuery = portal.CreateSaveFileQuery(description, baseDir ?? AppContext.BaseDirectory, filename, ext, mainWindow);
 			// the path returned won't have an extension, so add one in
 			var ret = portal.RunQuery(saveQuery, mainWindow);
-			path = ret != null ? ret + ext : null;
-			return true;
+			return ret != null ? ret + ext : null;
 		}
-		catch
+		catch (Exception ex)
 		{
-			PortalFileChooser.IsAvailable = false;
+			Console.Error.WriteLine(ex);
+			// we'll only mark portal as "unavailable" if the gtk file chooser is available
+			// just in case something oddly goes wrong with the portal and yet still be usable
+			if (GtkFileChooser.IsAvailable)
+			{
+				Console.WriteLine("Portal file chooser assumed to be unavailable, falling back on GTK file chooser");
+				PortalFileChooser.IsAvailable = false;
+			}
 		}
 
-		path = null;
-		return false;
-	}
-
-	private	static bool RunGtkFileChooser(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow, out string path)
-	{
 		if (GtkFileChooser.IsAvailable)
 		{
-			try
-			{
-				using var dialog = new GtkFileChooser($"Save {description}", GtkFileChooser.FileChooserAction.Save);
-				dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
-				dialog.AddButton("_Save", GtkFileChooser.Response.Accept);
-				dialog.AddFilter(description, [ $"*{ext}" ]);
-				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				dialog.SetCurrentName($"{filename}{ext}");
-				dialog.SetOverwriteConfirmation(true);
-				path = dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
-				return true;
-			}
-			catch
-			{
-				GtkFileChooser.IsAvailable = false;
-			}
+			using var dialog = new GtkFileChooser($"Save {description}", GtkFileChooser.FileChooserAction.Save);
+			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+			dialog.AddButton("_Save", GtkFileChooser.Response.Accept);
+			dialog.AddFilter(description, [ $"*{ext}" ]);
+			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+			dialog.SetCurrentName($"{filename}{ext}");
+			dialog.SetOverwriteConfirmation(true);
+			return dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 
-		path = null;
-		return false;
-	}
-
-	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
-	{
-		if (PortalFileChooser.IsPreferred && RunPortalFileChooser(description, baseDir, filename, ext, mainWindow, out var path))
-		{
-			return path;
-		}
-
-		if (RunGtkFileChooser(description, baseDir, filename, ext, mainWindow, out path))
-		{
-			return path;
-		}
-
-		return RunPortalFileChooser(description, baseDir, filename, ext, mainWindow, out path) ? path : null;
+		return null;
 	}
 #endif
 }

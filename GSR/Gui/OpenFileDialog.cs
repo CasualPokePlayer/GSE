@@ -96,66 +96,42 @@ internal static class OpenFileDialog
 #endif
 
 #if GSR_LINUX
-	private	static bool RunPortalFileChooser(string description, string baseDir, string[] extensions, ImGuiWindow mainWindow, out string path)
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
+		var extensions = fileTypes.ToArray();
+
 		if (PortalFileChooser.IsAvailable)
 		{
 			try
 			{
 				using var portal = new PortalFileChooser();
 				using var openQuery = portal.CreateOpenFileQuery(description, baseDir ?? AppContext.BaseDirectory, extensions, mainWindow);
-				path = portal.RunQuery(openQuery, mainWindow);
-				return true;
+				return portal.RunQuery(openQuery, mainWindow);
 			}
-			catch
+			catch (Exception ex)
 			{
-				PortalFileChooser.IsAvailable = false;
+				Console.Error.WriteLine(ex);
+				// we'll only mark portal as "unavailable" if the gtk file chooser is available
+				// just in case something oddly goes wrong with the portal and yet still be usable
+				if (GtkFileChooser.IsAvailable)
+				{
+					Console.WriteLine("Portal file chooser assumed to be unavailable, falling back on GTK file chooser");
+					PortalFileChooser.IsAvailable = false;
+				}
 			}
 		}
 
-		path = null;
-		return false;
-	}
-
-	private	static bool RunGtkFileChooser(string description, string baseDir, IEnumerable<string> extensions, ImGuiWindow mainWindow, out string path)
-	{
 		if (GtkFileChooser.IsAvailable)
 		{
-			try
-			{
-				using var dialog = new GtkFileChooser($"Open {description}", GtkFileChooser.FileChooserAction.Open);
-				dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
-				dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
-				dialog.AddFilter(description, extensions.Select(ft => $"*{ft}"));
-				dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-				path = dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
-				return true;
-			}
-			catch
-			{
-				GtkFileChooser.IsAvailable = false;
-			}
+			using var dialog = new GtkFileChooser($"Open {description}", GtkFileChooser.FileChooserAction.Open);
+			dialog.AddButton("_Cancel", GtkFileChooser.Response.Cancel);
+			dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
+			dialog.AddFilter(description, extensions.Select(ft => $"*{ft}"));
+			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
+			return dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 
-		path = null;
-		return false;
-	}
-
-	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
-	{
-		var extensions = fileTypes.ToArray();
-
-		if (PortalFileChooser.IsPreferred && RunPortalFileChooser(description, baseDir, extensions, mainWindow, out var path))
-		{
-			return path;
-		}
-
-		if (RunGtkFileChooser(description, baseDir, extensions, mainWindow, out path))
-		{
-			return path;
-		}
-
-		return RunPortalFileChooser(description, baseDir, extensions, mainWindow, out path) ? path : null;
+		return null;
 	}
 #endif
 }

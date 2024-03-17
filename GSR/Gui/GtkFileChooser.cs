@@ -17,10 +17,10 @@ internal sealed partial class GtkFileChooser : IDisposable
 	// most of the file chooser apis used only need at least gtk 2.4
 	private static readonly ImmutableArray<string> _gtkLibraryNames = 
 	[
-		"libgtk-3.so",
 		"libgtk-3.so.0",
-		"libgtk-x11-2.0.so",
+		"libgtk-3.so",
 		"libgtk-x11-2.0.so.0",
+		"libgtk-x11-2.0.so",
 	];
 
 	private static IntPtr GtkImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -75,7 +75,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	public static bool IsAvailable;
+	public static readonly bool IsAvailable;
 
 	public enum FileChooserAction
 	{
