@@ -126,7 +126,7 @@ internal static class SaveFileDialog
 			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
 			dialog.SetCurrentName($"{filename}{ext}");
 			dialog.SetOverwriteConfirmation(true);
-			return dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 
 		return null;

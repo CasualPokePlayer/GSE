@@ -126,7 +126,7 @@ internal static class OpenFileDialog
 			dialog.AddButton("_Open", GtkFileChooser.Response.Accept);
 			dialog.AddFilter(description, extensions.Select(ft => $"*{ft}"));
 			dialog.SetCurrentFolder(baseDir ?? AppContext.BaseDirectory);
-			return dialog.RunDialog(mainWindow) == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
+			return dialog.RunDialog() == GtkFileChooser.Response.Accept ? dialog.GetFilename() : null;
 		}
 
 		return null;
