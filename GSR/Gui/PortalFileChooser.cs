@@ -340,10 +340,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 		while (queryThread.IsAlive)
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
+			Console.WriteLine("Pumping events");
 			SDL_PumpEvents();
 			Thread.Sleep(50);
 		}
 
+		Console.WriteLine("Completed, getting reply");
 		queryThread.Join();
 		var reply = queryThreadParam.Reply;
 		if (reply == IntPtr.Zero)
