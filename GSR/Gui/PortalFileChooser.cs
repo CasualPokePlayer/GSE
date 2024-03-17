@@ -345,6 +345,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			Console.WriteLine("Wakeup");
 		}
 
+		Console.WriteLine("Done, getting result");
 		var reply = queryTask.Result;
 		if (reply == IntPtr.Zero)
 		{
