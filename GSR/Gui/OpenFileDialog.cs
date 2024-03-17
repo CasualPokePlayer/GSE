@@ -104,7 +104,7 @@ internal static class OpenFileDialog
 			{
 				using var portal = new PortalFileChooser();
 				using var openQuery = portal.CreateOpenFileQuery(description, baseDir ?? AppContext.BaseDirectory, extensions, mainWindow);
-				return portal.RunQuery(openQuery, mainWindow);
+				return portal.RunQuery(openQuery);
 			}
 			catch (Exception ex)
 			{

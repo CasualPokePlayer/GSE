@@ -4,7 +4,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 using static SDL2.SDL;
 
@@ -320,33 +319,33 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	public string RunQuery(DBusMessageWrapper query, ImGuiWindow parentWindow)
+	private record QueryThreadParam(IntPtr Conn, IntPtr Message, DBusErrorWrapper DbusError)
+	{
+		public IntPtr Reply;
+	}
+
+	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
 
-		static IntPtr QueryFunc(object param)
+		static void QueryThreadProc(object param)
 		{
-			Console.WriteLine(Thread.CurrentThread.Name);
-			var p = ((IntPtr conn, IntPtr message, DBusErrorWrapper dbusError))param;
-			return dbus_connection_send_with_reply_and_block(p.conn, p.message, DBUS_TIMEOUT_INFINITE, ref p.dbusError.Native);
+			var queryThreadParam = (QueryThreadParam)param;
+			queryThreadParam.Reply = dbus_connection_send_with_reply_and_block(queryThreadParam.Conn, queryThreadParam.Message, DBUS_TIMEOUT_INFINITE, ref queryThreadParam.DbusError.Native);
 		}
 
-		var queryTask = Task.Factory.StartNew(QueryFunc, (_conn, query.Message, dbusError));
-		while (!queryTask.IsCompleted)
+		var queryThread = new Thread(QueryThreadProc) { IsBackground = true };
+		var queryThreadParam = new QueryThreadParam(_conn, query.Message, dbusError);
+		queryThread.Start(queryThreadParam);
+		while (queryThread.IsAlive)
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
-			Console.WriteLine("Do pump events");
 			SDL_PumpEvents();
-			// also need to keep re-presenting the window (yes, this is required it seems...)
-			Console.WriteLine("Represent window");
-			SDL_RenderPresent(parentWindow.SdlRenderer);
-			Console.WriteLine("Sleep");
-			Thread.Sleep(20);
-			Console.WriteLine("Wakeup");
+			Thread.Sleep(50);
 		}
 
-		Console.WriteLine("Done, getting result");
-		var reply = queryTask.Result;
+		queryThread.Join();
+		var reply = queryThreadParam.Reply;
 		if (reply == IntPtr.Zero)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");

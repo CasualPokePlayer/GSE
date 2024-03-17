@@ -102,7 +102,7 @@ internal static class SaveFileDialog
 			using var portal = new PortalFileChooser();
 			using var saveQuery = portal.CreateSaveFileQuery(description, baseDir ?? AppContext.BaseDirectory, filename, ext, mainWindow);
 			// the path returned won't have an extension, so add one in
-			var ret = portal.RunQuery(saveQuery, mainWindow);
+			var ret = portal.RunQuery(saveQuery);
 			return ret != null ? ret + ext : null;
 		}
 		catch (Exception ex)

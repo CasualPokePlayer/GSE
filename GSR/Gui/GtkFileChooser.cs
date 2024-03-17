@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using static SDL2.SDL;
 
@@ -144,25 +143,31 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	public Response RunDialog(ImGuiWindow mainWindow)
+	private record DialogThreadParam(IntPtr Chooser)
 	{
-		static Response DialogFunc(object param)
+		public Response Response;
+	}
+
+	public Response RunDialog()
+	{
+		static void DialogFunc(object param)
 		{
-			var chooser = (IntPtr)param;
-			return gtk_dialog_run(chooser);
+			var dialogThreadParam = (DialogThreadParam)param;
+			dialogThreadParam.Response = gtk_dialog_run(dialogThreadParam.Chooser);
 		}
 
-		var dialogTask = Task.Factory.StartNew(DialogFunc, _chooser);
-		while (!dialogTask.IsCompleted)
+		var dialogThread = new Thread(DialogFunc);
+		var dialogThreadParam = new DialogThreadParam(_chooser);
+		dialogThread.Start(dialogThreadParam);
+		while (dialogThread.IsAlive)
 		{
 			// keep events pumping while we wait (don't want annoying "not responding" messages)
 			SDL_PumpEvents();
-			// also need to keep re-presenting the window (yes, this is required it seems...)
-			SDL_RenderPresent(mainWindow.SdlRenderer);
-			Thread.Sleep(20);
+			Thread.Sleep(50);
 		}
 
-		return dialogTask.Result;
+		dialogThread.Join();
+		return dialogThreadParam.Response;
 	}
 
 	public string GetFilename()
