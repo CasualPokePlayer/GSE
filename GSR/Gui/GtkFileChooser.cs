@@ -191,8 +191,6 @@ internal sealed partial class GtkFileChooser : IDisposable
 		{
 			gtk_main_iteration();
 		}
-
-		gtk_main_iteration();
 	}
 
 	[LibraryImport(LIBGTK)]
