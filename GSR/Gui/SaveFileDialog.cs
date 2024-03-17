@@ -1,5 +1,3 @@
-#undef GSR_WINDOWS
-#define GSR_LINUX
 using System;
 
 #if GSR_WINDOWS
