@@ -1,3 +1,7 @@
+#if GSR_LINUX
+using System;
+#endif
+
 using static SDL2.SDL;
 
 namespace GSR.Input.Keyboards;
