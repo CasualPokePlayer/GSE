@@ -3,8 +3,14 @@ GetSaveFileNameW
 MAX_PATH
 
 CoCreateInstance
+FileOpenDialog
 IFileOpenDialog
 SHCreateItemFromParsingName
+SHBrowseForFolderW
+SHGetPathFromIDListW
+BIF_NEWDIALOGSTYLE
+BIF_EDITBOX
+BIF_RETURNONLYFSDIRS
 
 ChangeWindowMessageFilter
 WM_DROPFILES

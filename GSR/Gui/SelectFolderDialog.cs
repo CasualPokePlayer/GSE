@@ -18,7 +18,7 @@ namespace GSR.Gui;
 /// <summary>
 /// IMPORTANT! This can only be used on the GUI thread (on Windows this should be the only STA thread)
 /// </summary>
-internal static class OpenFolderDialog
+internal static class SelectFolderDialog
 {
 #if GSR_WINDOWS
 	public static unsafe string ShowDialog(string description, string baseDir, ImGuiWindow mainWindow)
@@ -28,20 +28,45 @@ internal static class OpenFolderDialog
 			return null;
 		}
 
-		// the newer IFileDialog must be used, as the older APIs will not give newer Vista style dialogs
+		// the newer IFileDialog should be used, as the older APIs will not give newer Vista style dialogs
 		if (PInvoke.CoCreateInstance<IFileOpenDialog>(
-			    rclsid: IFileOpenDialog.IID_Guid,
+			    rclsid: typeof(FileOpenDialog).GUID,
 			    pUnkOuter: null,
 			    dwClsContext: CLSCTX.CLSCTX_ALL,
 			    ppv: out var fileDialog).Failed)
 		{
-			return null;
+			// this call can potentially fail on Windows Server Core, so we need to fall back on the old API
+			fixed (char* title = $"Select {description} Folder")
+			{
+				var bi = default(BROWSEINFOW);
+				bi.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
+				bi.lpszTitle = title;
+				bi.ulFlags = PInvoke.BIF_NEWDIALOGSTYLE | PInvoke.BIF_EDITBOX | PInvoke.BIF_RETURNONLYFSDIRS;
+				var iil = PInvoke.SHBrowseForFolder(&bi);
+				if (iil == null)
+				{
+					return null;
+				}
+
+				try
+				{
+					var path = new char[PInvoke.MAX_PATH + 1];
+					fixed (char* pathPtr = path)
+					{
+						return PInvoke.SHGetPathFromIDList(iil, pathPtr) ? new(pathPtr) : null;
+					}
+				}
+				finally
+				{
+					Marshal.FreeCoTaskMem((IntPtr)iil);
+				}
+			}
 		}
 
 		try
 		{
 			fileDialog->SetTitle($"Select {description} Folder");
-			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR | FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS | FILEOPENDIALOGOPTIONS.FOS_PATHMUSTEXIST);
+			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR | FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS | FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM | FILEOPENDIALOGOPTIONS.FOS_PATHMUSTEXIST | FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
 
 			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
 			{
