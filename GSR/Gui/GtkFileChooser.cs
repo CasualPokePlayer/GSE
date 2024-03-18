@@ -80,6 +80,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 	{
 		Open = 0,
 		Save = 1,
+		SelectFolder = 2,
 	}
 
 	public enum Response

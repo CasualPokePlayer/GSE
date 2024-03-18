@@ -2,6 +2,10 @@ GetOpenFileNameW
 GetSaveFileNameW
 MAX_PATH
 
+CoCreateInstance
+IFileOpenDialog
+SHCreateItemFromParsingName
+
 ChangeWindowMessageFilter
 WM_DROPFILES
 WM_COPYDATA

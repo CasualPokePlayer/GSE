@@ -20,12 +20,23 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// check if we can get a connection
 			using var dbusError = new DBusErrorWrapper();
 			var conn = dbus_bus_get(DBusBusType.DBUS_BUS_SESSION, ref dbusError.Native);
-			dbus_connection_unref(conn);
-			IsAvailable = conn != IntPtr.Zero;
+			if (conn != IntPtr.Zero)
+			{
+				try
+				{
+					IsAvailable = true;
+					Version = GetVersion(conn);
+				}
+				finally
+				{
+					dbus_connection_unref(conn);
+				}
+			}
 		}
 		catch
 		{
-			// ignored
+			IsAvailable = false;
+			Version = 0;
 		}
 
 		if (IsAvailable)
@@ -46,8 +57,55 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
+	private static uint GetVersion(IntPtr conn)
+	{
+		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
+			"/org/freedesktop/portal/desktop", "org.freedesktop.DBus.Properties", "Get");
+		if (query == IntPtr.Zero)
+		{
+			throw new("Failed to create Get query");
+		}
+
+		using (new DBusMessageWrapper(query))
+		{
+			dbus_message_iter_init_append(query, out var iter);
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, "org.freedesktop.portal.FileChooser"));
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, "version"));
+
+			using var dbusError = new DBusErrorWrapper();
+			var reply = dbus_connection_send_with_reply_and_block(conn, query, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
+			if (reply == IntPtr.Zero)
+			{
+				throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
+			}
+
+			using (new DBusMessageWrapper(reply))
+			{
+				if (!dbus_message_iter_init(reply, out iter))
+				{
+					throw new("D-Bus reply was missing one or more arguments");
+				}
+
+				if (dbus_message_iter_get_arg_type(ref iter) != DBusType.DBUS_TYPE_VARIANT)
+				{
+					throw new("D-Bus reply argument was not DBUS_TYPE_VARIANT");
+				}
+
+				dbus_message_iter_recurse(ref iter, out var variantIter);
+				if (dbus_message_iter_get_arg_type(ref variantIter) != DBusType.DBUS_TYPE_UINT32)
+				{
+					throw new("D-Bus reply argument was not DBUS_TYPE_UINT32");
+				}
+
+				dbus_message_iter_get_basic(ref variantIter, out uint version);
+				return version;
+			}
+		}
+	}
+
 	// ReSharper disable once FieldCanBeMadeReadOnly.Global
 	public static bool IsAvailable;
+	public static readonly uint Version;
 
 	private readonly IntPtr _conn;
 	private readonly string _busUniqueName;
@@ -294,8 +352,6 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// set options
 			EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter));
 			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
-			SetBoolOption(ref optionsIter, "multiple", false);
-			SetBoolOption(ref optionsIter, "directory", false);
 			SetStringOption(ref optionsIter, "accept_label", "_Save");
 			SetStringOption(ref optionsIter, "cancel_label", "_Cancel");
 			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
@@ -308,6 +364,52 @@ internal sealed partial class PortalFileChooser : IDisposable
 			{
 				SetArrayOption(ref optionsIter, "current_file", targetFile);
 			}
+			EnsureSuccess(dbus_message_iter_close_container(ref iter, ref optionsIter));
+
+			return new(query);
+		}
+		catch
+		{
+			dbus_message_unref(query);
+			throw;
+		}
+	}
+
+	public DBusMessageWrapper CreateSelectFolderQuery(string description, string initialPath, ImGuiWindow parentWindow)
+	{
+		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
+			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "OpenFile");
+		if (query == IntPtr.Zero)
+		{
+			throw new("Failed to create OpenFile D-Bus query");
+		}
+
+		try
+		{
+			dbus_message_iter_init_append(query, out var iter);
+
+			// set "parent window"
+			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
+			{
+				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
+				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
+				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
+				_ => string.Empty,
+			};
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
+
+			// set title
+			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, $"Select {description} Folder"));
+
+			// set options
+			EnsureSuccess(dbus_message_iter_open_container(ref iter, DBusType.DBUS_TYPE_ARRAY, "{sv}", out var optionsIter));
+			SetStringOption(ref optionsIter, "handle_token", _uniqueToken);
+			SetBoolOption(ref optionsIter, "multiple", false);
+			SetBoolOption(ref optionsIter, "directory", true);
+			SetStringOption(ref optionsIter, "accept_label", "_Select");
+			SetStringOption(ref optionsIter, "cancel_label", "_Cancel");
+			SetBoolOption(ref optionsIter, "modal", parentWindowStr != string.Empty);
+			SetArrayOption(ref optionsIter, "current_folder", initialPath.TrimEnd('/'));
 			EnsureSuccess(dbus_message_iter_close_container(ref iter, ref optionsIter));
 
 			return new(query);

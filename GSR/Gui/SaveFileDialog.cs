@@ -18,7 +18,7 @@ namespace GSR.Gui;
 internal static class SaveFileDialog
 {
 #if GSR_WINDOWS
-	// TODO: Check if using the newer IFileOpenDialog has any worth
+	// TODO: Check if using the newer IFileSaveDialog has any worth
 	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
 		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
