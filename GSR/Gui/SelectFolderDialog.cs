@@ -1,12 +1,15 @@
 using System;
 #if GSR_WINDOWS
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #endif
 
 #if GSR_WINDOWS
 using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.System.Com;
 using Windows.Win32.UI.Shell;
+using Windows.Win32.UI.Shell.Common;
 #endif
 
 #if GSR_OSX
@@ -38,11 +41,35 @@ internal static class SelectFolderDialog
 			// this call can potentially fail on Windows Server Core, so we need to fall back on the old API
 			fixed (char* title = $"Select {description} Folder")
 			{
+				[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+				static int BrowseCallback(HWND hwnd, uint uMsg, LPARAM lParam, LPARAM lpData)
+				{
+					if (uMsg == PInvoke.BFFM_INITIALIZED)
+					{
+						// the compiler isn't smart enough to realize the above 6.0.6000 check would make this redundant
+						if (OperatingSystem.IsWindowsVersionAtLeast(5, 0))
+						{
+							// lpData is bi.lParam (which holds our initial path)
+							PInvoke.SendMessage(hwnd, PInvoke.BFFM_SETSELECTIONW, 1, lpData);
+						}
+					}
+
+					return 0;
+				}
+
 				var bi = default(BROWSEINFOW);
 				bi.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
 				bi.lpszTitle = title;
 				bi.ulFlags = PInvoke.BIF_NEWDIALOGSTYLE | PInvoke.BIF_EDITBOX | PInvoke.BIF_RETURNONLYFSDIRS;
-				var iil = PInvoke.SHBrowseForFolder(&bi);
+				bi.lpfn = &BrowseCallback;
+
+				ITEMIDLIST* iil;
+				fixed (char* basePathPtr = baseDir ?? AppContext.BaseDirectory)
+				{
+					bi.lParam = (IntPtr)basePathPtr;
+					iil = PInvoke.SHBrowseForFolder(&bi);
+				}
+
 				if (iil == null)
 				{
 					return null;
