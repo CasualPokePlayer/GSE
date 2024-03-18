@@ -26,11 +26,6 @@ internal static class SelectFolderDialog
 #if GSR_WINDOWS
 	public static unsafe string ShowDialog(string description, string baseDir, ImGuiWindow mainWindow)
 	{
-		if (!OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
-		{
-			return null;
-		}
-
 		// the newer IFileDialog should be used, as the older APIs will not give newer Vista style dialogs
 		if (PInvoke.CoCreateInstance<IFileOpenDialog>(
 			    rclsid: typeof(FileOpenDialog).GUID,
@@ -46,12 +41,8 @@ internal static class SelectFolderDialog
 				{
 					if (uMsg == PInvoke.BFFM_INITIALIZED)
 					{
-						// the compiler isn't smart enough to realize the above 6.0.6000 check would make this redundant
-						if (OperatingSystem.IsWindowsVersionAtLeast(5, 0))
-						{
-							// lpData is bi.lParam (which holds our initial path)
-							PInvoke.SendMessage(hwnd, PInvoke.BFFM_SETSELECTIONW, 1, lpData);
-						}
+						// lpData is bi.lParam (which holds our initial path)
+						PInvoke.SendMessage(hwnd, PInvoke.BFFM_SETSELECTIONW, 1, lpData);
 					}
 
 					return 0;

@@ -48,24 +48,16 @@ public sealed class InputManager : IDisposable
 
 			_inputThreadInitFinished.Set();
 
-#if GSR_WINDOWS
-			var isWindows2000 = OperatingSystem.IsWindowsVersionAtLeast(5);
-#endif
 			while (!_disposing)
 			{
 #if GSR_WINDOWS
-				// the check for Windows 2000 is superfluous, it just gets rid of a warning
-				if (isWindows2000)
+				// on windows, we must message pump this thread for underlying input apis to work
+				while (PInvoke.PeekMessage(out var msg, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
 				{
-					// on windows, we must message pump this thread for underlying input apis to work
-					while (PInvoke.PeekMessage(out var msg, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
-					{
-						PInvoke.TranslateMessage(in msg);
-						PInvoke.DispatchMessage(in msg);
-					}
+					PInvoke.TranslateMessage(in msg);
+					PInvoke.DispatchMessage(in msg);
 				}
 #endif
-
 				var keyEvents = _keyInput.GetEvents();
 				var joystickInputs = _sdlJoysticks.GetInputs();
 

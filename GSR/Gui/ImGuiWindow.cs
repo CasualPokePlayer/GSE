@@ -15,6 +15,7 @@ using static SDL2.SDL;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 #endif
 
@@ -442,11 +443,14 @@ internal sealed class ImGuiWindow : IDisposable
 
 #if GSR_WINDOWS
 			// kind of a hack to get rid of the window icon
-			if (OperatingSystem.IsWindowsVersionAtLeast(5))
+			var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+			_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+			_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
+				SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
+			unsafe
 			{
-				var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-				curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-				PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+				_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
 			}
 
 			// set dark mode if the windows version is new enough
@@ -621,19 +625,22 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 #if GSR_WINDOWS
-		if (OperatingSystem.IsWindowsVersionAtLeast(5))
+		var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+		if (_isFullscreen)
 		{
-			var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-			if (_isFullscreen)
-			{
-				curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-			}
-			else
-			{
-				curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-			}
+			curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+		}
+		else
+		{
+			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+		}
 
-			PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+		_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+		_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
+			SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
+		unsafe
+		{
+			_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
 		}
 #endif
 	}

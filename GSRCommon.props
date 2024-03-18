@@ -47,6 +47,9 @@
 		<GSR_LIB_EXT Condition="'$(GSR_PUBLISH)' != 'true'">.dll</GSR_LIB_EXT>
 		<GSR_RID Condition="'$(GSR_X64)' == 'true'">win-x64</GSR_RID>
 		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">win-arm64</GSR_RID>
+		<!-- We support as far back as Windows 7 -->
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<SupportedOSPlatformVersion>6.1.7600</SupportedOSPlatformVersion>
 		<DefineConstants>$(DefineConstants);GSR_WINDOWS</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSR_OSX)' == 'true'">

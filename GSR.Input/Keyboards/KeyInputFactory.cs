@@ -1,5 +1,3 @@
-using System;
-
 using static SDL2.SDL;
 
 namespace GSR.Input.Keyboards;
@@ -9,11 +7,6 @@ internal static class KeyInputFactory
 	public static IKeyInput CreateKeyInput(in SDL_SysWMinfo mainWindowWmInfo)
 	{
 #if GSR_WINDOWS
-		if (!OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
-		{
-			throw new NotSupportedException("Windows key input requires at least Windows Vista");
-		}
-
 		return new RawKeyInput();
 #endif
 

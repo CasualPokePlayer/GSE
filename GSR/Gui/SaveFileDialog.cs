@@ -1,4 +1,6 @@
+#if GSR_OSX || GSR_LINUX
 using System;
+#endif
 
 #if GSR_WINDOWS
 using Windows.Win32;
@@ -21,11 +23,6 @@ internal static class SaveFileDialog
 	// TODO: Check if using the newer IFileSaveDialog has any worth
 	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
-		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
-		{
-			return null;
-		}
-
 		try
 		{
 			var filter = $"{description}\0*{ext}\0\0";

@@ -66,13 +66,10 @@ internal sealed class GSR : IDisposable
 #if GSR_WINDOWS
 		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
 		// do this to bypass the issue
-		if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
-		{
-			const uint WM_COPYGLOBALDATA = 0x0049; // apparently this isn't documented anymore?
-			PInvoke.ChangeWindowMessageFilter(PInvoke.WM_DROPFILES, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
-			PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
-			PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
-		}
+		const uint WM_COPYGLOBALDATA = 0x0049; // apparently this isn't documented anymore?
+		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_DROPFILES, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
+		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
+		PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 #endif
 	}
 

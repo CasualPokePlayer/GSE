@@ -25,11 +25,6 @@ internal static class OpenFileDialog
 	// TODO: Check if using the newer IFileOpenDialog has any worth
 	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
-		if (!OperatingSystem.IsWindowsVersionAtLeast(5))
-		{
-			return null;
-		}
-
 		var filter = $"{description}\0*{string.Join(";*", fileTypes)}\0\0";
 		var fileBuffer = new char[PInvoke.MAX_PATH + 1];
 		var initDir = baseDir ?? AppContext.BaseDirectory;

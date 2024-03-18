@@ -109,14 +109,10 @@ public sealed class EmuManager : IDisposable
 		try
 		{
 #if GSR_WINDOWS
-			if (OperatingSystem.IsWindowsVersionAtLeast(5))
-			{
-				// raise timer resolution to 1 ms
-				// TODO: it's possible to raise this to 0.5ms using the undocumented NtSetTimerResolution function, consider using that?
-				_ = PInvoke.timeBeginPeriod(1);
-			}
+			// raise timer resolution to 1 ms
+			// TODO: it's possible to raise this to 0.5ms using the undocumented NtSetTimerResolution function, consider using that?
+			_ = PInvoke.timeBeginPeriod(1);
 #endif
-
 			while (!_disposing)
 			{
 				lock (_emuThreadLock)
@@ -165,11 +161,8 @@ public sealed class EmuManager : IDisposable
 #if GSR_WINDOWS
 		finally
 		{
-			if (OperatingSystem.IsWindowsVersionAtLeast(5))
-			{
-				// restore old timer resolution
-				_ = PInvoke.timeEndPeriod(1);
-			}
+			// restore old timer resolution
+			_ = PInvoke.timeEndPeriod(1);
 		}
 #endif
 	}

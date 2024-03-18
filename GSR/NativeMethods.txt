@@ -24,6 +24,10 @@ GetWindowLongW
 SetWindowLongW
 WINDOW_EX_STYLE
 
+SetWindowPos
+RedrawWindow
+HWND_TOP
+
 SetPropW
 RemovePropW
 
