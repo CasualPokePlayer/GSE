@@ -1,5 +1,5 @@
-// Copyright (c) 2024 CasualPokePlayer
-// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2024 CasualPokePlayer & Lior Halphon
+// SPDX-License-Identifier: MPL-2.0 or MIT
 
 using System;
 
@@ -7,6 +7,7 @@ namespace GSR.Emu.Cores;
 
 /// <summary>
 /// Color correction LUT provider, using formulas from SameBoy
+/// https://github.com/LIJI32/SameBoy/blob/4cf3b3c/Core/display.c#L249-L390
 /// </summary>
 internal static class GBColors
 {
