@@ -26,6 +26,8 @@
  */
 #endregion
 
+// Many modifications have been done on this file, to better support the GSR's use cases
+
 #region Using Statements
 using System;
 using System.Runtime.CompilerServices;

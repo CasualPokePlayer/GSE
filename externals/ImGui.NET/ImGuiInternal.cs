@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer & Omar Cornut
+// SPDX-License-Identifier: MPL-2.0 or MIT
+
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 

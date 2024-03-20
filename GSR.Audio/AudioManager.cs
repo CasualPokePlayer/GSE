@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -8,9 +11,9 @@ using static SDL2.SDL;
 
 namespace GSR.Audio;
 
-// TODO: previously I tried a threading approach which offloaded resampling to a separate thread...
-// that approach was very complicated and audio did not work at all for reasons I can't comprehend (edit: blipbuf managed impl was bugged, fixed now, maybe can reintroduce?)
-// thus, resampling is done on the emu thread, and we let SDL handle obtaining samples in its audio callback (called on a separate thread anyways)
+// NOTE: Previously I tried a threading approach which offloaded resampling to a separate thread...
+// That approach was very complicated and audio did not work at all for reasons I can't comprehend (edit: blipbuf managed impl was bugged, fixed now, maybe can reintroduce?)
+// Thus, resampling is done on the emu thread, and we let SDL handle obtaining samples in its audio callback (called on a separate thread anyways)
 public sealed class AudioManager : IDisposable
 {
 	public const string DEFAULT_AUDIO_DEVICE = "[Default Audio Device]";

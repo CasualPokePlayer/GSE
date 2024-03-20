@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer & Bernard Teo
+// SPDX-License-Identifier: MPL-2.0 or Zlib
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,8 +12,9 @@ using static SDL2.SDL;
 
 namespace GSR.Gui;
 
-// based on https://github.com/btzy/nativefiledialog-extended/blob/6dc1272/src/nfd_portal.cpp
-
+/// <summary>
+/// Based on https://github.com/btzy/nativefiledialog-extended/blob/6dc1272/src/nfd_portal.cpp
+/// </summary>
 internal sealed partial class PortalFileChooser : IDisposable
 {
 	static PortalFileChooser()

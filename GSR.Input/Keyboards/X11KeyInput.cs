@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -7,7 +10,7 @@ using static GSR.Input.Keyboards.X11Imports;
 namespace GSR.Input.Keyboards;
 
 /// <summary>
-/// Strategies taken from OpenTK and GLFW
+/// Inspired (although not derived) from GLFW's X11 usage
 /// </summary>
 internal sealed class X11KeyInput : IKeyInput
 {

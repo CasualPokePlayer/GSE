@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer & Omar Cornut
+// SPDX-License-Identifier: MPL-2.0 or MIT
+
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -24,6 +27,7 @@ namespace GSR.Gui;
 /// <summary>
 /// C# port of https://github.com/ocornut/imgui/blob/001f102/backends/imgui_impl_sdl2.cpp
 /// and https://github.com/ocornut/imgui/blob/ab522dd/backends/imgui_impl_sdlrenderer2.cpp
+/// with various improvements / original additions
 /// </summary>
 internal sealed class ImGuiWindow : IDisposable
 {

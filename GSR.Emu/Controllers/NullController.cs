@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
 namespace GSR.Emu.Controllers;
 
 internal sealed class NullController : IEmuController

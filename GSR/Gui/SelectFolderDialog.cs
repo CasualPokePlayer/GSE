@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
 using System;
 #if GSR_WINDOWS
 using System.Runtime.CompilerServices;

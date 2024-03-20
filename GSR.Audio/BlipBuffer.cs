@@ -1,10 +1,15 @@
+// Copyright (c) 2024 CasualPokePlayer & Shay Green & EkeEke
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
 using System;
 using System.Runtime.InteropServices;
 
 namespace GSR.Audio;
 
-// C# implementation of blargg's blip_buf + gpgx's improvements (LGPLv2.1+)
-// https://github.com/ekeeke/Genesis-Plus-GX/blob/41285e1/core/sound/blip_buf.c
+/// <summary>
+/// C# implementation of blargg's blip_buf + gpgx's improvements
+/// https://github.com/ekeeke/Genesis-Plus-GX/blob/41285e1/core/sound/blip_buf.c
+/// </summary>
 internal sealed unsafe class BlipBuffer : IDisposable
 {
 	private const int BlipMaxRatio = 1 << 20;

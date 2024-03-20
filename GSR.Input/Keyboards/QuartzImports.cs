@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
 using System.Runtime.InteropServices;
 
 namespace GSR.Input.Keyboards;

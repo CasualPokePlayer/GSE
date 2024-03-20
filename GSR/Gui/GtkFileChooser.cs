@@ -1,3 +1,6 @@
+// Copyright (c) 2024 CasualPokePlayer & Lior Halphon
+// SPDX-License-Identifier: MPL-2.0 or MIT
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +12,9 @@ using static SDL2.SDL;
 
 namespace GSR.Gui;
 
+/// <summary>
+/// Based on https://github.com/LIJI32/SameBoy/blob/cbb7e01/OpenDialog/gtk.c
+/// </summary>
 internal sealed partial class GtkFileChooser : IDisposable
 {
 	private const string LIBGTK = "libgtk";
