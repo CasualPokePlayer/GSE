@@ -81,7 +81,8 @@ CMakeNinjaBuild export_helper
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
 ./dotnet-install.sh --channel 8.0
+export PATH=$PATH:$HOME/.dotnet
 
 # Build GSR
 cd ..
-$HOME/.dotnet/dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
