@@ -34,7 +34,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 		_currentRomHash = $"{Crc32.HashToUInt32(romData):X8}";
 		var sha256 = Convert.ToHexString(SHA256.HashData(romData));
 		_isPsrRom = PSRData.GoodRoms.Contains(sha256);
-		_osdMessages.Enqueue($"{RomInfoPrefix()} | Loaded {romName}");
+		_osdMessages.Enqueue($"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_currentRomHash} | Loaded {romName}");
 	}
 
 	public void OnRomUnloaded()
@@ -46,7 +46,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 
 	public void OnHardReset()
 	{
-		_osdMessages.Enqueue($"{RomInfoPrefix()} | Reset");
+		_osdMessages.Enqueue($"v{GitVersionInformation.FullSemVer} | {RomInfoPrefix()} | Reset");
 	}
 
 	public void QueueMessage(string message)
@@ -93,7 +93,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 					// normal status if no OSD message was displayed
 					if (emuManager.RomIsLoaded)
 					{
-						ImGui.TextUnformatted(RomInfoPrefix());
+						ImGui.TextUnformatted($"v{GitVersionInformation.FullSemVer} | {RomInfoPrefix()}");
 						var cycleCountStr = $"{emuManager.GetCycleCount()}";
 						ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(cycleCountStr).X - ImGui.GetTextLineHeight());
 						ImGui.TextUnformatted(cycleCountStr);
