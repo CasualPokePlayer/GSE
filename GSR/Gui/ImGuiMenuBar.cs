@@ -193,6 +193,16 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				ImGui.EndMenu();
 			}
 
+			if (ImGui.BeginMenu("Help"))
+			{
+				if (ImGui.MenuItem("About GSR"))
+				{
+					imGuiModals.OpenAboutModal = true;
+				}
+
+				ImGui.EndMenu();
+			}
+
 			ImGui.EndMenuBar();
 		}
 	}

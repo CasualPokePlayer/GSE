@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 using ImGuiNET;
@@ -23,6 +24,7 @@ internal sealed class ImGuiModals
 	private const string VIDEO_SETTINGS = "Video Settings";
 	private const string AUDIO_SETTINGS = "Audio Settings";
 	private const string MISC_SETTINGS = "Misc Settings";
+	private const string ABOUT = "About";
 
 	private readonly Config _config;
 	private readonly EmuManager _emuManager;
@@ -81,18 +83,20 @@ internal sealed class ImGuiModals
 
 	private static readonly string[] _gbPlatformOptions = [ "Game Boy", "Game Boy Color", "Game Boy Advance", "Game Boy Player", "Super Game Boy 2" ];
 
-	public bool ModalIsOpened => _biosPathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _miscModalOpened;
+	public bool ModalIsOpened => _biosPathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _miscModalOpened || _aboutModalOpened;
 	private bool _biosPathModalOpened;
 	private bool _inputModalOpened;
 	private bool _videoModalOpened;
 	private bool _audioModalOpened;
 	private bool _miscModalOpened;
+	private bool _aboutModalOpened;
 
 	public bool OpenBiosPathModal;
 	public bool OpenInputModal;
 	public bool OpenVideoModal;
 	public bool OpenAudioModal;
 	public bool OpenMiscModal;
+	public bool OpenAboutModal;
 
 	private bool _didPause;
 
@@ -324,6 +328,7 @@ internal sealed class ImGuiModals
 		CheckModalNeedsOpen(VIDEO_SETTINGS, ref OpenVideoModal, ref _videoModalOpened);
 		CheckModalNeedsOpen(AUDIO_SETTINGS, ref OpenAudioModal, ref _audioModalOpened);
 		CheckModalNeedsOpen(MISC_SETTINGS, ref OpenMiscModal, ref _miscModalOpened);
+		CheckModalNeedsOpen(ABOUT, ref OpenAboutModal, ref _aboutModalOpened);
 
 		var center = ImGui.GetMainViewport().GetCenter();
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
@@ -627,10 +632,61 @@ internal sealed class ImGuiModals
 			ImGui.EndPopup();
 		}
 
+		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
+
+		var aboutOpen = true;
+		if (ImGui.BeginPopupModal(ABOUT, ref aboutOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+		{
+			ImGui.TextUnformatted($"GSR v{GitVersionInformation.FullSemVer}");
+			ImGui.Separator();
+
+			ImGui.TextWrapped("GSR comprises of original work and many third-party libraries, each with their own respective license. In aggregate, GSR is licensable under the terms of the GPL-2.0 license.");
+			ImGui.Separator();
+
+			foreach (var copyrightInfo in Licensing.CopyrightInfos)
+			{
+				ImGui.AlignTextToFramePadding();
+				ImGui.TextUnformatted(copyrightInfo.Product);
+				ImGui.SameLine();
+				if (ImGui.Button(copyrightInfo.ProductUrl))
+				{
+					try
+					{
+						Process.Start(new ProcessStartInfo(copyrightInfo.ProductUrl) { UseShellExecute = true });
+					}
+					catch
+					{
+						// ignored
+					}
+				}
+
+				ImGui.TextUnformatted($"Copyright (c) {copyrightInfo.CopyrightHolder}");
+				ImGui.TextUnformatted($"Under {copyrightInfo.LicenseId} License");
+
+				ImGui.Separator();
+			}
+
+			if (ImGui.BeginTabBar("License Tabs"))
+			{
+				// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+				foreach (var license in Licensing.Licenses)
+				{
+					if (ImGui.BeginTabItem(license.Key))
+					{
+						ImGui.TextUnformatted(license.Value);
+						ImGui.EndTabItem();
+					}
+				}
+			}
+
+			ImGui.EndPopup();
+		}
+
 		CheckModalWasClosed(biosPathOpen, ref _biosPathModalOpened);
 		CheckModalWasClosed(inputOpen, ref _inputModalOpened);
 		CheckModalWasClosed(videoOpen, ref _videoModalOpened);
 		CheckModalWasClosed(audioOpen, ref _audioModalOpened);
 		CheckModalWasClosed(miscOpen, ref _miscModalOpened);
+		CheckModalWasClosed(aboutOpen, ref _aboutModalOpened);
 	}
 }
