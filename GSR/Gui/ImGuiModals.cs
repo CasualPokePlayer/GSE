@@ -637,7 +637,7 @@ internal sealed class ImGuiModals
 		var aboutOpen = true;
 		if (ImGui.BeginPopupModal(ABOUT, ref aboutOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
 		{
-			ImGui.TextUnformatted($"GSR v{GitVersionInformation.FullSemVer}");
+			ImGui.TextUnformatted($"GSR v{GSRVersion.FullSemVer}");
 			ImGui.Separator();
 
 			ImGui.TextWrapped("GSR comprises of original work and many third-party libraries, each with their own respective license. In aggregate, GSR is licensable under the terms of the GPL-2.0 license.");

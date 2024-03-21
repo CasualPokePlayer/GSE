@@ -36,7 +36,7 @@ internal static class Licensing
 		new("blip_buf", "https://github.com/CasualPokePlayer/GSR/blob/2a0f18a/GSR.Audio/BlipBuffer.cs", "CasualPokePlayer & Shay Green & EkeEke", LGPL21LATER),
 		new("SharpCompress", "https://github.com/adamhathcock/sharpcompress", "Adam Hathcock", MIT),
 		new("CsWin32", "https://github.com/microsoft/CsWin32", "Microsoft Corporation", MIT),
-		new("GitVersion", "https://github.com/GitTools/GitVersion", "NServiceBus Ltd, GitTools and contributors", MIT),
+		new("GitInfo", "https://github.com/devlooped/GitInfo", "Daniel Cazzulino and Contributors", MIT),
 		new(".NET Runtime", "https://github.com/dotnet/runtime", ".NET Foundation and Contributors", MIT),
 	];
 

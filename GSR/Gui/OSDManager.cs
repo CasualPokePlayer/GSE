@@ -46,7 +46,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 
 	public void OnHardReset()
 	{
-		_osdMessages.Enqueue($"v{GitVersionInformation.FullSemVer} | {RomInfoPrefix()} | Reset");
+		_osdMessages.Enqueue($"v{GSRVersion.FullSemVer} | {RomInfoPrefix()} | Reset");
 	}
 
 	public void QueueMessage(string message)
@@ -93,7 +93,7 @@ internal sealed class OSDManager(EmuManager emuManager)
 					// normal status if no OSD message was displayed
 					if (emuManager.RomIsLoaded)
 					{
-						ImGui.TextUnformatted($"v{GitVersionInformation.FullSemVer} | {RomInfoPrefix()}");
+						ImGui.TextUnformatted($"v{GSRVersion.FullSemVer} | {RomInfoPrefix()}");
 						var cycleCountStr = $"{emuManager.GetCycleCount()}";
 						ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(cycleCountStr).X - ImGui.GetTextLineHeight());
 						ImGui.TextUnformatted(cycleCountStr);
