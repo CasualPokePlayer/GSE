@@ -63,11 +63,17 @@ internal sealed class HotkeyBindings
 
 	public void DeserializeInputBindings(InputManager inputManager)
 	{
+		// Make sure to update this every time a hotkey is added!
 		List<InputBinding>[] bindings =
 		[
 			PauseButtonBindings,
 			FullScreenButtonBindings,
 			FastForwardButtonBindings,
+			FrameStepButtonBindings,
+			VolumeUpButtonBindings,
+			VolumeDownButtonBindings,
+			VolumeUp10ButtonBindings,
+			VolumeDown10ButtonBindings,
 			SaveStateButtonBindings,
 			LoadStateButtonBindings,
 			PrevStateSetButtonBindings,
