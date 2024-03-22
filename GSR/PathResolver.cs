@@ -48,7 +48,7 @@ internal static class PathResolver
 		};
 
 		// if we're pref path based, we'll typically want to create a folder to store our files
-		if (folderName != null && pathType == PathType.PrefPath)
+		if (pathType == PathType.PrefPath)
 		{
 			ret = Path.Combine(ret, folderName);
 			Directory.CreateDirectory(ret);

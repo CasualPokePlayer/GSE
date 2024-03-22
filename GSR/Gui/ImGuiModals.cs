@@ -36,7 +36,7 @@ internal sealed class ImGuiModals
 	private static readonly string[] _pathLocationOptions =
 	[
 		"Same as ROM file",
-		$"{PathResolver.GetPath(PathResolver.PathType.PrefPath, null, null, null)}",
+		"Pref Path", // may be overwritten
 		"Custom Path" // may be overwritten
 	];
 
@@ -379,6 +379,9 @@ internal sealed class ImGuiModals
 				{
 					_pathLocationOptions[(int)PathResolver.PathType.Custom] = "Custom Path";
 				}
+
+				_pathLocationOptions[(int)PathResolver.PathType.PrefPath] =
+					PathResolver.GetPath(PathResolver.PathType.PrefPath, label, null, null);
 
 				var pathTypeIndex = (int)pathType;
 				if (ImGui.Combo($"{label} Path", ref pathTypeIndex, _pathLocationOptions, _pathLocationOptions.Length))
