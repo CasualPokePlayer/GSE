@@ -33,7 +33,7 @@ internal sealed class MGBACore : IEmuCore
 			mgba_setcolorlut(_opaque,
 				loadArgs.ApplyColorCorrection ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
 
-			var savPath = Path.Combine(loadArgs.RomDirectory, loadArgs.RomName) + ".sav";
+			var savPath = Path.Combine(loadArgs.SaveFilePath, loadArgs.RomName) + ".sav";
 			var savFi = new FileInfo(savPath);
 			if (savFi.Exists)
 			{

@@ -57,7 +57,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					using (new EmuPause(emuManager))
 					{
-						var filePath = SaveFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, emuManager.CurrentRomName, ".gqs", mainWindow);
+						var filePath = SaveFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentStatePath, emuManager.CurrentRomName, ".gqs", mainWindow);
 						if (filePath != null)
 						{
 							// TODO: OSD message on success/fail
@@ -70,7 +70,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					using (new EmuPause(emuManager))
 					{
-						var filePath = OpenFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentRomDirectory, [".gqs"], mainWindow);
+						var filePath = OpenFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentStatePath, [".gqs"], mainWindow);
 						if (filePath != null)
 						{
 							// TODO: OSD message on success/fail
@@ -158,9 +158,9 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 
 			if (ImGui.BeginMenu("Settings"))
 			{
-				if (ImGui.MenuItem("BIOS Paths..."))
+				if (ImGui.MenuItem("Paths..."))
 				{
-					imGuiModals.OpenBiosPathModal = true;
+					imGuiModals.OpenPathModal = true;
 				}
 
 				if (ImGui.MenuItem("Input..."))

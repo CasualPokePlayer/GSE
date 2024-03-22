@@ -15,15 +15,16 @@ public enum GBPlatform
 	GBA,
 	GBP,
 	SGB2,
-};
+}
 
 public sealed record EmuLoadArgs(
 	EmuCoreType CoreType,
 	IEmuController EmuController,
 	ReadOnlyMemory<byte> RomData,
 	ReadOnlyMemory<byte> BiosData,
-	string RomDirectory,
 	string RomName,
+	string SaveFilePath,
+	string SaveStatePath,
 	Action HardResetCallback,
 	GBPlatform GbPlatform,
 	bool ApplyColorCorrection,

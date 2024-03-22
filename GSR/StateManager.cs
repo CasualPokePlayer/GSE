@@ -60,7 +60,7 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 	private string CreateStatePath(int slot)
 	{
 		var stateSlot = config.SaveStateSet * 10 + slot + 1;
-		return $"{Path.Combine(emuManager.CurrentRomDirectory, emuManager.CurrentRomName)}_{stateSlot}.gqs";
+		return $"{Path.Combine(emuManager.CurrentStatePath, emuManager.CurrentRomName)}_{stateSlot}.gqs";
 	}
 
 	public void SaveStateSlot(int slot)

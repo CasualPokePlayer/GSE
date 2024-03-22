@@ -37,8 +37,8 @@ public sealed class EmuManager : IDisposable
 
 	public bool EmuAcceptingInputs => RomIsLoaded && !_emuPaused;
 	public bool RomIsLoaded { get; private set; }
-	public string CurrentRomDirectory { get; private set; }
 	public string CurrentRomName { get; private set; }
+	public string CurrentStatePath { get; private set; }
 	public GBPlatform CurrentGbPlatform { get; private set; }
 
 	private uint[] _lastVideoFrame;
@@ -213,7 +213,7 @@ public sealed class EmuManager : IDisposable
 		_emuController = NullController.Singleton;
 		_emuCycleCount = 0;
 		_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
-		CurrentRomDirectory = CurrentRomName = null;
+		CurrentRomName = CurrentStatePath = null;
 		RomIsLoaded = false;
 	}
 
@@ -296,8 +296,8 @@ public sealed class EmuManager : IDisposable
 					export_helper_set_mem_export(i, ptr, len);
 				}
 
-				CurrentRomDirectory = loadArgs.RomDirectory;
 				CurrentRomName = loadArgs.RomName;
+				CurrentStatePath = loadArgs.SaveStatePath;
 				CurrentGbPlatform = loadArgs.GbPlatform;
 				RomIsLoaded = true;
 				_lastVideoFrame = new uint[_emuCore.VideoBuffer.Length];

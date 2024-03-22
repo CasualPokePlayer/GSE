@@ -19,7 +19,7 @@ namespace GSR.Gui;
 
 internal sealed class ImGuiModals
 {
-	private const string BIOS_PATH_SETTINGS = "BIOS Path Settings";
+	private const string PATH_SETTINGS = "Path Settings";
 	private const string INPUT_SETTINGS = "Input Settings";
 	private const string VIDEO_SETTINGS = "Video Settings";
 	private const string AUDIO_SETTINGS = "Audio Settings";
@@ -32,6 +32,13 @@ internal sealed class ImGuiModals
 	private readonly AudioManager _audioManager;
 	private readonly HotkeyManager _hotkeyManager;
 	private readonly ImGuiWindow _mainWindow;
+
+	private static readonly string[] _pathLocationOptions =
+	[
+		"Same as ROM file",
+		$"{PathResolver.GetPath(PathResolver.PathType.PrefPath, null, null, null)}",
+		"Custom Path" // may be overwritten
+	];
 
 	private readonly record struct InputConfig(string InputName, List<InputBinding> InputBindings);
 
@@ -83,15 +90,15 @@ internal sealed class ImGuiModals
 
 	private static readonly string[] _gbPlatformOptions = [ "Game Boy", "Game Boy Color", "Game Boy Advance", "Game Boy Player", "Super Game Boy 2" ];
 
-	public bool ModalIsOpened => _biosPathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _miscModalOpened || _aboutModalOpened;
-	private bool _biosPathModalOpened;
+	public bool ModalIsOpened => _pathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _miscModalOpened || _aboutModalOpened;
+	private bool _pathModalOpened;
 	private bool _inputModalOpened;
 	private bool _videoModalOpened;
 	private bool _audioModalOpened;
 	private bool _miscModalOpened;
 	private bool _aboutModalOpened;
 
-	public bool OpenBiosPathModal;
+	public bool OpenPathModal;
 	public bool OpenInputModal;
 	public bool OpenVideoModal;
 	public bool OpenAudioModal;
@@ -323,7 +330,7 @@ internal sealed class ImGuiModals
 
 	public void RunModals()
 	{
-		CheckModalNeedsOpen(BIOS_PATH_SETTINGS, ref OpenBiosPathModal, ref _biosPathModalOpened);
+		CheckModalNeedsOpen(PATH_SETTINGS, ref OpenPathModal, ref _pathModalOpened);
 		CheckModalNeedsOpen(INPUT_SETTINGS, ref OpenInputModal, ref _inputModalOpened);
 		CheckModalNeedsOpen(VIDEO_SETTINGS, ref OpenVideoModal, ref _videoModalOpened);
 		CheckModalNeedsOpen(AUDIO_SETTINGS, ref OpenAudioModal, ref _audioModalOpened);
@@ -333,8 +340,8 @@ internal sealed class ImGuiModals
 		var center = ImGui.GetMainViewport().GetCenter();
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
 
-		var biosPathOpen = true;
-		if (ImGui.BeginPopupModal(BIOS_PATH_SETTINGS, ref biosPathOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+		var pathOpen = true;
+		if (ImGui.BeginPopupModal(PATH_SETTINGS, ref pathOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
 		{
 			static string AddBiosPathButton(string system, string biosPathConfig, ImGuiWindow mainWindow)
 			{
@@ -359,6 +366,45 @@ internal sealed class ImGuiModals
 			_config.GbcBiosPath = AddBiosPathButton("GBC", _config.GbcBiosPath, _mainWindow);
 			_config.Sgb2BiosPath = AddBiosPathButton("SGB2", _config.Sgb2BiosPath, _mainWindow);
 			_config.GbaBiosPath = AddBiosPathButton("GBA", _config.GbaBiosPath, _mainWindow);
+
+			ImGui.Separator();
+
+			static (PathResolver.PathType, string) AddPathLocationButton(string label, PathResolver.PathType pathType, string customPath, ImGuiWindow mainWindow)
+			{
+				if (pathType == PathResolver.PathType.Custom)
+				{
+					_pathLocationOptions[(int)PathResolver.PathType.Custom] = customPath;
+				}
+				else
+				{
+					_pathLocationOptions[(int)PathResolver.PathType.Custom] = "Custom Path";
+				}
+
+				var pathTypeIndex = (int)pathType;
+				if (ImGui.Combo($"{label} Path", ref pathTypeIndex, _pathLocationOptions, _pathLocationOptions.Length))
+				{
+					if ((PathResolver.PathType)pathTypeIndex == PathResolver.PathType.Custom)
+					{
+						customPath = SelectFolderDialog.ShowDialog(label, null, mainWindow);
+						// revert back to previous selection if the dialog was cancelled,
+						if (customPath == null)
+						{
+							pathTypeIndex = (int)pathType;
+						}
+					}
+					else
+					{
+						customPath = null;
+					}
+
+					pathType = (PathResolver.PathType)pathTypeIndex;
+				}
+
+				return (pathType, customPath);
+			}
+
+			(_config.SavePathLocation, _config.SavePathCustom) = AddPathLocationButton("Save", _config.SavePathLocation, _config.SavePathCustom, _mainWindow);
+			(_config.StatePathLocation, _config.StatePathCustom) = AddPathLocationButton("State", _config.StatePathLocation, _config.StatePathCustom, _mainWindow);
 
 			ImGui.EndPopup();
 		}
@@ -682,7 +728,7 @@ internal sealed class ImGuiModals
 			ImGui.EndPopup();
 		}
 
-		CheckModalWasClosed(biosPathOpen, ref _biosPathModalOpened);
+		CheckModalWasClosed(pathOpen, ref _pathModalOpened);
 		CheckModalWasClosed(inputOpen, ref _inputModalOpened);
 		CheckModalWasClosed(videoOpen, ref _videoModalOpened);
 		CheckModalWasClosed(audioOpen, ref _audioModalOpened);

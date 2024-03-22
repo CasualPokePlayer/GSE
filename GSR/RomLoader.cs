@@ -129,14 +129,15 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 					EmuController: isGbaRom ? gbaController : gbController,
 					RomData: romFile.UnderlyingFile,
 					BiosData: biosFile.UnderlyingFile,
-					RomDirectory: romFile.Directory,
 					RomName: romFile.UnderlyingFileName,
+					SaveFilePath: PathResolver.GetPath(config.SavePathLocation, "Save", romFile.Directory, config.SavePathCustom),
+					SaveStatePath: PathResolver.GetPath(config.StatePathLocation, "State", romFile.Directory, config.StatePathCustom),
 					HardResetCallback: osdManager.OnHardReset,
 					GbPlatform: isGbaRom ? GBPlatform.GBA : config.GbPlatform,
 					ApplyColorCorrection: config.ApplyColorCorrection,
 					DisableGbaRtc: config.DisableGbaRtc
 				));
-				
+
 				osdManager.OnRomLoaded(romFile.UnderlyingFileName, romFile.UnderlyingFile.Span);
 
 				config.RecentRoms.RemoveAll(r => r == path);

@@ -138,7 +138,7 @@ internal sealed class GambatteCore : IEmuCore
 
 			_stateBuffer = new byte[gambatte_savestate(_opaque, null, 0, null)];
 
-			var savPath = Path.Combine(loadArgs.RomDirectory, loadArgs.RomName) + ".sav";
+			var savPath = Path.Combine(loadArgs.SaveFilePath, loadArgs.RomName) + ".sav";
 			var savBuffer = new byte[gambatte_getsavedatalength(_opaque)];
 			if (savBuffer.Length > 0)
 			{

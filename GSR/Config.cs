@@ -35,6 +35,11 @@ internal sealed class Config
 	public string Sgb2BiosPath { get; set; }
 	public string GbaBiosPath { get; set; }
 
+	public PathResolver.PathType SavePathLocation { get; set; } = PathResolver.PathType.RomPath;
+	public string SavePathCustom { get; set; }
+	public PathResolver.PathType StatePathLocation { get; set; } = PathResolver.PathType.RomPath;
+	public string StatePathCustom { get; set; }
+
 	public List<string> RecentRoms { get; set; } = [];
 
 	public int SaveStateSet { get; set; }
@@ -98,6 +103,29 @@ internal sealed class Config
 		}
 
 		FastForwardSpeed = Math.Clamp(FastForwardSpeed, 2, 64);
+
+		if (SavePathLocation != PathResolver.PathType.Custom || !Directory.Exists(SavePathCustom))
+		{
+			SavePathCustom = null;
+		}
+
+		if (!Enum.IsDefined(SavePathLocation) ||
+		    (SavePathLocation == PathResolver.PathType.Custom && SavePathCustom == null))
+		{
+			SavePathLocation = PathResolver.PathType.RomPath;
+		}
+
+		if (StatePathLocation != PathResolver.PathType.Custom || !Directory.Exists(StatePathCustom))
+		{
+			StatePathCustom = null;
+		}
+
+		if (!Enum.IsDefined(StatePathLocation) ||
+		    (StatePathLocation == PathResolver.PathType.Custom && StatePathCustom == null))
+		{
+			StatePathLocation = PathResolver.PathType.RomPath;
+		}
+
 		RecentRoms ??= [];
 		SaveStateSet = Math.Clamp(SaveStateSet, 0, 9);
 		SaveStateSlot = Math.Clamp(SaveStateSlot, 0, 9);
