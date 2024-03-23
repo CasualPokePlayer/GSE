@@ -1,13 +1,17 @@
 // Copyright (c) 2024 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
-#if GSR_OSX || GSR_LINUX
 using System;
+#if GSR_WINDOWS
+using System.Runtime.InteropServices;
 #endif
 
 #if GSR_WINDOWS
 using Windows.Win32;
+using Windows.Win32.System.Com;
 using Windows.Win32.UI.Controls.Dialogs;
+using Windows.Win32.UI.Shell;
+using Windows.Win32.UI.Shell.Common;
 #endif
 
 #if GSR_OSX
@@ -23,14 +27,19 @@ namespace GSR.Gui;
 internal static class SaveFileDialog
 {
 #if GSR_WINDOWS
-	// TODO: Check if using the newer IFileSaveDialog has any worth
 	public static unsafe string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
-		try
+		// the newer IFileDialog should be used, as the older APIs are limited to MAX_PATH (i.e. no long path support)
+		if (PInvoke.CoCreateInstance<IFileSaveDialog>(
+			    rclsid: typeof(FileSaveDialog).GUID,
+			    pUnkOuter: null,
+			    dwClsContext: CLSCTX.CLSCTX_ALL,
+			    ppv: out var fileDialog).Failed)
 		{
+			// this can fail on Windows Server Core, so let's keep a fallback for the older API
 			var filter = $"{description}\0*{ext}\0\0";
-			var fileBuffer = new char[PInvoke.MAX_PATH + 1];
-			filename.CopyTo(fileBuffer);
+			var fileBuffer = new char[PInvoke.MAX_PATH];
+			filename.AsSpan(0, Math.Min(filename.Length, (int)PInvoke.MAX_PATH - 1)).CopyTo(fileBuffer);
 			var title = $"Save {description}";
 			fixed (char* filterPtr = filter, fileBufferPtr = fileBuffer, baseDirPtr = baseDir, titlePtr = title)
 			{
@@ -44,17 +53,70 @@ internal static class SaveFileDialog
 				ofn.lpstrInitialDir = baseDirPtr;
 				ofn.lpstrTitle = titlePtr;
 				ofn.Flags = OPEN_FILENAME_FLAGS.OFN_NOCHANGEDIR | OPEN_FILENAME_FLAGS.OFN_OVERWRITEPROMPT | OPEN_FILENAME_FLAGS.OFN_NOREADONLYRETURN;
-				if (PInvoke.GetSaveFileName(&ofn))
-				{
-					return new(fileBufferPtr);
-				}
+				return PInvoke.GetSaveFileName(&ofn) ? new(fileBufferPtr) : null;
+			}
+		}
 
-				return null;
+		try
+		{
+			fileDialog->SetTitle($"Save {description}");
+			fileDialog->SetOptions( FILEOPENDIALOGOPTIONS.FOS_OVERWRITEPROMPT |
+			                        FILEOPENDIALOGOPTIONS.FOS_STRICTFILETYPES |
+			                       FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
+			                       FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
+			                       FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
+
+			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
+			{
+				var folder = (IShellItem*)ppv;
+				try
+				{
+					fileDialog->SetDefaultFolder(folder);
+				}
+				finally
+				{
+					folder->Release();
+				}
+			}
+
+			fixed (char* filterName = description, filterPattern = $"*{ext}")
+			{
+				COMDLG_FILTERSPEC filter;
+				filter.pszName = filterName;
+				filter.pszSpec = filterPattern;
+				fileDialog->SetFileTypes(1, &filter);
+			}
+
+			fileDialog->SetFileTypeIndex(1);
+
+			fileDialog->Show(new(mainWindow.SdlSysWMInfo.info.win.window));
+
+			IShellItem* result;
+			fileDialog->GetResult(&result);
+			try
+			{
+				result->GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out var path);
+				try
+				{
+					return new(path);
+				}
+				finally
+				{
+					Marshal.FreeCoTaskMem((IntPtr)path.Value);
+				}
+			}
+			finally
+			{
+				result->Release();
 			}
 		}
 		catch
 		{
 			return null;
+		}
+		finally
+		{
+			fileDialog->Release();
 		}
 	}
 #endif

@@ -3,13 +3,19 @@
 
 using System;
 using System.Collections.Generic;
+#if GSR_WINDOWS
+using System.Runtime.InteropServices;
+#endif
 #if GSR_OSX || GSR_LINUX
 using System.Linq;
 #endif
 
 #if GSR_WINDOWS
 using Windows.Win32;
+using Windows.Win32.System.Com;
 using Windows.Win32.UI.Controls.Dialogs;
+using Windows.Win32.UI.Shell;
+using Windows.Win32.UI.Shell.Common;
 #endif
 
 #if GSR_OSX
@@ -25,32 +31,97 @@ namespace GSR.Gui;
 internal static class OpenFileDialog
 {
 #if GSR_WINDOWS
-	// TODO: Check if using the newer IFileOpenDialog has any worth
 	public static unsafe string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
-		var filter = $"{description}\0*{string.Join(";*", fileTypes)}\0\0";
-		var fileBuffer = new char[PInvoke.MAX_PATH + 1];
-		var initDir = baseDir ?? AppContext.BaseDirectory;
-		var title = $"Open {description}";
-		fixed (char* filterPtr = filter, fileBufferPtr = fileBuffer, initDirPtr = initDir, titlePtr = title)
+		// the newer IFileDialog should be used, as the older APIs are limited to MAX_PATH (i.e. no long path support)
+		if (PInvoke.CoCreateInstance<IFileOpenDialog>(
+			    rclsid: typeof(FileOpenDialog).GUID,
+			    pUnkOuter: null,
+			    dwClsContext: CLSCTX.CLSCTX_ALL,
+			    ppv: out var fileDialog).Failed)
 		{
-			var ofn = default(OPENFILENAMEW);
-			ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
-			ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
-			ofn.lpstrFilter = filterPtr;
-			ofn.nFilterIndex = 1;
-			ofn.lpstrFile = fileBufferPtr;
-			ofn.nMaxFile = (uint)fileBuffer.Length;
-			ofn.lpstrInitialDir = initDirPtr;
-			ofn.lpstrTitle = titlePtr;
-			ofn.Flags = OPEN_FILENAME_FLAGS.OFN_NOCHANGEDIR | OPEN_FILENAME_FLAGS.OFN_PATHMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_FILEMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_NOREADONLYRETURN;
-			if (PInvoke.GetOpenFileName(&ofn))
+			// this can fail on Windows Server Core, so let's keep a fallback for the older API
+			var filter = $"{description}\0*{string.Join(";*", fileTypes)}\0\0";
+			var fileBuffer = new char[PInvoke.MAX_PATH];
+			var initDir = baseDir ?? AppContext.BaseDirectory;
+			var title = $"Open {description}";
+			fixed (char* filterPtr = filter, fileBufferPtr = fileBuffer, initDirPtr = initDir, titlePtr = title)
 			{
-				return new(fileBufferPtr);
+				var ofn = default(OPENFILENAMEW);
+				ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
+				ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
+				ofn.lpstrFilter = filterPtr;
+				ofn.nFilterIndex = 1;
+				ofn.lpstrFile = fileBufferPtr;
+				ofn.nMaxFile = (uint)fileBuffer.Length;
+				ofn.lpstrInitialDir = initDirPtr;
+				ofn.lpstrTitle = titlePtr;
+				ofn.Flags = OPEN_FILENAME_FLAGS.OFN_NOCHANGEDIR | OPEN_FILENAME_FLAGS.OFN_PATHMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_FILEMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_NOREADONLYRETURN;
+				return PInvoke.GetOpenFileName(&ofn) ? new(fileBufferPtr) : null;
 			}
 		}
 
-		return null;
+		try
+		{
+			fileDialog->SetTitle($"Open {description}");
+			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_STRICTFILETYPES |
+			                       FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
+			                       FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
+			                       FILEOPENDIALOGOPTIONS.FOS_FILEMUSTEXIST |
+			                       FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
+
+			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
+			{
+				var folder = (IShellItem*)ppv;
+				try
+				{
+					fileDialog->SetDefaultFolder(folder);
+				}
+				finally
+				{
+					folder->Release();
+				}
+			}
+
+			fixed (char* filterName = description, filterPattern = $"*{string.Join(";*", fileTypes)}")
+			{
+				COMDLG_FILTERSPEC filter;
+				filter.pszName = filterName;
+				filter.pszSpec = filterPattern;
+				fileDialog->SetFileTypes(1, &filter);
+			}
+
+			fileDialog->SetFileTypeIndex(1);
+
+			fileDialog->Show(new(mainWindow.SdlSysWMInfo.info.win.window));
+
+			IShellItem* result;
+			fileDialog->GetResult(&result);
+			try
+			{
+				result->GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out var path);
+				try
+				{
+					return new(path);
+				}
+				finally
+				{
+					Marshal.FreeCoTaskMem((IntPtr)path.Value);
+				}
+			}
+			finally
+			{
+				result->Release();
+			}
+		}
+		catch
+		{
+			return null;
+		}
+		finally
+		{
+			fileDialog->Release();
+		}
 	}
 #endif
 

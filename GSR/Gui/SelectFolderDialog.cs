@@ -71,7 +71,7 @@ internal static class SelectFolderDialog
 
 				try
 				{
-					var path = new char[PInvoke.MAX_PATH + 1];
+					var path = new char[PInvoke.MAX_PATH];
 					fixed (char* pathPtr = path)
 					{
 						return PInvoke.SHGetPathFromIDList(iil, pathPtr) ? new(pathPtr) : null;
@@ -87,7 +87,11 @@ internal static class SelectFolderDialog
 		try
 		{
 			fileDialog->SetTitle($"Select {description} Folder");
-			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR | FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS | FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM | FILEOPENDIALOGOPTIONS.FOS_PATHMUSTEXIST | FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
+			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
+			                       FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS |
+			                       FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
+			                       FILEOPENDIALOGOPTIONS.FOS_PATHMUSTEXIST |
+			                       FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
 
 			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
 			{

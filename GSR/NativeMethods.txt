@@ -1,11 +1,14 @@
+CoCreateInstance
+FileOpenDialog
+FileSaveDialog
+IFileOpenDialog
+IFileSaveDialog
+SHCreateItemFromParsingName
+
 GetOpenFileNameW
 GetSaveFileNameW
 MAX_PATH
 
-CoCreateInstance
-FileOpenDialog
-IFileOpenDialog
-SHCreateItemFromParsingName
 SHBrowseForFolderW
 SHGetPathFromIDListW
 BIF_NEWDIALOGSTYLE
