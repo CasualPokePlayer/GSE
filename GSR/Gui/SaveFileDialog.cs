@@ -62,9 +62,9 @@ internal static class SaveFileDialog
 			fileDialog->SetTitle($"Save {description}");
 			fileDialog->SetOptions( FILEOPENDIALOGOPTIONS.FOS_OVERWRITEPROMPT |
 			                        FILEOPENDIALOGOPTIONS.FOS_STRICTFILETYPES |
-			                       FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
-			                       FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
-			                       FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
+			                        FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
+			                        FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
+			                        FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
 
 			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
 			{
