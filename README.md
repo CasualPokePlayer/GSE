@@ -76,11 +76,11 @@ On Linux, both X11 and Wayland are supported (although X11 will be preferred if 
 ---
 ## Building from source
 
-`git` should be used to clone the repository. Many submodules are present (with some having submodules within themselves), so ensure that they are all checked out (e.g. `git submodule update --init --recursive`)
+> Below is a relatively quick overview of building GSR, for the whole sh'bang, you'll want to read the [contributing guidelines](https://github.com/CasualPokePlayer/GSR/blob/master/CONTRIBUTING.md).
 
-Several native libraries are used in GSR, and each must be built before the C# side can be compiled. All native libraries can be found under externals/. Every one has a CMake build script, which can be used with standard CMake build commands.
+[git](https://git-scm.com/download) should be used to clone the repository. Many submodules are present (with some having submodules within themselves), so ensure that they are all checked out (e.g. `git submodule update --init --recursive`)
 
-Note for Windows developers: some native libraries cannot be built with MSVC, although regardless it is preferred to use clang-cl with the Ninja generator.
+Before the C# side can be built, various C/C++ libraries must be built. CMake is used for building all C/C++ libraries. Helper scripts are provided to build all C/C++ libraries (build_all_dev.bat for Windows, build_all_dev.sh for macOS/Linux).
 
 The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) is required to build the C# side.
 
