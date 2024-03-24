@@ -57,3 +57,5 @@ All original GSR code shall be licensed as MPL-2.0 and copyrighted to CasualPoke
 Any code contributions you make thus must either:
 - Be derived from an open-source, publicly-licensed codebase, compatible with the MPL-2.0, with proper attributions. In general, such code shall be dual licensed as MPL-2.0 and its original license, except for (L)GPL code, which will retain its original license. Copyright statements should be modified to include the original author.
 - Be authored by you, and you are willing to transfer all transferable rights to CasualPokePlayer, including but not limited to, re-licensing the code, modifying the code, and distributing it in source or binary forms. This includes a requirement that you assign copyright to CasualPokePlayer. Due to this, do not add your name to any copyright statements. Note that this transfer is on a nonexclusive basis only; it does not take away your own copyright (and thus you are permitted to use your contributions in other projects in any way you see fit).
+
+> Any "contributions" from LLM AIs, such as GitHub Copilot, are forbidden and will not be accepted under any circumstances.
