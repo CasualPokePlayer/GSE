@@ -31,6 +31,8 @@ Building GSR requires installing C/C++ and C# build tools.
 
 Helper scripts are included in externals/ which will build all C/C++ libraries (build_all_dev.bat for Windows, build_all_dev.sh for macOS/Linux). If you want to do something custom, standard CMake build commands should work.
 
+Note that Windows typically will need to use the "x64 Native Tools Command Prompt for VS2022" in order to build the C/C++ libraries (or the ARM64 variant, if your host PC is an ARM64 PC).
+
 Once all C/C++ libraries are compiled, you can fire up your favorite IDE and start doing C# development.
 - Windows
 	- [VS Community 2022](https://visualstudio.microsoft.com/vs/community) can be used as a C# IDE (you likely already installed this anyways).
