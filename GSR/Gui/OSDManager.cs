@@ -18,7 +18,7 @@ namespace GSR.Gui;
 /// <summary>
 /// Manages the OSD. Can be done on a status bar or a transparent overlay
 /// </summary>
-internal sealed class OSDManager(EmuManager emuManager, IntPtr sdlRenderer)
+internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sdlRenderer)
 {
 	private readonly ConcurrentQueue<string> _osdMessages = new();
 	private string _currentOsdMessage;
@@ -156,7 +156,7 @@ internal sealed class OSDManager(EmuManager emuManager, IntPtr sdlRenderer)
 
 			// we want the preview width to be decently wide
 			// but we also want the height to cover a percentage of the screen
-			var previewHeight = (float)Math.Round((bottomSide - topSide) * .3); // roughly 30% of the screen height
+			var previewHeight = (float)Math.Round((bottomSide - topSide) * config.StatePreviewScale / 100.0f);
 			var previewWidth = (float)Math.Round(previewHeight * _statePreview.Width / _statePreview.Height);
 
 			// the X pos should shift left according to the state slot
@@ -170,7 +170,8 @@ internal sealed class OSDManager(EmuManager emuManager, IntPtr sdlRenderer)
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 			if (ImGui.Begin("State Preview", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
 			{
-				ImGui.Image(_statePreview.Texture, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, 0.75f));
+				var opacity = config.StatePreviewOpacity / 100.0f;
+				ImGui.Image(_statePreview.Texture, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, opacity));
 			}
 			ImGui.PopStyleVar(3);
 

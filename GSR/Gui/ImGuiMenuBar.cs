@@ -178,6 +178,11 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 					imGuiModals.OpenAudioModal = true;
 				}
 
+				if (ImGui.MenuItem("OSD..."))
+				{
+					imGuiModals.OpenOsdModal = true;
+				}
+
 				if (ImGui.MenuItem("Misc..."))
 				{
 					imGuiModals.OpenMiscModal = true;

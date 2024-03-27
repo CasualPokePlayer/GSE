@@ -181,7 +181,7 @@ internal sealed class GSR : IDisposable
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
 			_emuManager = new(_audioManager);
 			_postProcessor = new(_config, _emuManager, _mainWindow.SdlRenderer);
-			_osdManager = new(_emuManager, _mainWindow.SdlRenderer);
+			_osdManager = new(_config, _emuManager, _mainWindow.SdlRenderer);
 			_gbController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
 			_gbaController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
 			_romLoader = new(_config, _emuManager, _postProcessor, _osdManager, _gbController, _gbaController, _mainWindow);

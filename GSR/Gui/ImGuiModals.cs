@@ -24,6 +24,7 @@ internal sealed class ImGuiModals
 	private const string INPUT_SETTINGS = "Input Settings";
 	private const string VIDEO_SETTINGS = "Video Settings";
 	private const string AUDIO_SETTINGS = "Audio Settings";
+	private const string OSD_SETTINGS = "OSD Settings";
 	private const string MISC_SETTINGS = "Misc Settings";
 	private const string ABOUT = "About";
 
@@ -92,11 +93,12 @@ internal sealed class ImGuiModals
 
 	private static readonly string[] _gbPlatformOptions = [ "Game Boy", "Game Boy Color", "Game Boy Advance", "Game Boy Player", "Super Game Boy 2" ];
 
-	public bool ModalIsOpened => _pathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _miscModalOpened || _aboutModalOpened;
+	public bool ModalIsOpened => _pathModalOpened || _inputModalOpened || _videoModalOpened || _audioModalOpened || _osdModalOpened || _miscModalOpened || _aboutModalOpened;
 	private bool _pathModalOpened;
 	private bool _inputModalOpened;
 	private bool _videoModalOpened;
 	private bool _audioModalOpened;
+	private bool _osdModalOpened;
 	private bool _miscModalOpened;
 	private bool _aboutModalOpened;
 
@@ -104,6 +106,7 @@ internal sealed class ImGuiModals
 	public bool OpenInputModal;
 	public bool OpenVideoModal;
 	public bool OpenAudioModal;
+	public bool OpenOsdModal;
 	public bool OpenMiscModal;
 	public bool OpenAboutModal;
 
@@ -337,6 +340,7 @@ internal sealed class ImGuiModals
 		CheckModalNeedsOpen(INPUT_SETTINGS, ref OpenInputModal, ref _inputModalOpened);
 		CheckModalNeedsOpen(VIDEO_SETTINGS, ref OpenVideoModal, ref _videoModalOpened);
 		CheckModalNeedsOpen(AUDIO_SETTINGS, ref OpenAudioModal, ref _audioModalOpened);
+		CheckModalNeedsOpen(OSD_SETTINGS, ref OpenOsdModal, ref _osdModalOpened);
 		CheckModalNeedsOpen(MISC_SETTINGS, ref OpenMiscModal, ref _miscModalOpened);
 		CheckModalNeedsOpen(ABOUT, ref OpenAboutModal, ref _aboutModalOpened);
 
@@ -624,6 +628,48 @@ internal sealed class ImGuiModals
 
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
 
+		var osdOpen = true;
+		if (ImGui.BeginPopupModal(OSD_SETTINGS, ref osdOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+		{
+			var hideStatusBar = _config.HideStatusBar;
+			if (ImGui.Checkbox("Hide Status Bar", ref hideStatusBar))
+			{
+				_config.HideStatusBar = hideStatusBar;
+				if (!_config.AllowManualResizing)
+				{
+					UpdateWindowScale();
+				}
+			}
+
+			ImGui.Separator();
+
+			var hideStatePreviews = _config.HideStatePreviews;
+			if (ImGui.Checkbox("Hide State Previews", ref hideStatePreviews))
+			{
+				_config.HideStatePreviews = hideStatePreviews;
+				if (_config.HideStatePreviews)
+				{
+					_osdManager.ClearStatePreview();
+				}
+			}
+
+			var statePreviewOpacity = _config.StatePreviewOpacity;
+			if (ImGui.SliderInt("State Preview Opacity", ref statePreviewOpacity, 25, 100))
+			{
+				_config.StatePreviewOpacity = statePreviewOpacity;
+			}
+
+			var statePreviewScale = _config.StatePreviewScale;
+			if (ImGui.SliderInt("State Preview Scale", ref statePreviewScale, 10, 50))
+			{
+				_config.StatePreviewScale = statePreviewScale;
+			}
+
+			ImGui.EndPopup();
+		}
+
+		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
+
 		var miscOpen = true;
 		if (ImGui.BeginPopupModal(MISC_SETTINGS, ref miscOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
 		{
@@ -659,26 +705,6 @@ internal sealed class ImGuiModals
 				if (!_config.AllowManualResizing)
 				{
 					UpdateWindowScale();
-				}
-			}
-
-			var hideStatusBar = _config.HideStatusBar;
-			if (ImGui.Checkbox("Hide Status Bar", ref hideStatusBar))
-			{
-				_config.HideStatusBar = hideStatusBar;
-				if (!_config.AllowManualResizing)
-				{
-					UpdateWindowScale();
-				}
-			}
-
-			var hideStatePreviews = _config.HideStatePreviews;
-			if (ImGui.Checkbox("Hide State Previews", ref hideStatePreviews))
-			{
-				_config.HideStatePreviews = hideStatePreviews;
-				if (_config.HideStatePreviews)
-				{
-					_osdManager.ClearStatePreview();
 				}
 			}
 
@@ -739,6 +765,8 @@ internal sealed class ImGuiModals
 						ImGui.EndTabItem();
 					}
 				}
+
+				ImGui.EndTabBar();
 			}
 
 			ImGui.EndPopup();
@@ -748,6 +776,7 @@ internal sealed class ImGuiModals
 		CheckModalWasClosed(inputOpen, ref _inputModalOpened);
 		CheckModalWasClosed(videoOpen, ref _videoModalOpened);
 		CheckModalWasClosed(audioOpen, ref _audioModalOpened);
+		CheckModalWasClosed(osdOpen, ref _osdModalOpened);
 		CheckModalWasClosed(miscOpen, ref _miscModalOpened);
 		CheckModalWasClosed(aboutOpen, ref _aboutModalOpened);
 	}

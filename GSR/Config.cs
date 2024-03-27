@@ -29,6 +29,8 @@ internal sealed class Config
 	public bool HideSgbBorder { get; set; }
 	public bool HideStatusBar { get; set; }
 	public bool HideStatePreviews { get; set; }
+	public int StatePreviewOpacity { get; set; } = 75;
+	public int StatePreviewScale { get; set; } = 30;
 	public bool DisableWin11RoundCorners { get; set; }
 
 	public string GbBiosPath { get; set; }
@@ -104,6 +106,8 @@ internal sealed class Config
 		}
 
 		FastForwardSpeed = Math.Clamp(FastForwardSpeed, 2, 64);
+		StatePreviewOpacity = Math.Clamp(StatePreviewOpacity, 25, 100);
+		StatePreviewScale = Math.Clamp(StatePreviewScale, 10, 50);
 
 		if (SavePathLocation != PathResolver.PathType.Custom || !Directory.Exists(SavePathCustom))
 		{
