@@ -12,9 +12,9 @@ namespace GSR;
 
 /// <summary>
 /// Wraps an SDL texture and caches its various state
-/// Currently, the texture is always set to have no blending and is assumed to be SDL_PIXELFORMAT_ARGB8888
+/// Currently, the texture is assumed to be SDL_PIXELFORMAT_ARGB8888
 /// </summary>
-public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAccess, SDL_ScaleMode scaleMode) : IDisposable
+public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAccess, SDL_ScaleMode scaleMode, SDL_BlendMode blendMode) : IDisposable
 {
 	public IntPtr Texture { get; private set; }
 	public int Width { get; private set; }
@@ -36,7 +36,7 @@ public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAcce
 				throw new($"Failed to set texture scaling mode, SDL error: {SDL_GetError()}");
 			}
 
-			if (SDL_SetTextureBlendMode(Texture, SDL_BlendMode.SDL_BLENDMODE_NONE) != 0)
+			if (SDL_SetTextureBlendMode(Texture, blendMode) != 0)
 			{
 				throw new($"Failed to set texture blend mode, SDL error: {SDL_GetError()}");
 			}

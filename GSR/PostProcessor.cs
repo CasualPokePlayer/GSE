@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
-using System.Runtime.InteropServices;
 
 using static SDL2.SDL;
 
@@ -24,9 +23,9 @@ public enum ScalingFilter
 /// </summary>
 internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr sdlRenderer) : IDisposable
 {
-	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest);
-	private readonly SDLTexture _nnScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest);
-	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear);
+	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _nnScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
 

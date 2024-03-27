@@ -26,7 +26,7 @@ internal sealed class OSDManager(EmuManager emuManager, IntPtr sdlRenderer)
 	private string _currentRomHash;
 	private bool _isPsrRom;
 
-	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest);
+	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
 	private int _statePreviewCountdown;
 	private int _statePreviewSlot;
 
@@ -168,9 +168,9 @@ internal sealed class OSDManager(EmuManager emuManager, IntPtr sdlRenderer)
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-			if (ImGui.Begin("State Preview", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration))
+			if (ImGui.Begin("State Preview", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
 			{
-				ImGui.Image(_statePreview.Texture, new(previewWidth, previewHeight));
+				ImGui.Image(_statePreview.Texture, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, 0.75f));
 			}
 			ImGui.PopStyleVar(3);
 
