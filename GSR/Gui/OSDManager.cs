@@ -29,6 +29,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sd
 	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
 	private int _statePreviewCountdown;
 	private int _statePreviewSlot;
+	public bool StatePreviewActive => _statePreviewCountdown > 0;
 
 	private string RomInfoPrefix()
 	{
@@ -143,7 +144,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sd
 
 	public void RunStatePreviewOverlay()
 	{
-		if (_statePreviewCountdown > 0)
+		if (StatePreviewActive)
 		{
 			var vp = ImGui.GetMainViewport();
 			var style = ImGui.GetStyle();

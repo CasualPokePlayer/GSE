@@ -45,9 +45,8 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 		return config.SaveStateSet * 10 + slot + 1;
 	}
 
-	private void OnStateSlotChanged()
+	private void LoadStatePreview()
 	{
-		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
 		var statePreview = emuManager.LoadStatePreview(CreateStatePath(config.SaveStateSlot));
 		if (!statePreview.VideoBuffer.IsEmpty)
 		{
@@ -56,6 +55,15 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 		else
 		{
 			osdManager.ClearStatePreview();
+		}
+	}
+
+	private void OnStateSlotChanged()
+	{
+		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
+		if (!config.HideStatePreviews)
+		{
+			LoadStatePreview();
 		}
 	}
 
@@ -82,6 +90,16 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 		osdManager.QueueMessage(emuManager.SaveState(statePath)
 			? $"State {GetStateSlot(slot)} saved"
 			: "Failed to save state!");
+
+		if (slot == config.SaveStateSlot)
+		{
+			// if we had a state preview active, we'll want to update it with the new savestate
+			// this will also reset the preview timer, but that's fine (only at most ~3 extra seconds)
+			if (osdManager.StatePreviewActive)
+			{
+				LoadStatePreview();
+			}
+		}
 	}
 
 	public void LoadStateSlot(int slot)
