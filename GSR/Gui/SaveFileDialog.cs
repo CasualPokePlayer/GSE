@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 #if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.System.Com;
-using Windows.Win32.UI.Controls.Dialogs;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 #endif
@@ -36,25 +35,10 @@ internal static class SaveFileDialog
 			    dwClsContext: CLSCTX.CLSCTX_ALL,
 			    ppv: out var fileDialog).Failed)
 		{
-			// this can fail on Windows Server Core, so let's keep a fallback for the older API
-			var filter = $"{description}\0*{ext}\0\0";
-			var fileBuffer = new char[PInvoke.MAX_PATH];
-			filename.AsSpan(0, Math.Min(filename.Length, (int)PInvoke.MAX_PATH - 1)).CopyTo(fileBuffer);
-			var title = $"Save {description}";
-			fixed (char* filterPtr = filter, fileBufferPtr = fileBuffer, baseDirPtr = baseDir, titlePtr = title)
-			{
-				var ofn = default(OPENFILENAMEW);
-				ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
-				ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
-				ofn.lpstrFilter = filterPtr;
-				ofn.nFilterIndex = 1;
-				ofn.lpstrFile = fileBufferPtr;
-				ofn.nMaxFile = (uint)fileBuffer.Length;
-				ofn.lpstrInitialDir = baseDirPtr;
-				ofn.lpstrTitle = titlePtr;
-				ofn.Flags = OPEN_FILENAME_FLAGS.OFN_NOCHANGEDIR | OPEN_FILENAME_FLAGS.OFN_OVERWRITEPROMPT | OPEN_FILENAME_FLAGS.OFN_NOREADONLYRETURN;
-				return PInvoke.GetSaveFileName(&ofn) ? new(fileBufferPtr) : null;
-			}
+			// this call generally shouldn't fail
+			// it might fail if the user is somehow on windows server core
+			// but we don't support windows server core, as it doesn't provide any audio services
+			return null;
 		}
 
 		try

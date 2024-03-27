@@ -63,7 +63,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 ## User Requirements
 
 GSR currently requires one of the following operating systems:
-* Windows 7+
+* Windows 7 SP1+
 * macOS 10.15+
 * Linux (glibc 2.31+ / libstdc++ 3.4.28+)
 

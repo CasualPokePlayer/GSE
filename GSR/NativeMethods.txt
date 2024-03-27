@@ -5,20 +5,6 @@ IFileOpenDialog
 IFileSaveDialog
 SHCreateItemFromParsingName
 
-GetOpenFileNameW
-GetSaveFileNameW
-MAX_PATH
-
-SHBrowseForFolderW
-SHGetPathFromIDListW
-BIF_NEWDIALOGSTYLE
-BIF_EDITBOX
-BIF_RETURNONLYFSDIRS
-
-BFFM_INITIALIZED
-BFFM_SETSELECTIONW
-SendMessageW
-
 ChangeWindowMessageFilter
 WM_DROPFILES
 WM_COPYDATA

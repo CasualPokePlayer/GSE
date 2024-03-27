@@ -13,7 +13,6 @@ using System.Linq;
 #if GSR_WINDOWS
 using Windows.Win32;
 using Windows.Win32.System.Com;
-using Windows.Win32.UI.Controls.Dialogs;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 #endif
@@ -40,25 +39,10 @@ internal static class OpenFileDialog
 			    dwClsContext: CLSCTX.CLSCTX_ALL,
 			    ppv: out var fileDialog).Failed)
 		{
-			// this can fail on Windows Server Core, so let's keep a fallback for the older API
-			var filter = $"{description}\0*{string.Join(";*", fileTypes)}\0\0";
-			var fileBuffer = new char[PInvoke.MAX_PATH];
-			var initDir = baseDir ?? AppContext.BaseDirectory;
-			var title = $"Open {description}";
-			fixed (char* filterPtr = filter, fileBufferPtr = fileBuffer, initDirPtr = initDir, titlePtr = title)
-			{
-				var ofn = default(OPENFILENAMEW);
-				ofn.lStructSize = (uint)sizeof(OPENFILENAMEW);
-				ofn.hwndOwner = new(mainWindow.SdlSysWMInfo.info.win.window);
-				ofn.lpstrFilter = filterPtr;
-				ofn.nFilterIndex = 1;
-				ofn.lpstrFile = fileBufferPtr;
-				ofn.nMaxFile = (uint)fileBuffer.Length;
-				ofn.lpstrInitialDir = initDirPtr;
-				ofn.lpstrTitle = titlePtr;
-				ofn.Flags = OPEN_FILENAME_FLAGS.OFN_NOCHANGEDIR | OPEN_FILENAME_FLAGS.OFN_PATHMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_FILEMUSTEXIST | OPEN_FILENAME_FLAGS.OFN_NOREADONLYRETURN;
-				return PInvoke.GetOpenFileName(&ofn) ? new(fileBufferPtr) : null;
-			}
+			// this call generally shouldn't fail
+			// it might fail if the user is somehow on windows server core
+			// but we don't support windows server core, as it doesn't provide any audio services
+			return null;
 		}
 
 		try
