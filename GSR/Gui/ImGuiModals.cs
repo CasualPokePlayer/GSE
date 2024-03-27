@@ -32,6 +32,7 @@ internal sealed class ImGuiModals
 	private readonly InputManager _inputManager;
 	private readonly AudioManager _audioManager;
 	private readonly HotkeyManager _hotkeyManager;
+	private readonly OSDManager _osdManager;
 	private readonly ImGuiWindow _mainWindow;
 
 	private static readonly string[] _pathLocationOptions =
@@ -108,13 +109,14 @@ internal sealed class ImGuiModals
 
 	private bool _didPause;
 
-	public ImGuiModals(Config config, EmuManager emuManager, InputManager inputManager, AudioManager audioManager, HotkeyManager hotkeyManager, ImGuiWindow mainWindow)
+	public ImGuiModals(Config config, EmuManager emuManager, InputManager inputManager, AudioManager audioManager, HotkeyManager hotkeyManager, OSDManager osdManager, ImGuiWindow mainWindow)
 	{
 		_config = config;
 		_emuManager = emuManager;
 		_inputManager = inputManager;
 		_audioManager = audioManager;
 		_hotkeyManager = hotkeyManager;
+		_osdManager = osdManager;
 		_mainWindow = mainWindow;
 
 		_gameInputConfigs =
@@ -667,6 +669,16 @@ internal sealed class ImGuiModals
 				if (!_config.AllowManualResizing)
 				{
 					UpdateWindowScale();
+				}
+			}
+
+			var hideStatePreviews = _config.HideStatePreviews;
+			if (ImGui.Checkbox("Hide State Previews", ref hideStatePreviews))
+			{
+				_config.HideStatePreviews = hideStatePreviews;
+				if (_config.HideStatePreviews)
+				{
+					_osdManager.ClearStatePreview();
 				}
 			}
 

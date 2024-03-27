@@ -4,6 +4,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 #if GSR_WINDOWS
@@ -20,6 +22,8 @@ namespace GSR.Emu;
 
 public sealed class EmuManager : IDisposable
 {
+	private const string GSR_STATE_PREVIEW_MARKER = "GSR STATE PREVIEW";
+
 	private readonly Thread _emuThread;
 	private readonly object _emuThreadLock = new();
 	private readonly object _emuCoreLock = new();
@@ -358,6 +362,34 @@ public sealed class EmuManager : IDisposable
 		{
 			using var fs = File.OpenWrite(statePath);
 			fs.Write(stateBuf);
+
+			// state preview footer
+			using var bw = new BinaryWriter(fs, Encoding.UTF8);
+			var footerPos = fs.Position;
+			bw.Write(GSR_STATE_PREVIEW_MARKER);
+
+			// cut out the SGB border in the preview
+			if (CurrentGbPlatform == GBPlatform.SGB2)
+			{
+				bw.Write(160);
+				bw.Write(144);
+
+				var videoAsBytes = MemoryMarshal.AsBytes(_lastVideoFrameCopy.AsSpan());
+				var offset = (256 * ((224 - 144) / 2) + (256 - 160) / 2) * sizeof(uint);
+				for (var i = 0; i < 144; i++)
+				{
+					bw.Write(videoAsBytes.Slice(offset, 160 * sizeof(uint)));
+					offset += 256 * sizeof(uint);
+				}
+			}
+			else
+			{
+				bw.Write(_emuCore.VideoWidth);
+				bw.Write(_emuCore.VideoHeight);
+				bw.Write(MemoryMarshal.AsBytes(_lastVideoFrameCopy.AsSpan()));
+			}
+
+			bw.Write(footerPos);
 			return true;
 		}
 		catch
@@ -382,6 +414,43 @@ public sealed class EmuManager : IDisposable
 		{
 			CheckEmuThreadException();
 			return _emuCore.LoadState(stateBuf);
+		}
+	}
+
+	public EmuVideoBuffer LoadStatePreview(string statePath)
+	{
+		try
+		{
+			using var fs = File.OpenRead(statePath);
+			using var br = new BinaryReader(fs, Encoding.UTF8);
+
+			// seek to footer
+			fs.Seek(-sizeof(long), SeekOrigin.End);
+			var footerPos = br.ReadInt64();
+			fs.Seek(footerPos, SeekOrigin.Begin);
+
+			var footerMarker = br.ReadString();
+			if (footerMarker != GSR_STATE_PREVIEW_MARKER)
+			{
+				throw new("Invalid state preview marker");
+			}
+
+			var width = br.ReadInt32();
+			var height = br.ReadInt32();
+			var expectedWidth = CurrentGbPlatform == GBPlatform.SGB2 ? 160 : _emuCore.VideoWidth;
+			var expectedHeight = CurrentGbPlatform == GBPlatform.SGB2 ? 144 : _emuCore.VideoHeight;
+			if (width != expectedWidth || height != expectedHeight)
+			{
+				throw new("Unexpected video dimensions in state preview");
+			}
+
+			var videoBuffer = new uint[width * height];
+			br.Read(MemoryMarshal.AsBytes(videoBuffer.AsSpan()));
+			return new(videoBuffer, width, height);
+		}
+		catch
+		{
+			return new();
 		}
 	}
 

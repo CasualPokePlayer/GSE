@@ -45,22 +45,35 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 		return config.SaveStateSet * 10 + slot + 1;
 	}
 
+	private void OnStateSlotChanged()
+	{
+		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
+		var statePreview = emuManager.LoadStatePreview(CreateStatePath(config.SaveStateSlot));
+		if (!statePreview.VideoBuffer.IsEmpty)
+		{
+			osdManager.SetStatePreview(statePreview, config.SaveStateSlot);
+		}
+		else
+		{
+			osdManager.ClearStatePreview();
+		}
+	}
+
 	private void SetStateSet(int set)
 	{
 		config.SaveStateSet = set;
-		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
+		OnStateSlotChanged();
 	}
 
 	public void SetStateSlot(int slot)
 	{
 		config.SaveStateSlot = slot;
-		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
+		OnStateSlotChanged();
 	}
 
 	private string CreateStatePath(int slot)
 	{
-		var stateSlot = config.SaveStateSet * 10 + slot + 1;
-		return $"{Path.Combine(emuManager.CurrentStatePath, emuManager.CurrentRomName)}_{stateSlot}.gqs";
+		return $"{Path.Combine(emuManager.CurrentStatePath, emuManager.CurrentRomName)}_{GetStateSlot(slot)}.gqs";
 	}
 
 	public void SaveStateSlot(int slot)

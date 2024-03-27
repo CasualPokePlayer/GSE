@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
+using System.Runtime.InteropServices;
 
 using static SDL2.SDL;
+
+using GSR.Emu;
 
 namespace GSR;
 
@@ -41,6 +44,33 @@ public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAcce
 			Width = width;
 			Height = height;
 		}
+	}
+
+	public unsafe void SetEmuVideoBuffer(EmuVideoBuffer emuVideoBuffer)
+	{
+		SetVideoDimensions(emuVideoBuffer.Width, emuVideoBuffer.Height);
+
+		if (SDL_LockTexture(Texture, IntPtr.Zero, out var pixels, out var pitch) != 0)
+		{
+			// this should never happen
+			throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
+		}
+
+		if (pitch == emuVideoBuffer.Pitch) // identical pitch, fast case (probably always the case?)
+		{
+			emuVideoBuffer.VideoBuffer.CopyTo(new((void*)pixels, emuVideoBuffer.VideoBuffer.Length));
+		}
+		else // different pitch, slow case (indicates padding between lines)
+		{
+			var videoBufferAsBytes = MemoryMarshal.AsBytes(emuVideoBuffer.VideoBuffer);
+			for (var i = 0; i < Height; i++)
+			{
+				videoBufferAsBytes.Slice(i * emuVideoBuffer.Pitch, emuVideoBuffer.Pitch)
+					.CopyTo(new((void*)(pixels + i * pitch), emuVideoBuffer.Pitch));
+			}
+		}
+
+		SDL_UnlockTexture(Texture);
 	}
 
 	public void Dispose()

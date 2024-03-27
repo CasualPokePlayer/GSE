@@ -44,31 +44,9 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr
 		SDL_UnlockTexture(_emuTexture.Texture);
 	}
 
-	public unsafe void RenderEmuTexture(EmuVideoBuffer emuVideoBuffer)
+	public void RenderEmuTexture(EmuVideoBuffer emuVideoBuffer)
 	{
-		_emuTexture.SetVideoDimensions(emuVideoBuffer.Width, emuVideoBuffer.Height);
-
-		if (SDL_LockTexture(_emuTexture.Texture, IntPtr.Zero, out var pixels, out var pitch) != 0)
-		{
-			// this should never happen
-			throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
-		}
-
-		if (pitch == emuVideoBuffer.Pitch) // identical pitch, fast case (probably always the case?)
-		{
-			emuVideoBuffer.VideoBuffer.CopyTo(new((void*)pixels, emuVideoBuffer.VideoBuffer.Length));
-		}
-		else // different pitch, slow case (indicates padding between lines)
-		{
-			var videoBufferAsBytes = MemoryMarshal.AsBytes(emuVideoBuffer.VideoBuffer);
-			for (var i = 0; i < _emuTexture.Height; i++)
-			{
-				videoBufferAsBytes.Slice(i * emuVideoBuffer.Pitch, emuVideoBuffer.Pitch)
-					.CopyTo(new((void*)(pixels + i * pitch), emuVideoBuffer.Pitch));
-			}
-		}
-
-		SDL_UnlockTexture(_emuTexture.Texture);
+		_emuTexture.SetEmuVideoBuffer(emuVideoBuffer);
 	}
 
 	private void RenderTexture(SDLTexture src, SDLTexture dst, ref SDL_Rect srcRect, ref SDL_Rect dstRect, bool clear)
