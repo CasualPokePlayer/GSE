@@ -266,7 +266,7 @@ internal sealed class ImGuiModals
 
 			var inputLabel = string.Join(',', inputConfig.InputBindings.Select(b => b.ModifierLabel != null ? $"{b.ModifierLabel}+{b.MainInputLabel}" : b.MainInputLabel));
 			var labelSize = ImGui.CalcTextSize(inputLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-			var maxLabelSize = ImGui.GetWindowContentRegionMax().X - ImGui.GetFontSize() * (textSpacing + 4);
+			var maxLabelSize = ImGui.GetWindowContentRegionMax().X - ImGui.GetFontSize() * (textSpacing + 3.2f);
 			var buttonWidth = maxLabelSize > labelSize ? maxLabelSize : 0;
 			if (ImGui.Button($"{inputLabel}##{inputConfig.InputName}", new(buttonWidth, 0)))
 			{
@@ -355,7 +355,7 @@ internal sealed class ImGuiModals
 				ImGui.AlignTextToFramePadding();
 				ImGui.TextUnformatted($"{system} BIOS:");
 
-				ImGui.SameLine(ImGui.GetFontSize() * 6.5f);
+				ImGui.SameLine(ImGui.GetFontSize() * 5.5f);
 
 				if (ImGui.Button($"{biosPathConfig ?? "Path not set..."}##{system}"))
 				{
@@ -428,19 +428,19 @@ internal sealed class ImGuiModals
 			{
 				if (ImGui.BeginTabItem("Game"))
 				{
-					DoInputTab(_gameInputConfigs, 6.5f);
+					DoInputTab(_gameInputConfigs, 5.5f);
 					ImGui.EndTabItem();
 				}
 
 				if (ImGui.BeginTabItem("Play"))
 				{
-					DoInputTab(_playInputConfigs, 10.5f);
+					DoInputTab(_playInputConfigs, 9.5f);
 					ImGui.EndTabItem();
 				}
 
 				if (ImGui.BeginTabItem("State"))
 				{
-					DoInputTab(_stateInputConfigs, 12.5f);
+					DoInputTab(_stateInputConfigs, 11.5f);
 					ImGui.EndTabItem();
 				}
 

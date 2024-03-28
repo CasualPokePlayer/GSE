@@ -16,8 +16,8 @@ internal static class Licensing
 	private const string LGPL21LATER = "LGPL-2.1-or-later";
 	private const string ZLIB = "Zlib";
 	private const string MIT = "MIT";
-	// not an SPDX license id (Expat is just MIT under a different name)
-	private const string EXPAT = "Expat";
+	private const string EXPAT = "Expat"; // not an SPDX license id (Expat is just MIT under a different name)
+	private const string OFL11 = "OFL-1.1";
 
 	public record CopyrightInfo(string Product, string ProductUrl, string CopyrightHolder, string LicenseId);
 
@@ -32,6 +32,7 @@ internal static class Licensing
 		new("ImGui.NET", "https://github.com/ImGuiNET/ImGui.NET", "Eric Mellino and ImGui.NET contributors", MIT),
 		new("cimgui", "https://github.com/cimgui/cimgui", "Stephan Dilly", MIT),
 		new("Dear ImGui", "https://github.com/ocornut/imgui", "Omar Cornut", MIT),
+		new("Noto Sans Mono", "https://github.com/notofonts/latin-greek-cyrillic", "The Noto Project Authors", OFL11),
 		new("SameBoy", "https://github.com/LIJI32/SameBoy", "Lior Halphon", EXPAT),
 		new("blip_buf", "https://github.com/CasualPokePlayer/GSR/blob/2a0f18a/GSR.Audio/BlipBuffer.cs", "CasualPokePlayer & Shay Green & EkeEke", LGPL21LATER),
 		new("SharpCompress", "https://github.com/adamhathcock/sharpcompress", "Adam Hathcock", MIT),
@@ -48,6 +49,7 @@ internal static class Licensing
 		[ZLIB] = GetLicense(ZLIB),
 		[MIT] = GetLicense(MIT),
 		[EXPAT] = GetLicense(MIT),
+		[OFL11] = GetLicense(OFL11),
 	}.ToFrozenDictionary();
 
 	private static string GetLicense(string licenseId)

@@ -31,6 +31,8 @@
 		<EmbeddedResource Include="res/LGPL-2.1-or-later" Visible="false" />
 		<EmbeddedResource Include="res/Zlib" Visible="false" />
 		<EmbeddedResource Include="res/MIT" Visible="false" />
+		<EmbeddedResource Include="res/OFL-1.1" Visible="false" />
+		<EmbeddedResource Include="res/NotoSansMono-Medium.ttf" Visible="false" />
 	</ItemGroup>
 	<!-- Include all the libraries we end up using, yes this has to be here (for DirectPInvoke/NativeLibrary anyways) -->
 	<PropertyGroup>

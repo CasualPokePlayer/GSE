@@ -159,6 +159,8 @@ internal sealed class ImGuiWindow : IDisposable
 		[SDL_Keycode.SDLK_AC_FORWARD] = ImGuiKey.AppForward,
 	}.ToFrozenDictionary();
 
+	private static readonly ReadOnlyMemory<byte> _natoSansMonoFont;
+
 	static ImGuiWindow()
 	{
 		SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
@@ -175,6 +177,12 @@ internal sealed class ImGuiWindow : IDisposable
 		_sdlCursors[(int)ImGuiMouseCursor.ResizeNWSE] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
 		_sdlCursors[(int)ImGuiMouseCursor.Hand] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND);
 		_sdlCursors[(int)ImGuiMouseCursor.NotAllowed] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
+
+		using var notoSansMono = typeof(ImGuiWindow).Assembly
+			.GetManifestResourceStream($"{typeof(ImGuiWindow).Assembly.GetName().Name}.res.NotoSansMono-Medium.ttf")!;
+		var font = new byte[notoSansMono.Length];
+		notoSansMono.ReadExactly(font, 0, font.Length);
+		_natoSansMonoFont = new(font);
 	}
 
 	private readonly IntPtr _imGuiContext;
@@ -398,10 +406,18 @@ internal sealed class ImGuiWindow : IDisposable
 
 		fontConfig.OversampleH = fontConfig.OversampleV = 1;
 		fontConfig.PixelSnapH = true;
-		fontConfig.SizePixels = 13 * (float)Math.Round(scaleFactor, MidpointRounding.AwayFromZero);
+		fontConfig.SizePixels = (float)Math.Round(16 * scaleFactor, MidpointRounding.AwayFromZero);
+		fontConfig.FontDataOwnedByAtlas = false;
 
 		io.Fonts.Clear();
-		io.Fonts.AddFontDefault(fontConfig);
+		unsafe
+		{
+			fixed (byte* fontPtr = _natoSansMonoFont.Span)
+			{
+				io.Fonts.AddFontFromMemoryTTF((IntPtr)fontPtr, _natoSansMonoFont.Length, 0, fontConfig);
+			}
+		}
+
 		fontConfig.Destroy();
 
 		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
