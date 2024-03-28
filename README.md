@@ -37,8 +37,8 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 ***GUI***
 * Nearest Neighbor, Billinear, and Sharp Billinear filtering options
 * DPI aware GUI scaling[^3]
-* Dark mode GUI
-* Dark mode title bar on Windows 10+
+* Dark and light mode options
+* Dark mode title bar on Windows 10+ when GUI is in dark mode
 
 ***Input***
 * Background input option, available for both keyboard and joystick inputs

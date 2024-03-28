@@ -708,6 +708,13 @@ internal sealed class ImGuiModals
 				}
 			}
 
+			var darkMode = _config.DarkMode;
+			if (ImGui.Checkbox("Dark Mode", ref darkMode))
+			{
+				_config.DarkMode = darkMode;
+				_mainWindow.SetTheme(darkMode);
+			}
+
 			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{
 				var disableWin11RoundCorners = _config.DisableWin11RoundCorners;

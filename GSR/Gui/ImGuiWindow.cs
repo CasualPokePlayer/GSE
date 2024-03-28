@@ -457,37 +457,6 @@ internal sealed class ImGuiWindow : IDisposable
 				_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
 			}
 
-			// set dark mode if the windows version is new enough
-			// this mode technically isn't supported until windows 11
-			// but unofficially it was available in windows 10
-			// TODO: this probably should be configurable along with imgui dark/light mode
-			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
-			{
-				unsafe
-				{
-					BOOL darkMode = true;
-					if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18985))
-					{
-						// windows 10 20H1 and above has the same documented dark mode api
-						_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, (uint)sizeof(BOOL));
-					}
-					else
-					{
-						// before windows 10 1903, the UseImmersiveDarkModeColors window property needed to be set in order to use the unofficial dark mode api
-						if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
-						{
-							fixed (char* useImmersiveDarkModeColors = "UseImmersiveDarkModeColors")
-							{
-								_ = PInvoke.SetProp(new(SdlSysWMInfo.info.win.window), useImmersiveDarkModeColors, new(darkMode));
-							}
-						}
-
-						// before windows 10 20H1 the DWMWA_USE_IMMERSIVE_DARK_MODE flag was -1 the final value
-						_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkMode, (uint)sizeof(BOOL));
-					}
-				}
-			}
-
 			// disable windows 11 round corners, if the user wants that
 			// windows 11 is windows 10 build 22000 and above
 			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
@@ -560,8 +529,16 @@ internal sealed class ImGuiWindow : IDisposable
 				scaleFactor = _dpiScale;
 			}
 
-			ImGui.GetStyle().ScaleAllSizes(scaleFactor);
+			SetTheme(config.DarkMode);
+
+			var style = ImGui.GetStyle();
+			style.ScaleAllSizes(scaleFactor);
 			SetFont(scaleFactor);
+
+			// make sure we have a frame border
+			// this doesn't matter too much in dark mode
+			// but without a border light mode is terrible
+			style.FrameBorderSize = 1;
 		}
 		catch
 		{
@@ -692,6 +669,68 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 	}
 
+#if GSR_WINDOWS
+	private void SetTitleBarTheme(bool dark)
+	{
+		// set dark title bar if the windows version is new enough
+		// this mode technically isn't supported until windows 11
+		// but unofficially it was available in windows 10
+		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+		{
+			unsafe
+			{
+				BOOL darkTitleBar = dark;
+				if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18985))
+				{
+					// windows 10 20H1 and above has the same documented dark mode api
+					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, &darkTitleBar, (uint)sizeof(BOOL));
+				}
+				else
+				{
+					// before windows 10 1903, the UseImmersiveDarkModeColors window property needed to be set in order to use the unofficial dark mode api
+					if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+					{
+						fixed (char* useImmersiveDarkModeColors = "UseImmersiveDarkModeColors")
+						{
+							_ = PInvoke.SetProp(new(SdlSysWMInfo.info.win.window), useImmersiveDarkModeColors, new(darkTitleBar));
+						}
+					}
+
+					// before windows 10 20H1 the DWMWA_USE_IMMERSIVE_DARK_MODE flag was -1 the final value
+					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkTitleBar, (uint)sizeof(BOOL));
+				}
+
+				if (!_isFullscreen)
+				{
+					var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+					if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
+					    (windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) == 0)
+					{
+						// this seems to be the only way to programmatically force refresh the title bar
+						SDL_HideWindow(SdlWindow);
+						SDL_ShowWindow(SdlWindow);
+					}
+				}
+			}
+		}
+	}
+#endif
+
+	public void SetTheme(bool dark)
+	{
+#if GSR_WINDOWS
+		SetTitleBarTheme(dark);
+#endif
+		if (dark)
+		{
+			ImGui.StyleColorsDark();
+		}
+		else
+		{
+			ImGui.StyleColorsLight();
+		}
+	}
+
 	/// <summary>
 	/// HACK to prevent Escape closing the input binding popup
 	/// </summary>
@@ -814,11 +853,16 @@ internal sealed class ImGuiWindow : IDisposable
 
 					// copy default style to current style
 					var curStyle = ImGui.GetStyle();
+					// make sure to not override the colors
+					new Span<Vector4>(curStyle.Colors.Data, curStyle.Colors.Count)
+						.CopyTo(new(style.Colors.Data, style.Colors.Count));
 					*curStyle.NativePtr = *style.NativePtr;
 					style.Destroy();
 
 					// scale up
 					curStyle.ScaleAllSizes(dpiScale);
+					// make sure we have the frame border
+					curStyle.FrameBorderSize = 1;
 				}
 
 				SetFont(dpiScale);
