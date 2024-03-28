@@ -438,37 +438,6 @@ internal sealed class ImGuiWindow : IDisposable
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
 			}
 
-			SdlSysWMInfo = default;
-			SDL_GetVersion(out SdlSysWMInfo.version);
-			if (SDL_GetWindowWMInfo(SdlWindow, ref SdlSysWMInfo) == SDL_bool.SDL_FALSE)
-			{
-				throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
-			}
-
-#if GSR_WINDOWS
-			// kind of a hack to get rid of the window icon
-			var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-			_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
-			_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
-				SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
-			unsafe
-			{
-				_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
-			}
-
-			// disable windows 11 round corners, if the user wants that
-			// windows 11 is windows 10 build 22000 and above
-			if (config.DisableWin11RoundCorners && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
-			{
-				unsafe
-				{
-					var cornerPref = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
-					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
-				}
-			}
-#endif
-
 			WindowId = SDL_GetWindowID(SdlWindow);
 
 			var rendererFlags = SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_TARGETTEXTURE;
@@ -484,6 +453,23 @@ internal sealed class ImGuiWindow : IDisposable
 			{
 				throw new($"Could not create SDL renderer! SDL error: {SDL_GetError()}");
 			}
+
+			// we obtain WM info after creating a renderer
+			// as creating a renderer may need to re-create the window
+			// (OpenGL on Windows at least does this)
+			SdlSysWMInfo = default;
+			SDL_GetVersion(out SdlSysWMInfo.version);
+			if (SDL_GetWindowWMInfo(SdlWindow, ref SdlSysWMInfo) == SDL_bool.SDL_FALSE)
+			{
+				throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
+			}
+
+#if GSR_WINDOWS
+			// disable the window icon
+			SetWindowIconEnabled(false);
+			// disable windows 11 round corners, if the user wants that
+			SetWin11CornerPreference(config.DisableWin11RoundCorners);
+#endif
 
 			var videoDriver = SDL_GetCurrentVideoDriver();
 			_mouseCanUseGlobalState = videoDriver is "windows" or "cocoa" or "x11" or "DIVE" or "VMAN";
@@ -606,23 +592,9 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 #if GSR_WINDOWS
-		var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-		if (_isFullscreen)
-		{
-			curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-		}
-		else
-		{
-			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
-		}
-
-		_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
-		_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
-			SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
-		unsafe
-		{
-			_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
-		}
+		// the hack used to disable the window icon will cause fullscreen to have a noticeable border
+		// so re-enable the window icon if we're fullscreen (the user won't be seeing the icon anyways)
+		SetWindowIconEnabled(_isFullscreen);
 #endif
 	}
 
@@ -670,6 +642,53 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 #if GSR_WINDOWS
+	public void SetWin11CornerPreference(bool doNotRound)
+	{
+		// windows 11 is windows 10 build 22000 and above
+		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+		{
+			unsafe
+			{
+				var cornerPref = doNotRound ? DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND : DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DEFAULT;
+				_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
+			}
+
+			// don't know if this is needed, but if it's like the title bar, it probably is
+			if (!_isFullscreen)
+			{
+				var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+				if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
+				    (windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) == 0)
+				{
+					SDL_HideWindow(SdlWindow);
+					SDL_ShowWindow(SdlWindow);
+				}
+			}
+		}
+	}
+
+	private void SetWindowIconEnabled(bool enable)
+	{
+		var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+		if (enable)
+		{
+			curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+		}
+		else
+		{
+			// kind of a hack to get rid of the window icon
+			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
+		}
+
+		_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+		_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
+			SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
+		unsafe
+		{
+			_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
+		}
+	}
+
 	private void SetTitleBarTheme(bool dark)
 	{
 		// set dark title bar if the windows version is new enough

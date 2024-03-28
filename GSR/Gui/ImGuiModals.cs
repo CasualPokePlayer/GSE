@@ -715,14 +715,17 @@ internal sealed class ImGuiModals
 				_mainWindow.SetTheme(darkMode);
 			}
 
+#if GSR_WINDOWS
 			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{
 				var disableWin11RoundCorners = _config.DisableWin11RoundCorners;
-				if (ImGui.Checkbox("Disable Win11 Round Corners", ref disableWin11RoundCorners))
+				if (ImGui.Checkbox("Disable Windows 11 Round Corners", ref disableWin11RoundCorners))
 				{
 					_config.DisableWin11RoundCorners = disableWin11RoundCorners;
+					_mainWindow.SetWin11CornerPreference(disableWin11RoundCorners);
 				}
 			}
+#endif
 
 			ImGui.EndPopup();
 		}
