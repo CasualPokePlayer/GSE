@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 
 namespace GSR.Audio;
 
@@ -168,6 +169,9 @@ internal sealed unsafe class BlipBuffer : IDisposable
 		{ 0,  43,  -115,  350, -488, 1136,  -914, 5861  }
 	};
 
+	private static readonly Vector512<int>[] _blStep512 = new Vector512<int>[PhaseCount];
+	private static readonly Vector512<int>[] _blStep512HW = new Vector512<int>[PhaseCount];
+
 	// humans don't hear perceive loudness linearly, but rather in a logarithmic scale
 	// due to this, we want to adjust volume by a decibel (dB) scale
 	private static readonly double[] _volumeDbScaled;
@@ -188,11 +192,61 @@ internal sealed unsafe class BlipBuffer : IDisposable
 			var db = DB_RANGE - i / 100.0 * DB_RANGE;
 			_volumeDbScaled[i] = Math.Pow(10, -db / 20);
 		}
+
+		for (var i = 0; i < PhaseCount; i++)
+		{
+			fixed (short*
+			       input = &BlStep[i, 0],
+			       inputHW = &BlStep[i + 1, 0],
+			       rev = &BlStep[PhaseCount - i, 0],
+			       revHW = &BlStep[PhaseCount - i - 1, 0])
+			{
+				var input256 = Vector256.Create(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7]);
+				var rev256 = Vector256.Create(rev[7], rev[6], rev[5], rev[4], rev[3], rev[2], rev[1], rev[0]);
+				_blStep512[i] = Vector512.Create(input256, rev256);
+				var inputHW256 = Vector256.Create(inputHW[0], inputHW[1], inputHW[2], inputHW[3], inputHW[4], inputHW[5], inputHW[6], inputHW[7]);
+				var revHW256 = Vector256.Create(revHW[7], revHW[6], revHW[5], revHW[4], revHW[3], revHW[2], revHW[1], revHW[0]);
+				_blStep512HW[i] = Vector512.Create(inputHW256, revHW256);
+			}
+		}
 	}
 
 	public void AddDelta(uint time, int deltaL, int deltaR)
 	{
-		// TODO: optimize this thing with SIMD intrinsics
+		if ((deltaL | deltaR) != 0)
+		{
+			var fixedSample = (uint)((time * _factor + _offset) >> PreShift);
+			var phase = fixedSample >> PhaseShift & (PhaseCount - 1);
+			var interp = (int)(fixedSample >> (PhaseShift - DeltaBits) & (DeltaUnit - 1));
+			var pos = fixedSample >> FracBits;
+
+			var step = _blStep512[phase];
+			var stepHW = _blStep512HW[phase];
+
+			var delta = (deltaL * interp) >> DeltaBits;
+			var delta512 = Vector512.Create(delta);
+			var deltaL512 = Vector512.Create(deltaL - delta);
+
+			var outL = _leftSamples + pos;
+			var outL512 = Vector512.Load(outL);
+			outL512 += step * deltaL512 + stepHW * delta512;
+			outL512.Store(outL);
+
+			delta = (deltaR * interp) >> DeltaBits;
+			delta512 = Vector512.Create(delta);
+			var deltaR512 = Vector512.Create(deltaR - delta);
+
+			var outR = _rightSamples + pos;
+			var outR512 = Vector512.Load(outR);
+			outR512 += step * deltaR512 + stepHW * delta512;
+			outR512.Store(outR);
+		}
+	}
+
+#if false
+	// Reference non-vector implementation
+	public void AddDelta(uint time, int deltaL, int deltaR)
+	{
 		if ((deltaL | deltaR) != 0)
 		{
 			var fixedSample = (uint)((time * _factor + _offset) >> PreShift);
@@ -209,101 +263,45 @@ internal sealed unsafe class BlipBuffer : IDisposable
 				var outL = _leftSamples + pos;
 				var outR = _rightSamples + pos;
 
-				int delta;
-				if (deltaL == deltaR)
-				{
-					delta = (deltaL * interp) >> DeltaBits;
-					deltaL -= delta;
-					var outV = input[0] * deltaL + inputHW[0] * delta;
-					outL[0] += outV;
-					outR[0] += outV;
-					outV = input[1] * deltaL + inputHW[1] * delta;
-					outL[1] += outV;
-					outR[1] += outV;
-					outV = input[2] * deltaL + inputHW[2] * delta;
-					outL[2] += outV;
-					outR[2] += outV;
-					outV = input[3] * deltaL + inputHW[3] * delta;
-					outL[3] += outV;
-					outR[3] += outV;
-					outV = input[4] * deltaL + inputHW[4] * delta;
-					outL[4] += outV;
-					outR[4] += outV;
-					outV = input[5] * deltaL + inputHW[5] * delta;
-					outL[5] += outV;
-					outR[5] += outV;
-					outV = input[6] * deltaL + inputHW[6] * delta;
-					outL[6] += outV;
-					outR[6] += outV;
-					outV = input[7] * deltaL + inputHW[7] * delta;
-					outL[7] += outV;
-					outR[7] += outV;
-					outV = rev[7] * deltaL + revHW[7] * delta;
-					outL[8] += outV;
-					outR[8] += outV;
-					outV = rev[6] * deltaL + revHW[6] * delta;
-					outL[9] += outV;
-					outR[9] += outV;
-					outV = rev[5] * deltaL + revHW[5] * delta;
-					outL[10] += outV;
-					outR[10] += outV;
-					outV = rev[4] * deltaL + revHW[4] * delta;
-					outL[11] += outV;
-					outR[11] += outV;
-					outV = rev[3] * deltaL + revHW[3] * delta;
-					outL[12] += outV;
-					outR[12] += outV;
-					outV = rev[2] * deltaL + revHW[2] * delta;
-					outL[13] += outV;
-					outR[13] += outV;
-					outV = rev[1] * deltaL + revHW[1] * delta;
-					outL[14] += outV;
-					outR[14] += outV;
-					outV = rev[0] * deltaL + revHW[0] * delta;
-					outL[15] += outV;
-					outR[15] += outV;
-				}
-				else
-				{
-					delta = (deltaL * interp) >> DeltaBits;
-					deltaL -= delta;
-					outL[0] += input[0] * deltaL + inputHW[0] * delta;
-					outL[1] += input[1] * deltaL + inputHW[1] * delta;
-					outL[2] += input[2] * deltaL + inputHW[2] * delta;
-					outL[3] += input[3] * deltaL + inputHW[3] * delta;
-					outL[4] += input[4] * deltaL + inputHW[4] * delta;
-					outL[5] += input[5] * deltaL + inputHW[5] * delta;
-					outL[6] += input[6] * deltaL + inputHW[6] * delta;
-					outL[7] += input[7] * deltaL + inputHW[7] * delta;
-					outL[8] += rev[7] * deltaL + revHW[7] * delta;
-					outL[9] += rev[6] * deltaL + revHW[6] * delta;
-					outL[10] += rev[5] * deltaL + revHW[5] * delta;
-					outL[11] += rev[4] * deltaL + revHW[4] * delta;
-					outL[12] += rev[3] * deltaL + revHW[3] * delta;
-					outL[13] += rev[2] * deltaL + revHW[2] * delta;
-					outL[14] += rev[1] * deltaL + revHW[1] * delta;
-					outL[15] += rev[0] * deltaL + revHW[0] * delta;
+				var delta = (deltaL * interp) >> DeltaBits;
+				deltaL -= delta;
+				outL[0] += input[0] * deltaL + inputHW[0] * delta;
+				outL[1] += input[1] * deltaL + inputHW[1] * delta;
+				outL[2] += input[2] * deltaL + inputHW[2] * delta;
+				outL[3] += input[3] * deltaL + inputHW[3] * delta;
+				outL[4] += input[4] * deltaL + inputHW[4] * delta;
+				outL[5] += input[5] * deltaL + inputHW[5] * delta;
+				outL[6] += input[6] * deltaL + inputHW[6] * delta;
+				outL[7] += input[7] * deltaL + inputHW[7] * delta;
+				outL[8] += rev[7] * deltaL + revHW[7] * delta;
+				outL[9] += rev[6] * deltaL + revHW[6] * delta;
+				outL[10] += rev[5] * deltaL + revHW[5] * delta;
+				outL[11] += rev[4] * deltaL + revHW[4] * delta;
+				outL[12] += rev[3] * deltaL + revHW[3] * delta;
+				outL[13] += rev[2] * deltaL + revHW[2] * delta;
+				outL[14] += rev[1] * deltaL + revHW[1] * delta;
+				outL[15] += rev[0] * deltaL + revHW[0] * delta;
 
-					delta = (deltaR * interp) >> DeltaBits;
-					deltaR -= delta;
-					outR[0] += input[0] * deltaR + inputHW[0] * delta;
-					outR[1] += input[1] * deltaR + inputHW[1] * delta;
-					outR[2] += input[2] * deltaR + inputHW[2] * delta;
-					outR[3] += input[3] * deltaR + inputHW[3] * delta;
-					outR[4] += input[4] * deltaR + inputHW[4] * delta;
-					outR[5] += input[5] * deltaR + inputHW[5] * delta;
-					outR[6] += input[6] * deltaR + inputHW[6] * delta;
-					outR[7] += input[7] * deltaR + inputHW[7] * delta;
-					outR[8] += rev[7] * deltaR + revHW[7] * delta;
-					outR[9] += rev[6] * deltaR + revHW[6] * delta;
-					outR[10] += rev[5] * deltaR + revHW[5] * delta;
-					outR[11] += rev[4] * deltaR + revHW[4] * delta;
-					outR[12] += rev[3] * deltaR + revHW[3] * delta;
-					outR[13] += rev[2] * deltaR + revHW[2] * delta;
-					outR[14] += rev[1] * deltaR + revHW[1] * delta;
-					outR[15] += rev[0] * deltaR + revHW[0] * delta;
-				}
+				delta = (deltaR * interp) >> DeltaBits;
+				deltaR -= delta;
+				outR[0] += input[0] * deltaR + inputHW[0] * delta;
+				outR[1] += input[1] * deltaR + inputHW[1] * delta;
+				outR[2] += input[2] * deltaR + inputHW[2] * delta;
+				outR[3] += input[3] * deltaR + inputHW[3] * delta;
+				outR[4] += input[4] * deltaR + inputHW[4] * delta;
+				outR[5] += input[5] * deltaR + inputHW[5] * delta;
+				outR[6] += input[6] * deltaR + inputHW[6] * delta;
+				outR[7] += input[7] * deltaR + inputHW[7] * delta;
+				outR[8] += rev[7] * deltaR + revHW[7] * delta;
+				outR[9] += rev[6] * deltaR + revHW[6] * delta;
+				outR[10] += rev[5] * deltaR + revHW[5] * delta;
+				outR[11] += rev[4] * deltaR + revHW[4] * delta;
+				outR[12] += rev[3] * deltaR + revHW[3] * delta;
+				outR[13] += rev[2] * deltaR + revHW[2] * delta;
+				outR[14] += rev[1] * deltaR + revHW[1] * delta;
+				outR[15] += rev[0] * deltaR + revHW[0] * delta;
 			}
 		}
 	}
+#endif
 }
