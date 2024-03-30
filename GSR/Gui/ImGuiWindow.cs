@@ -562,8 +562,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 		SDL_free(ClipboardText);
 
-		_fontSdlTexture.Dispose();
-		SdlRenderer.Dispose();
+		_fontSdlTexture?.Dispose();
+		SdlRenderer?.Dispose();
 
 #if GSR_WINDOWS
 		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763) &&
