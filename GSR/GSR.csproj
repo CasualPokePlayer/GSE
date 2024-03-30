@@ -12,11 +12,11 @@
 		<OutputType Condition="'$(GSR_WINDOWS)' != 'true'">Exe</OutputType>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="ImGui.NET" Version="1.90.1.1" ExcludeAssets="native" />
 		<PackageReference Include="SharpCompress" Version="0.36.0" />
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" PrivateAssets="all" />
 		<PackageReference Include="GitInfo" Version="3.3.4" PrivateAssets="all" />
-		<ProjectReference Include="$(ProjectDir)../externals/ImGui.NET/ImGui.NET.csproj" />
 		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Audio/GSR.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />

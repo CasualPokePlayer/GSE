@@ -1,14 +1,15 @@
 // Copyright (c) 2024 CasualPokePlayer
-// SPDX-License-Identifier: MPL-2.0 or MIT
+// SPDX-License-Identifier: MPL-2.0
 
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-// ReSharper disable once CheckNamespace
-namespace ImGuiNET;
+using ImGuiNET;
+
+namespace GSR.Gui;
 
 /// <summary>
-/// A few internal ImGui API bindings (not exposed in base ImGuiNET)
+/// A few internal ImGui API bindings (not exposed in base ImGui.NET)
 /// </summary>
 public static unsafe partial class ImGuiInternal
 {
