@@ -393,6 +393,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private void SetFontTexture()
 	{
+		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
 		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
 		_fontSdlTexture.UpdateTexture(width, height, pixels, width * bytesPerPixel);
@@ -749,6 +750,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public void SetTheme(bool dark)
 	{
+		ImGui.SetCurrentContext(_imGuiContext);
 #if GSR_WINDOWS
 		SetTitleBarTheme(dark);
 #endif

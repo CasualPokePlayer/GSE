@@ -279,7 +279,7 @@ internal sealed class GSR : IDisposable
 					if (windowId == _mainWindow.WindowId)
 					{
 						// suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
-						if (e->type == SDL_EventType.SDL_KEYDOWN && _emuManager.EmuAcceptingInputs)
+						if (e->type is SDL_EventType.SDL_KEYDOWN or SDL_EventType.SDL_KEYUP && _emuManager.EmuAcceptingInputs)
 						{
 							continue;
 						}
