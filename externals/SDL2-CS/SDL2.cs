@@ -848,12 +848,12 @@ namespace SDL2
 		/* Use string.Format for arglists */
 		[LibraryImport(nativeLibName, EntryPoint = "SDL_SetError")]
 		[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-		private static unsafe partial void INTERNAL_SDL_SetError(byte* fmtAndArglist);
+		private static unsafe partial int INTERNAL_SDL_SetError(byte* fmtAndArglist);
 		public static unsafe void SDL_SetError(string fmtAndArglist)
 		{
 			var utf8FmtAndArglistBufSize = Utf8Size(fmtAndArglist);
 			var utf8FmtAndArglist = stackalloc byte[utf8FmtAndArglistBufSize];
-			INTERNAL_SDL_SetError(
+			_ = INTERNAL_SDL_SetError(
 				Utf8Encode(fmtAndArglist, utf8FmtAndArglist, utf8FmtAndArglistBufSize)
 			);
 		}

@@ -48,6 +48,8 @@ internal sealed class GSR : IDisposable
 		SDL_EventType.SDL_DROPFILE, SDL_EventType.SDL_DROPBEGIN, SDL_EventType.SDL_DROPCOMPLETE,
 		// Audio hotplug events
 		SDL_EventType.SDL_AUDIODEVICEADDED, SDL_EventType.SDL_AUDIODEVICEREMOVED,
+		// Renderer specific events
+		SDL_EventType.SDL_RENDER_TARGETS_RESET, SDL_EventType.SDL_RENDER_DEVICE_RESET,
 	];
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -314,7 +316,7 @@ internal sealed class GSR : IDisposable
 
 		var contentRegionAvail = ImGui.GetContentRegionAvail();
 		var finalTex = _postProcessor.DoPostProcessing((int)contentRegionAvail.X, (int)contentRegionAvail.Y);
-		ImGui.Image(finalTex.Texture, contentRegionAvail);
+		ImGui.Image(finalTex.TextureId, contentRegionAvail);
 	}
 
 	public int MainLoop()

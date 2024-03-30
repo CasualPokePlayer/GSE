@@ -186,14 +186,16 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	private readonly IntPtr _imGuiContext;
-	private IntPtr _fontSdlTexture;
+	private readonly SDLTexture _fontSdlTexture;
 	private readonly bool _isOverridingScale;
 	private float _dpiScale;
 
 	public readonly IntPtr SdlWindow;
-	public readonly IntPtr SdlRenderer;
-	public readonly SDL_SysWMinfo SdlSysWMInfo;
 	public readonly uint WindowId;
+
+	public readonly SDLRenderer SdlRenderer;
+
+	public readonly SDL_SysWMinfo SdlSysWMInfo;
 
 	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
 	private bool _isFullscreen;
@@ -342,9 +344,8 @@ internal sealed class ImGuiWindow : IDisposable
 				return IntPtr.Zero;
 			}
 
-			// test if render targets work
-			var texture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, 1, 1);
-			if (texture == IntPtr.Zero)
+			// check if render targets are supported (only truly knowable when the renderer is actually created)
+			if (SDL_RenderTargetSupported(sdlRenderer) == SDL_bool.SDL_FALSE)
 			{
 				if (index != -1)
 				{
@@ -379,16 +380,23 @@ internal sealed class ImGuiWindow : IDisposable
 				return IntPtr.Zero;
 			}
 
-			SDL_DestroyTexture(texture);
 			return sdlRenderer;
 		}
 	}
 
 	private float GetDpiScale()
 	{
-		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+		SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
 		SDL_GetWindowSize(SdlWindow, out var w, out var h);
 		return Math.Max(displayW / (float)w, displayH / (float)h);
+	}
+
+	private void SetFontTexture()
+	{
+		var io = ImGui.GetIO();
+		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
+		_fontSdlTexture.UpdateTexture(width, height, pixels, width * bytesPerPixel);
+		io.Fonts.SetTexID(_fontSdlTexture.TextureId);
 	}
 
 	private void SetFont(float scaleFactor)
@@ -419,23 +427,7 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 		fontConfig.Destroy();
-
-		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
-		SDL_DestroyTexture(_fontSdlTexture);
-		_fontSdlTexture = SDL_CreateTexture(SdlRenderer, SDL_PIXELFORMAT_ABGR8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, width, height);
-		if (_fontSdlTexture == IntPtr.Zero)
-		{
-			throw new($"Failed to create SDL font texture! SDL error: {SDL_GetError()}");
-		}
-
-		if (SDL_UpdateTexture(_fontSdlTexture, IntPtr.Zero, pixels, width * bytesPerPixel) != 0)
-		{
-			throw new($"Failed to update SDL font texture! SDL error: {SDL_GetError()}");
-		}
-
-		_ = SDL_SetTextureBlendMode(_fontSdlTexture, SDL_BlendMode.SDL_BLENDMODE_BLEND);
-		_ = SDL_SetTextureScaleMode(_fontSdlTexture, SDL_ScaleMode.SDL_ScaleModeLinear);
-		io.Fonts.SetTexID(_fontSdlTexture);
+		SetFontTexture();
 	}
 
 	public ImGuiWindow(string windowName, Config config, bool isMainWindow)
@@ -464,11 +456,15 @@ internal sealed class ImGuiWindow : IDisposable
 				rendererFlags |= SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
 			}
 
-			SdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
-			if (SdlRenderer == IntPtr.Zero)
+			var sdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
+			if (sdlRenderer == IntPtr.Zero)
 			{
 				throw new($"Could not create SDL renderer! SDL error: {SDL_GetError()}");
 			}
+
+			SdlRenderer = new(sdlRenderer);
+			_fontSdlTexture = new(SdlRenderer, SDL_PIXELFORMAT_ABGR8888,
+				SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_BLEND, SetFontTexture);
 
 			// we obtain WM info after creating a renderer
 			// as creating a renderer may need to re-create the window
@@ -566,8 +562,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 		SDL_free(ClipboardText);
 
-		SDL_DestroyTexture(_fontSdlTexture);
-		SDL_DestroyRenderer(SdlRenderer);
+		_fontSdlTexture.Dispose();
+		SdlRenderer.Dispose();
 
 #if GSR_WINDOWS
 		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763) &&
@@ -627,7 +623,7 @@ internal sealed class ImGuiWindow : IDisposable
 			h += (int)(ImGui.GetFrameHeight() * bars);
 			// we want to adjust our width/height to match up against the renderer output
 			// as imgui coords go against the dpi scaled size, not the window size
-			_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+			SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
 			SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
 			w = w * lastWindowWidth / displayW;
 			h = h * lastWindowHeight / displayH;
@@ -911,7 +907,7 @@ internal sealed class ImGuiWindow : IDisposable
 					// nasty hack to account for ImGui.GetFrameHeight() not being up to date
 					var frameHeight = io.Fonts.Fonts[0].FontSize + ImGui.GetStyle().FramePadding.Y * 2.0f;
 					newHeight += (int)(frameHeight * _lastBars);
-					_ = SDL_GetRendererOutputSize(SdlRenderer, out var lastDisplayW, out var lastDisplayH);
+					SdlRenderer.GetRendererOutputSize(out var lastDisplayW, out var lastDisplayH);
 					SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
 					newWidth = newWidth * lastWindowWidth / lastDisplayW;
 					newHeight = newHeight * lastWindowHeight / lastDisplayH;
@@ -927,7 +923,7 @@ internal sealed class ImGuiWindow : IDisposable
 			w = h = 0;
 		}
 
-		_ = SDL_GetRendererOutputSize(SdlRenderer, out var displayW, out var displayH);
+		SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{
@@ -998,14 +994,45 @@ internal sealed class ImGuiWindow : IDisposable
 		ImGui.NewFrame();
 	}
 
+	/// <summary>
+	/// Helper ref struct for saving render state in an RAII style
+	/// </summary>
+	private ref struct SDLSaveRenderStateWrapper
+	{
+		private readonly SDLRenderer _sdlRenderer;
+		private readonly bool _clipEnabled;
+		private SDL_Rect _viewport;
+		private SDL_Rect _clipRect;
+
+		public SDLSaveRenderStateWrapper(SDLRenderer sdlRenderer)
+		{
+			_sdlRenderer = sdlRenderer;
+			_clipEnabled = _sdlRenderer.RenderIsClipEnabled();
+			_sdlRenderer.RenderGetViewport(out _viewport);
+			_sdlRenderer.RenderGetClipRect(out _clipRect);
+		}
+
+		public void Dispose()
+		{
+			_sdlRenderer.RenderSetViewport(ref _viewport);
+			if (_clipEnabled)
+			{
+				_sdlRenderer.RenderSetClipRect(ref _clipRect);
+			}
+			else
+			{
+				_sdlRenderer.RenderSetClipRect(ref Unsafe.NullRef<SDL_Rect>());
+			}
+		}
+	}
+
 	public void Render()
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		ImGui.Render();
 
-		// TODO: This clear is probably redundant
-		_ = SDL_SetRenderDrawColor(SdlRenderer, 0x80, 0x80, 0x80, 0xFF);
-		_ = SDL_RenderClear(SdlRenderer);
+		SdlRenderer.SetRenderDrawColor(0x80, 0x80, 0x80, 0xFF);
+		SdlRenderer.RenderClear();
 
 		var drawData = ImGui.GetDrawData();
 
@@ -1017,46 +1044,26 @@ internal sealed class ImGuiWindow : IDisposable
 			return;
 		}
 
-		var prevClipEnabled = SDL_RenderIsClipEnabled(SdlRenderer);
-		SDL_RenderGetViewport(SdlRenderer, out var prevViewPort);
-		SDL_RenderGetClipRect(SdlRenderer, out var prevClipRect);
-
-		var clipOff = drawData.DisplayPos;
-
-		void ResetRenderState()
+		using (new SDLSaveRenderStateWrapper(SdlRenderer))
 		{
-			_ = SDL_RenderSetViewport(SdlRenderer, ref Unsafe.NullRef<SDL_Rect>());
-			_ = SDL_RenderSetClipRect(SdlRenderer, IntPtr.Zero);
-		}
+			SdlRenderer.RenderSetViewport(ref Unsafe.NullRef<SDL_Rect>());
+			SdlRenderer.RenderSetClipRect(ref Unsafe.NullRef<SDL_Rect>());
 
-		ResetRenderState();
-		for (var i = 0; i < drawData.CmdListsCount; i++)
-		{
-			var cmdList = drawData.CmdLists[i];
-			var vtxBuffer = cmdList.VtxBuffer.Data;
-			var idxBuffer = cmdList.IdxBuffer.Data;
-
-			for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
+			var clipOff = drawData.DisplayPos;
+			for (var i = 0; i < drawData.CmdListsCount; i++)
 			{
-				var cmd = cmdList.CmdBuffer[j];
-				if (cmd.UserCallback != IntPtr.Zero)
+				var cmdList = drawData.CmdLists[i];
+				var vtxBuffer = cmdList.VtxBuffer.Data;
+				var idxBuffer = cmdList.IdxBuffer.Data;
+
+				for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
 				{
-					const nint ImDrawCallback_ResetRenderState = -8; // special value for resetting render state
-					if (cmd.UserCallback == ImDrawCallback_ResetRenderState)
+					var cmd = cmdList.CmdBuffer[j];
+					if (cmd.UserCallback != IntPtr.Zero)
 					{
-						ResetRenderState();
+						throw new NotSupportedException("User callbacks are not supported in this ImGui implementation");
 					}
-					else
-					{
-						unsafe
-						{
-							var callback = (delegate* unmanaged[Cdecl]<ImDrawList*, ImDrawCmd*, void>)cmd.UserCallback;
-							callback(cmdList.NativePtr, cmd.NativePtr);
-						}
-					}
-				}
-				else
-				{
+
 					var clipMin = new Vector2(Math.Max(cmd.ClipRect.X - clipOff.X, 0), Math.Max(cmd.ClipRect.Y - clipOff.Y, 0));
 					var clipMax = new Vector2(Math.Min(cmd.ClipRect.Z - clipOff.X, fbWidth), Math.Min(cmd.ClipRect.W - clipOff.Y, fbHeight));
 					if (clipMax.X <= clipMin.X || clipMax.Y <= clipMin.Y)
@@ -1071,15 +1078,14 @@ internal sealed class ImGuiWindow : IDisposable
 						w = (int)(clipMax.X - clipMin.X),
 						h = (int)(clipMax.Y - clipMin.Y)
 					};
-					_ = SDL_RenderSetClipRect(SdlRenderer, ref r);
+					SdlRenderer.RenderSetClipRect(ref r);
 
 					unsafe
 					{
 						var vtx = (ImDrawVert*)(vtxBuffer + cmd.VtxOffset * sizeof(ImDrawVert));
-						var tex = cmd.GetTexID();
-						_ = SDL_RenderGeometryRaw(
-							renderer: SdlRenderer,
-							texture: tex,
+						var texId = cmd.GetTexID();
+						SdlRenderer.RenderGeometryRaw(
+							textureId: texId,
 							xy: (IntPtr)(&vtx->pos),
 							xy_stride: sizeof(ImDrawVert),
 							color: (IntPtr)(&vtx->col),
@@ -1087,7 +1093,7 @@ internal sealed class ImGuiWindow : IDisposable
 							uv: (IntPtr)(&vtx->uv),
 							uv_stride: sizeof(ImDrawVert),
 							num_vertices: (int)(cmdList.VtxBuffer.Size - cmd.VtxOffset),
-							indices: checked((IntPtr)(idxBuffer + cmd.IdxOffset * sizeof(ushort))),
+							indices: (IntPtr)((UIntPtr)idxBuffer + cmd.IdxOffset * sizeof(ushort)),
 							num_indices: (int)cmd.ElemCount,
 							size_indices: sizeof(ushort)
 						);
@@ -1096,11 +1102,6 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 		}
 
-		_ = SDL_RenderSetViewport(SdlRenderer, ref prevViewPort);
-		_ = prevClipEnabled == SDL_bool.SDL_TRUE
-			? SDL_RenderSetClipRect(SdlRenderer, ref prevClipRect)
-			: SDL_RenderSetClipRect(SdlRenderer, IntPtr.Zero);
-
-		SDL_RenderPresent(SdlRenderer);
+		SdlRenderer.RenderPresent();
 	}
 }

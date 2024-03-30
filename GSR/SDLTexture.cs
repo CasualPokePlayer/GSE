@@ -12,53 +12,127 @@ namespace GSR;
 
 /// <summary>
 /// Wraps an SDL texture and caches its various state
-/// Currently, the texture is assumed to be SDL_PIXELFORMAT_ARGB8888
+/// Managing the texture should be done via this class
 /// </summary>
-public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAccess, SDL_ScaleMode scaleMode, SDL_BlendMode blendMode) : IDisposable
+internal sealed class SDLTexture : IDisposable
 {
-	public IntPtr Texture { get; private set; }
+	private readonly SDLRenderer _sdlRenderer;
+	private readonly uint _pixelFormat;
+	private readonly SDL_TextureAccess _textureAccess;
+	private readonly SDL_ScaleMode _scaleMode;
+	private readonly SDL_BlendMode _blendMode;
+	private readonly Action _onRecreate;
+
+	public readonly nint TextureId;
+	public readonly bool IsRenderTarget;
+
+	public SDLTexture(SDLRenderer sdlRenderer, uint pixelFormat, SDL_TextureAccess textureAccess,
+		SDL_ScaleMode scaleMode, SDL_BlendMode blendMode, Action onRecreate = null)
+	{
+		_sdlRenderer = sdlRenderer;
+		_pixelFormat = pixelFormat;
+		_textureAccess = textureAccess;
+		_scaleMode = scaleMode;
+		_blendMode = blendMode;
+		_onRecreate = onRecreate;
+
+		TextureId = _sdlRenderer.CreateTextureId(this);
+		IsRenderTarget = _textureAccess == SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET;
+	}
+
+	public IntPtr _texture;
+
 	public int Width { get; private set; }
 	public int Height { get; private set; }
 
-	public void SetVideoDimensions(int width, int height)
+	// note: this is only public so SDLRenderer can use it
+	// do not use this otherwise
+	public IntPtr GetNativeTexture()
 	{
-		if (width != Width || height != Height)
+		return _texture;
+	}
+
+	public void RecreateTexture()
+	{
+		var firstCreation = _texture == IntPtr.Zero;
+		Dispose();
+
+		do
 		{
-			Dispose();
-			Texture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, (int)textureAccess, width, height);
-			if (Texture == IntPtr.Zero)
+			_texture = _sdlRenderer.CreateNativeTexture(_pixelFormat, _textureAccess, Width, Height);
+			if (_texture == IntPtr.Zero && !_sdlRenderer.CheckDeviceLost())
 			{
 				throw new($"Failed to create video texture, SDL error: {SDL_GetError()}");
 			}
+		} while (_texture == IntPtr.Zero);
 
-			if (SDL_SetTextureScaleMode(Texture, scaleMode) != 0)
-			{
-				throw new($"Failed to set texture scaling mode, SDL error: {SDL_GetError()}");
-			}
+		if (SDL_SetTextureScaleMode(_texture, _scaleMode) != 0)
+		{
+			throw new($"Failed to set texture scaling mode, SDL error: {SDL_GetError()}");
+		}
 
-			if (SDL_SetTextureBlendMode(Texture, blendMode) != 0)
-			{
-				throw new($"Failed to set texture blend mode, SDL error: {SDL_GetError()}");
-			}
+		if (SDL_SetTextureBlendMode(_texture, _blendMode) != 0)
+		{
+			throw new($"Failed to set texture blend mode, SDL error: {SDL_GetError()}");
+		}
 
+		if (!firstCreation)
+		{
+			// only called if we actually re-created the texture, and this isn't just the first creation
+			_onRecreate?.Invoke();
+		}
+	}
+
+	public void SetVideoDimensions(int width, int height)
+	{
+		if (_texture == IntPtr.Zero || Width != width || Height != height)
+		{
 			Width = width;
 			Height = height;
+			RecreateTexture();
 		}
+	}
+
+	private readonly ref struct SDLTextureLock
+	{
+		private readonly SDLTexture _sdlTexture;
+		public readonly IntPtr Pixels;
+		public readonly int Pitch;
+
+		public SDLTextureLock(SDLTexture sdlTexture, SDLRenderer sdlRenderer)
+		{
+			_sdlTexture = sdlTexture;
+			while (SDL_LockTexture(_sdlTexture._texture, IntPtr.Zero, out Pixels, out Pitch) != 0)
+			{
+				if (!sdlRenderer.CheckDeviceLost())
+				{
+					throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			SDL_UnlockTexture(_sdlTexture._texture);
+		}
+	}
+
+	public unsafe void ResetTexture(int width, int height)
+	{
+		SetVideoDimensions(width, height);
+
+		using var texLock = new SDLTextureLock(this, _sdlRenderer);
+		new Span<byte>((void*)texLock.Pixels, texLock.Pitch * height).Clear();
 	}
 
 	public unsafe void SetEmuVideoBuffer(EmuVideoBuffer emuVideoBuffer)
 	{
 		SetVideoDimensions(emuVideoBuffer.Width, emuVideoBuffer.Height);
 
-		if (SDL_LockTexture(Texture, IntPtr.Zero, out var pixels, out var pitch) != 0)
+		using var texLock = new SDLTextureLock(this, _sdlRenderer);
+		if (texLock.Pitch == emuVideoBuffer.Pitch) // identical pitch, fast case (probably always the case?)
 		{
-			// this should never happen
-			throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
-		}
-
-		if (pitch == emuVideoBuffer.Pitch) // identical pitch, fast case (probably always the case?)
-		{
-			emuVideoBuffer.VideoBuffer.CopyTo(new((void*)pixels, emuVideoBuffer.VideoBuffer.Length));
+			emuVideoBuffer.VideoBuffer.CopyTo(new((void*)texLock.Pixels, emuVideoBuffer.VideoBuffer.Length));
 		}
 		else // different pitch, slow case (indicates padding between lines)
 		{
@@ -66,19 +140,33 @@ public sealed class SDLTexture(IntPtr sdlRenderer, SDL_TextureAccess textureAcce
 			for (var i = 0; i < Height; i++)
 			{
 				videoBufferAsBytes.Slice(i * emuVideoBuffer.Pitch, emuVideoBuffer.Pitch)
-					.CopyTo(new((void*)(pixels + i * pitch), emuVideoBuffer.Pitch));
+					.CopyTo(new((void*)(texLock.Pixels + i * texLock.Pitch), emuVideoBuffer.Pitch));
 			}
 		}
+	}
 
-		SDL_UnlockTexture(Texture);
+	/// <summary>
+	/// This should only be used for SDL_TEXTUREACCESS_STATIC textures (i.e. ImGui font textures)
+	/// </summary>
+	public void UpdateTexture(int width, int height, IntPtr pixels, int pitch)
+	{
+		SetVideoDimensions(width, height);
+
+		while (SDL_UpdateTexture(_texture, IntPtr.Zero, pixels, pitch) != 0)
+		{
+			if (!_sdlRenderer.CheckDeviceLost())
+			{
+				throw new($"Failed to update SDL texture! SDL error: {SDL_GetError()}");
+			}
+		}
 	}
 
 	public void Dispose()
 	{
-		if (Texture != IntPtr.Zero)
+		if (_texture != IntPtr.Zero)
 		{
-			SDL_DestroyTexture(Texture);
-			Texture = IntPtr.Zero;
+			SDL_DestroyTexture(_texture);
+			_texture = IntPtr.Zero;
 		}
 	}
 }

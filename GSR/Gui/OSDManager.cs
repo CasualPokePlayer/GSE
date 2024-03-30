@@ -18,7 +18,7 @@ namespace GSR.Gui;
 /// <summary>
 /// Manages the OSD. Can be done on a status bar or a transparent overlay
 /// </summary>
-internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sdlRenderer)
+internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRenderer sdlRenderer)
 {
 	private readonly ConcurrentQueue<string> _osdMessages = new();
 	private string _currentOsdMessage;
@@ -26,7 +26,8 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sd
 	private string _currentRomHash;
 	private bool _isPsrRom;
 
-	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
 	private int _statePreviewCountdown;
 	private int _statePreviewSlot;
 	public bool StatePreviewActive => _statePreviewCountdown > 0;
@@ -172,7 +173,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, IntPtr sd
 			if (ImGui.Begin("State Preview", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
 			{
 				var opacity = config.StatePreviewOpacity / 100.0f;
-				ImGui.Image(_statePreview.Texture, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, opacity));
+				ImGui.Image(_statePreview.TextureId, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, opacity));
 			}
 			ImGui.PopStyleVar(3);
 

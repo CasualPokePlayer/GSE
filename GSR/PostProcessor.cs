@@ -21,26 +21,20 @@ public enum ScalingFilter
 /// Also capable of maintaining the correct aspect ratio with letterboxing
 /// This can't do anything particularly fancy, due to the restraints of SDL_Renderer
 /// </summary>
-internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr sdlRenderer) : IDisposable
+internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRenderer sdlRenderer) : IDisposable
 {
-	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _nnScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _nnScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
 
-	public unsafe void ResetEmuTexture(int width, int height)
+	public void ResetEmuTexture(int width, int height)
 	{
-		_emuTexture.SetVideoDimensions(width, height);
-
-		if (SDL_LockTexture(_emuTexture.Texture, IntPtr.Zero, out var pixels, out var pitch) != 0)
-		{
-			// this should never happen
-			throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
-		}
-
-		new Span<byte>((void*)pixels, pitch * height).Clear();
-		SDL_UnlockTexture(_emuTexture.Texture);
+		_emuTexture.ResetTexture(width, height);
 	}
 
 	public void RenderEmuTexture(EmuVideoBuffer emuVideoBuffer)
@@ -48,35 +42,37 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, IntPtr
 		_emuTexture.SetEmuVideoBuffer(emuVideoBuffer);
 	}
 
+	/// <summary>
+	/// Helper ref struct for setting render target in an RAII style
+	/// </summary>
+	private readonly ref struct SDLSetRenderTargetWrapper
+	{
+		private readonly SDLRenderer _sdlRenderer;
+
+		public SDLSetRenderTargetWrapper(SDLRenderer sdlRenderer, SDLTexture sdlTexture)
+		{
+			_sdlRenderer = sdlRenderer;
+			_sdlRenderer.SetRenderTarget(sdlTexture);
+		}
+
+		public void Dispose()
+		{
+			_sdlRenderer.SetRenderTarget(null);
+		}
+	}
+
 	private void RenderTexture(SDLTexture src, SDLTexture dst, ref SDL_Rect srcRect, ref SDL_Rect dstRect, bool clear)
 	{
-		if (SDL_SetRenderTarget(sdlRenderer, dst.Texture) != 0)
+		using (new SDLSetRenderTargetWrapper(sdlRenderer, dst))
 		{
-			throw new($"Failed to set render target, SDL error {SDL_GetError()}");
-		}
-
-		if (clear)
-		{
-			// TODO: make this configurable?
-			if (SDL_SetRenderDrawColor(sdlRenderer, 0x00, 0x00, 0x00, 0xFF) != 0)
+			if (clear)
 			{
-				throw new($"Failed to set render draw color, SDL error {SDL_GetError()}");
+				// TODO: make this configurable?
+				sdlRenderer.SetRenderDrawColor(0x00, 0x00, 0x00, 0xFF);
+				sdlRenderer.RenderClear();
 			}
 
-			if (SDL_RenderClear(sdlRenderer) != 0)
-			{
-				throw new($"Failed to clear render target, SDL error {SDL_GetError()}");
-			}
-		}
-
-		if (SDL_RenderCopy(sdlRenderer, src.Texture, ref srcRect, ref dstRect) != 0)
-		{
-			throw new($"Failed to copy texture to render target, SDL error {SDL_GetError()}");
-		}
-
-		if (SDL_SetRenderTarget(sdlRenderer, IntPtr.Zero) != 0)
-		{
-			throw new($"Failed to set default render target, SDL error {SDL_GetError()}");
+			sdlRenderer.RenderCopy(src, ref srcRect, ref dstRect);
 		}
 	}
 
