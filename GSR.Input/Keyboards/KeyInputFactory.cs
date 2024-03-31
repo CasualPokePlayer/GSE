@@ -32,7 +32,7 @@ internal static class KeyInputFactory
 			// we can still do background input however, if we have root access (and thus can use evdev directly)
 			// we still of course want to grab a new wayland connection just to obtain a keymap
 			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 when WlImports.HasDisplay && EvDevImports.HasEvDev && LibcImports.HasRoot:
-				return new WlKeyInput(IntPtr.Zero);
+				return new WlKeyInput(0);
 			case SDL_SYSWM_TYPE.SDL_SYSWM_X11 when X11Imports.HasDisplay:
 				return new X11KeyInput();
 			case SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB or SDL_SYSWM_TYPE.SDL_SYSWM_KMSDRM or SDL_SYSWM_TYPE.SDL_SYSWM_VIVANTE when EvDevImports.HasEvDev:

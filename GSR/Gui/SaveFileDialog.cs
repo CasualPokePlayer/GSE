@@ -86,7 +86,7 @@ internal static class SaveFileDialog
 				}
 				finally
 				{
-					Marshal.FreeCoTaskMem((IntPtr)path.Value);
+					Marshal.FreeCoTaskMem((nint)path.Value);
 				}
 			}
 			finally

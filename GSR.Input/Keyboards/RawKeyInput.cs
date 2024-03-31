@@ -59,7 +59,7 @@ internal sealed class RawKeyInput : IKeyInput
 #else
 			PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_USERDATA);
 #endif
-		if (ud == IntPtr.Zero)
+		if (ud == 0)
 		{
 			return PInvoke.DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}

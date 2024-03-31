@@ -29,7 +29,7 @@ internal static class Entrypoint
 				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
 				title: "Unhandled Exception",
 				message: $"GSR has crashed :(\nException info will be written to {crashLogPath}",
-				window: IntPtr.Zero
+				window: 0
 			);
 
 			File.WriteAllText(crashLogPath, exStr);

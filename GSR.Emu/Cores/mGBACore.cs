@@ -10,7 +10,7 @@ namespace GSR.Emu.Cores;
 
 internal sealed class MGBACore : IEmuCore
 {
-	private readonly IntPtr _opaque;
+	private readonly nint _opaque;
 	private readonly uint[] _videoBuffer = new uint[240 * 160];
 	private readonly short[] _audioBuffer = new short[1024 * 2];
 	private readonly byte[] _saveBuffer = new byte[0x20000 + 16];
@@ -23,7 +23,7 @@ internal sealed class MGBACore : IEmuCore
 	public MGBACore(EmuLoadArgs loadArgs)
 	{
 		_opaque = mgba_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc);
-		if (_opaque == IntPtr.Zero)
+		if (_opaque == 0)
 		{
 			throw new("Failed to create core opaque state!");
 		}
@@ -122,7 +122,7 @@ internal sealed class MGBACore : IEmuCore
 		return mgba_loadstate(_opaque, state, state.Length);
 	}
 
-	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	public void GetMemoryExport(ExportHelper.MemExport which, out nint ptr, out nuint len)
 	{
 		var block = which switch
 		{
@@ -134,7 +134,7 @@ internal sealed class MGBACore : IEmuCore
 
 		if (block == MemoryBlocks.END)
 		{
-			ptr = IntPtr.Zero;
+			ptr = 0;
 			len = 0;
 		}
 		else

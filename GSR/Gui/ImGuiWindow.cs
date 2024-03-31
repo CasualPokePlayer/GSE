@@ -31,7 +31,7 @@ namespace GSR.Gui;
 /// </summary>
 internal sealed class ImGuiWindow : IDisposable
 {
-	private static readonly IntPtr[] _sdlCursors = new IntPtr[(int)ImGuiMouseCursor.COUNT];
+	private static readonly nint[] _sdlCursors = new nint[(int)ImGuiMouseCursor.COUNT];
 
 	// We use SDL keyboard here mainly as a convenience
 	// As ImGui wants input events, not input state
@@ -185,12 +185,12 @@ internal sealed class ImGuiWindow : IDisposable
 		_natoSansMonoFont = new(font);
 	}
 
-	private readonly IntPtr _imGuiContext;
+	private readonly nint _imGuiContext;
 	private readonly SDLTexture _fontSdlTexture;
 	private readonly bool _isOverridingScale;
 	private float _dpiScale;
 
-	public readonly IntPtr SdlWindow;
+	public readonly nint SdlWindow;
 	public readonly uint WindowId;
 
 	public readonly SDLRenderer SdlRenderer;
@@ -206,12 +206,12 @@ internal sealed class ImGuiWindow : IDisposable
 	private readonly bool _mouseCanUseGlobalState;
 	private uint _mouseButtonsDown;
 	private int _mouseLeavePending;
-	private IntPtr _lastMouseCursor;
+	private nint _lastMouseCursor;
 
-	private IntPtr ClipboardText;
+	private nint ClipboardText;
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-	private static IntPtr GetClipboardText(IntPtr userdata)
+	private static nint GetClipboardText(nint userdata)
 	{
 		var window = (ImGuiWindow)GCHandle.FromIntPtr(userdata).Target!;
 		SDL_free(window.ClipboardText);
@@ -220,7 +220,7 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-	private static unsafe void SetClipboardText(IntPtr userdata, IntPtr text)
+	private static unsafe void SetClipboardText(nint userdata, nint text)
 	{
 		_ = INTERNAL_SDL_SetClipboardText((byte*)text);
 	}
@@ -276,7 +276,7 @@ internal sealed class ImGuiWindow : IDisposable
 		return [..renderDrivers];
 	});
 
-	private static IntPtr CreateSdlRenderer(IntPtr sdlWindow, Config config, SDL_RendererFlags rendererFlags)
+	private static nint CreateSdlRenderer(nint sdlWindow, Config config, SDL_RendererFlags rendererFlags)
 	{
 		var renderDriver = config.RenderDriver;
 		var index = -1;
@@ -309,7 +309,7 @@ internal sealed class ImGuiWindow : IDisposable
 		while (true)
 		{
 			var sdlRenderer = SDL_CreateRenderer(sdlWindow, index, rendererFlags);
-			if (sdlRenderer == IntPtr.Zero)
+			if (sdlRenderer == 0)
 			{
 				if (index != -1)
 				{
@@ -341,7 +341,7 @@ internal sealed class ImGuiWindow : IDisposable
 				}
 
 				// failed to create software renderer?
-				return IntPtr.Zero;
+				return 0;
 			}
 
 			// check if render targets are supported (only truly knowable when the renderer is actually created)
@@ -377,7 +377,7 @@ internal sealed class ImGuiWindow : IDisposable
 				}
 
 				// software renderer doesn't support render targets? this should not happen in practice
-				return IntPtr.Zero;
+				return 0;
 			}
 
 			return sdlRenderer;
@@ -395,7 +395,7 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
-		io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
+		io.Fonts.GetTexDataAsRGBA32(out nint pixels, out var width, out var height, out var bytesPerPixel);
 		_fontSdlTexture.UpdateTexture(width, height, pixels, width * bytesPerPixel);
 		io.Fonts.SetTexID(_fontSdlTexture.TextureId);
 	}
@@ -423,7 +423,7 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			fixed (byte* fontPtr = _natoSansMonoFont.Span)
 			{
-				io.Fonts.AddFontFromMemoryTTF((IntPtr)fontPtr, _natoSansMonoFont.Length, 0, fontConfig);
+				io.Fonts.AddFontFromMemoryTTF((nint)fontPtr, _natoSansMonoFont.Length, 0, fontConfig);
 			}
 		}
 
@@ -442,7 +442,7 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 64, 64, windowFlags);
-			if (SdlWindow == IntPtr.Zero)
+			if (SdlWindow == 0)
 			{
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
 			}
@@ -458,7 +458,7 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 
 			var sdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
-			if (sdlRenderer == IntPtr.Zero)
+			if (sdlRenderer == 0)
 			{
 				throw new($"Could not create SDL renderer! SDL error: {SDL_GetError()}");
 			}
@@ -488,7 +488,7 @@ internal sealed class ImGuiWindow : IDisposable
 			_mouseCanUseGlobalState = videoDriver is "windows" or "cocoa" or "x11" or "DIVE" or "VMAN";
 
 			_imGuiContext = ImGui.CreateContext();
-			if (_imGuiContext == IntPtr.Zero)
+			if (_imGuiContext == 0)
 			{
 				throw new("Failed to create ImGui context!");
 			}
@@ -512,9 +512,9 @@ internal sealed class ImGuiWindow : IDisposable
 			unsafe
 			{
 				io.ClipboardUserData = io.BackendPlatformUserData;
-				io.GetClipboardTextFn = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, IntPtr>)&GetClipboardText;
-				io.SetClipboardTextFn = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void>)&SetClipboardText;
-				io.SetPlatformImeDataFn = (IntPtr)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&SetPlatformImeData;
+				io.GetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint>)&GetClipboardText;
+				io.SetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint, void>)&SetClipboardText;
+				io.SetPlatformImeDataFn = (nint)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&SetPlatformImeData;
 			}
 
 			_dpiScale = GetDpiScale();
@@ -548,15 +548,15 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public void Dispose()
 	{
-		if (_imGuiContext != IntPtr.Zero)
+		if (_imGuiContext != 0)
 		{
 			ImGui.SetCurrentContext(_imGuiContext);
 
 			// ImGui wants userdata fields to be cleared before destroying the context
 			var io = ImGui.GetIO();
-			io.BackendPlatformUserData = IntPtr.Zero;
-			io.BackendRendererUserData = IntPtr.Zero;
-			io.ClipboardUserData = IntPtr.Zero;
+			io.BackendPlatformUserData = 0;
+			io.BackendRendererUserData = 0;
+			io.ClipboardUserData = 0;
 
 			ImGui.DestroyContext(_imGuiContext);
 		}
@@ -571,7 +571,7 @@ internal sealed class ImGuiWindow : IDisposable
 		    !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
 		{
 			var hwnd = SdlSysWMInfo.info.win.window;
-			if (hwnd != IntPtr.Zero)
+			if (hwnd != 0)
 			{
 				unsafe
 				{
@@ -979,7 +979,7 @@ internal sealed class ImGuiWindow : IDisposable
 		else
 		{
 			var sdlCursor = _sdlCursors[(int)imGuiMouseCursor];
-			if (sdlCursor == IntPtr.Zero)
+			if (sdlCursor == 0)
 			{
 				sdlCursor = _sdlCursors[(int)ImGuiMouseCursor.Arrow];
 			}
@@ -1061,7 +1061,7 @@ internal sealed class ImGuiWindow : IDisposable
 				for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
 				{
 					var cmd = cmdList.CmdBuffer[j];
-					if (cmd.UserCallback != IntPtr.Zero)
+					if (cmd.UserCallback != 0)
 					{
 						throw new NotSupportedException("User callbacks are not supported in this ImGui implementation");
 					}
@@ -1088,14 +1088,14 @@ internal sealed class ImGuiWindow : IDisposable
 						var texId = cmd.GetTexID();
 						SdlRenderer.RenderGeometryRaw(
 							textureId: texId,
-							xy: (IntPtr)(&vtx->pos),
+							xy: (nint)(&vtx->pos),
 							xy_stride: sizeof(ImDrawVert),
-							color: (IntPtr)(&vtx->col),
+							color: (nint)(&vtx->col),
 							color_stride: sizeof(ImDrawVert),
-							uv: (IntPtr)(&vtx->uv),
+							uv: (nint)(&vtx->uv),
 							uv_stride: sizeof(ImDrawVert),
 							num_vertices: (int)(cmdList.VtxBuffer.Size - cmd.VtxOffset),
-							indices: (IntPtr)((UIntPtr)idxBuffer + cmd.IdxOffset * sizeof(ushort)),
+							indices: (nint)((nuint)idxBuffer + cmd.IdxOffset * sizeof(ushort)),
 							num_indices: (int)cmd.ElemCount,
 							size_indices: sizeof(ushort)
 						);

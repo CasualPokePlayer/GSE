@@ -200,9 +200,9 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	}.ToFrozenDictionary();
 
 	// wayland doesn't save copies of listeners, so these need to be kept alive in unmanaged memory
-	private static readonly IntPtr _wlRegistryListener;
-	private static readonly IntPtr _wlSeatListener;
-	private static readonly IntPtr _wlKeyboardListener;
+	private static readonly nint _wlRegistryListener;
+	private static readonly nint _wlSeatListener;
+	private static readonly nint _wlKeyboardListener;
 
 	static WlKeyInput()
 	{
@@ -210,17 +210,17 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		{
 			try
 			{
-				_wlRegistryListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_registry_listener));
+				_wlRegistryListener = (nint)NativeMemory.Alloc((uint)sizeof(wl_registry_listener));
 				var wlRegistryListener = (wl_registry_listener*)_wlRegistryListener;
 				wlRegistryListener->global = &RegistryGlobal;
 				wlRegistryListener->global_remove = &RegistryGlobalRemove;
 
-				_wlSeatListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_seat_listener));
+				_wlSeatListener = (nint)NativeMemory.Alloc((uint)sizeof(wl_seat_listener));
 				var wlSeatListener = (wl_seat_listener*)_wlSeatListener;
 				wlSeatListener->capabilities = &SeatCapabilities;
 				wlSeatListener->name = &SeatName;
 
-				_wlKeyboardListener = (IntPtr)NativeMemory.Alloc((uint)sizeof(wl_keyboard_listener));
+				_wlKeyboardListener = (nint)NativeMemory.Alloc((uint)sizeof(wl_keyboard_listener));
 				var wlKeyboardListener = (wl_keyboard_listener*)_wlKeyboardListener;
 				wlKeyboardListener->keymap = &KeyboardKeymap;
 				wlKeyboardListener->enter = &KeyboardEnter;
@@ -239,13 +239,13 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	}
 
 	[UnmanagedCallersOnly]
-	private static void RegistryGlobal(IntPtr userdata, IntPtr wlRegistry, uint name, IntPtr iface, uint version)
+	private static void RegistryGlobal(nint userdata, nint wlRegistry, uint name, nint iface, uint version)
 	{
 		var handle = GCHandle.FromIntPtr(userdata);
 		var wlKeyInput = (WlKeyInput)handle.Target!;
 
 		// ignore this if we already have a seat
-		if (wlKeyInput.WlSeat != IntPtr.Zero)
+		if (wlKeyInput.WlSeat != 0)
 		{
 			return;
 		}
@@ -254,7 +254,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		if (ifaceStr == "wl_seat")
 		{
 			wlKeyInput.WlSeat = wl_registry_bind(wlRegistry, name, wl_seat_interface, 1);
-			if (wlKeyInput.WlSeat == IntPtr.Zero)
+			if (wlKeyInput.WlSeat == 0)
 			{
 				return;
 			}
@@ -264,19 +264,19 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	}
 
 	[UnmanagedCallersOnly]
-	private static void RegistryGlobalRemove(IntPtr userdata, IntPtr wlRegistry, uint name)
+	private static void RegistryGlobalRemove(nint userdata, nint wlRegistry, uint name)
 	{
 		// this is not used for seats
 	}
 
 	[UnmanagedCallersOnly]
-	private static void SeatCapabilities(IntPtr userdata, IntPtr wlSeat, WlSeatCapabilities capabilities)
+	private static void SeatCapabilities(nint userdata, nint wlSeat, WlSeatCapabilities capabilities)
 	{
 		var handle = GCHandle.FromIntPtr(userdata);
 		var wlKeyInput = (WlKeyInput)handle.Target!;
 
 		// ignore this if we already have a keyboard
-		if (wlKeyInput.WlKeyboard != IntPtr.Zero)
+		if (wlKeyInput.WlKeyboard != 0)
 		{
 			return;
 		}
@@ -284,7 +284,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		if ((capabilities & WlSeatCapabilities.WL_SEAT_CAPABILITY_KEYBOARD) != 0)
 		{
 			wlKeyInput.WlKeyboard = wl_seat_get_keyboard(wlSeat);
-			if (wlKeyInput.WlKeyboard == IntPtr.Zero)
+			if (wlKeyInput.WlKeyboard == 0)
 			{
 				return;
 			}
@@ -294,19 +294,19 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	}
 
 	[UnmanagedCallersOnly]
-	private static void SeatName(IntPtr userdata, IntPtr wlSeat, IntPtr name)
+	private static void SeatName(nint userdata, nint wlSeat, nint name)
 	{
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardKeymap(IntPtr userdata, IntPtr wlKeyboard, WlKeymapFormat format, int fd, uint size)
+	private static void KeyboardKeymap(nint userdata, nint wlKeyboard, WlKeymapFormat format, int fd, uint size)
 	{
 		var handle = GCHandle.FromIntPtr(userdata);
 		var wlKeyInput = (WlKeyInput)handle.Target!;
 
 		// ignore this if we already have a keymap
-		if (wlKeyInput.XkbKeymap != IntPtr.Zero)
+		if (wlKeyInput.XkbKeymap != 0)
 		{
 			_ = close(fd);
 			return;
@@ -319,7 +319,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			return;
 		}
 
-		var keymapStr = mmap(IntPtr.Zero, size, PROT_READ, MAP_PRIVATE, fd, 0);
+		var keymapStr = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
 		if (keymapStr == MAP_FAILED)
 		{
 			_ = close(fd);
@@ -330,26 +330,26 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		_ = munmap(keymapStr, size);
 		_ = close(fd);
 
-		if (wlKeyInput.XkbKeymap != IntPtr.Zero)
+		if (wlKeyInput.XkbKeymap != 0)
 		{
 			wlKeyInput.XkbState = xkb_state_new(wlKeyInput.XkbKeymap);
 		}
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardEnter(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface, IntPtr keys)
+	private static void KeyboardEnter(nint userdata, nint wlKeyboard, uint serial, nint wlSurface, nint keys)
 	{
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardLeave(IntPtr userdata, IntPtr wlKeyboard, uint serial, IntPtr wlSurface)
+	private static void KeyboardLeave(nint userdata, nint wlKeyboard, uint serial, nint wlSurface)
 	{
 		// don't care
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardKey(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint time, uint key, WlKeyState state)
+	private static void KeyboardKey(nint userdata, nint wlKeyboard, uint serial, uint time, uint key, WlKeyState state)
 	{
 		if (state is not (WlKeyState.WL_KEYBOARD_KEY_STATE_PRESSED or WlKeyState.WL_KEYBOARD_KEY_STATE_RELEASED))
 		{
@@ -370,7 +370,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	}
 
 	[UnmanagedCallersOnly]
-	private static void KeyboardModifiers(IntPtr userdata, IntPtr wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group)
+	private static void KeyboardModifiers(nint userdata, nint wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group)
 	{
 		// don't care
 	}
@@ -379,28 +379,28 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private readonly List<KeyEvent> KeyEvents = [];
 
 	private readonly bool _ownsDisplay;
-	private readonly IntPtr _wlDisplay;
-	private readonly IntPtr _wlDisplayProxy;
-	private readonly IntPtr _wlEventQueue;
-	private readonly IntPtr _wlRegistry;
+	private readonly nint _wlDisplay;
+	private readonly nint _wlDisplayProxy;
+	private readonly nint _wlEventQueue;
+	private readonly nint _wlRegistry;
 
-	private readonly IntPtr XkbContext;
+	private readonly nint XkbContext;
 
-	private IntPtr WlSeat;
-	private IntPtr WlKeyboard;
-	private IntPtr XkbKeymap;
-	private IntPtr XkbState;
+	private nint WlSeat;
+	private nint WlKeyboard;
+	private nint XkbKeymap;
+	private nint XkbState;
 
-	public WlKeyInput(IntPtr wlDisplay)
+	public WlKeyInput(nint wlDisplay)
 		: base(true)
 	{
 		_wlDisplay = wlDisplay;
 
-		if (_wlDisplay == IntPtr.Zero)
+		if (_wlDisplay == 0)
 		{
 			_ownsDisplay = true;
-			_wlDisplay = wl_display_connect(IntPtr.Zero);
-			if (_wlDisplay == IntPtr.Zero)
+			_wlDisplay = wl_display_connect(0);
+			if (_wlDisplay == 0)
 			{
 				throw new("Failed to connect to display");
 			}
@@ -411,13 +411,13 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			// have to create a proxy / separate event queue
 			// as we don't want to interfere with SDL's event handling
 			_wlDisplayProxy = wl_proxy_create_wrapper(_wlDisplay);
-			if (_wlDisplayProxy == IntPtr.Zero)
+			if (_wlDisplayProxy == 0)
 			{
 				throw new("Failed to create display proxy");
 			}
 
 			_wlEventQueue = wl_display_create_queue(_wlDisplay);
-			if (_wlEventQueue == IntPtr.Zero)
+			if (_wlEventQueue == 0)
 			{
 				throw new("Failed to create event queue");
 			}
@@ -425,14 +425,14 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			wl_proxy_set_queue(_wlDisplayProxy, _wlEventQueue);
 
 			_wlRegistry = wl_display_get_registry(_wlDisplayProxy);
-			if (_wlRegistry == IntPtr.Zero)
+			if (_wlRegistry == 0)
 			{
 				throw new("Failed to get global registry");
 			}
 
 			// TODO: xkb isn't strictly needed (and in theory might not work?), perhaps only do this if we get an xkb keymap?
 			XkbContext = xkb_context_new(0);
-			if (XkbContext == IntPtr.Zero)
+			if (XkbContext == 0)
 			{
 				throw new("Failed to create xkb context");
 			}
@@ -443,7 +443,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			// sync so we get the seat
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
-			if (WlSeat == IntPtr.Zero)
+			if (WlSeat == 0)
 			{
 				throw new("Failed to obtain seat");
 			}
@@ -451,7 +451,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			// sync again for the keyboard
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
-			if (WlKeyboard == IntPtr.Zero)
+			if (WlKeyboard == 0)
 			{
 				throw new("Failed to obtain keyboard");
 			}
@@ -459,12 +459,12 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			// sync again for the keymap
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
 
-			if (XkbKeymap == IntPtr.Zero)
+			if (XkbKeymap == 0)
 			{
 				throw new("Failed to obtain keymap");
 			}
 
-			if (XkbState == IntPtr.Zero)
+			if (XkbState == 0)
 			{
 				throw new("Failed to create xkb state");
 			}
@@ -493,42 +493,42 @@ internal sealed class WlKeyInput : EvDevKeyInput
 
 	public override void Dispose()
 	{
-		if (XkbState != IntPtr.Zero)
+		if (XkbState != 0)
 		{
 			xkb_state_unref(XkbState);
 		}
 
-		if (XkbKeymap != IntPtr.Zero)
+		if (XkbKeymap != 0)
 		{
 			xkb_keymap_unref(XkbKeymap);
 		}
 
-		if (WlKeyboard != IntPtr.Zero)
+		if (WlKeyboard != 0)
 		{
 			wl_keyboard_destroy(WlKeyboard);
 		}
 
-		if (WlSeat != IntPtr.Zero)
+		if (WlSeat != 0)
 		{
 			wl_seat_destroy(WlSeat);
 		}
 
-		if (XkbContext != IntPtr.Zero)
+		if (XkbContext != 0)
 		{
 			xkb_context_unref(XkbContext);
 		}
 
-		if (_wlRegistry != IntPtr.Zero)
+		if (_wlRegistry != 0)
 		{
 			wl_registry_destroy(_wlRegistry);
 		}
 
-		if (_wlEventQueue != IntPtr.Zero)
+		if (_wlEventQueue != 0)
 		{
 			wl_event_queue_destroy(_wlEventQueue);
 		}
 
-		if (_wlDisplayProxy != IntPtr.Zero)
+		if (_wlDisplayProxy != 0)
 		{
 			wl_proxy_wrapper_destroy(_wlDisplayProxy);
 		}

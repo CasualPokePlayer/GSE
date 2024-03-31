@@ -23,7 +23,7 @@ public sealed class AudioManager : IDisposable
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
  
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-	private static unsafe void SDLAudioCallback(IntPtr userdata, IntPtr stream, int len)
+	private static unsafe void SDLAudioCallback(nint userdata, nint stream, int len)
 	{
 		var manager = (AudioManager)GCHandle.FromIntPtr(userdata).Target!;
 		var samples = len / 2;

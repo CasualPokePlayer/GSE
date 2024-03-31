@@ -40,31 +40,31 @@ internal sealed class SDLTexture : IDisposable
 		IsRenderTarget = _textureAccess == SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET;
 	}
 
-	public IntPtr _texture;
+	public nint _texture;
 
 	public int Width { get; private set; }
 	public int Height { get; private set; }
 
 	// note: this is only public so SDLRenderer can use it
 	// do not use this otherwise
-	public IntPtr GetNativeTexture()
+	public nint GetNativeTexture()
 	{
 		return _texture;
 	}
 
 	public void RecreateTexture()
 	{
-		var firstCreation = _texture == IntPtr.Zero;
+		var firstCreation = _texture == 0;
 		Dispose();
 
 		do
 		{
 			_texture = _sdlRenderer.CreateNativeTexture(_pixelFormat, _textureAccess, Width, Height);
-			if (_texture == IntPtr.Zero && !_sdlRenderer.CheckDeviceLost())
+			if (_texture == 0 && !_sdlRenderer.CheckDeviceLost())
 			{
 				throw new($"Failed to create video texture, SDL error: {SDL_GetError()}");
 			}
-		} while (_texture == IntPtr.Zero);
+		} while (_texture == 0);
 
 		if (SDL_SetTextureScaleMode(_texture, _scaleMode) != 0)
 		{
@@ -85,7 +85,7 @@ internal sealed class SDLTexture : IDisposable
 
 	public void SetVideoDimensions(int width, int height)
 	{
-		if (_texture == IntPtr.Zero || Width != width || Height != height)
+		if (_texture == 0 || Width != width || Height != height)
 		{
 			Width = width;
 			Height = height;
@@ -96,13 +96,13 @@ internal sealed class SDLTexture : IDisposable
 	private readonly ref struct SDLTextureLock
 	{
 		private readonly SDLTexture _sdlTexture;
-		public readonly IntPtr Pixels;
+		public readonly nint Pixels;
 		public readonly int Pitch;
 
 		public SDLTextureLock(SDLTexture sdlTexture, SDLRenderer sdlRenderer)
 		{
 			_sdlTexture = sdlTexture;
-			while (SDL_LockTexture(_sdlTexture._texture, IntPtr.Zero, out Pixels, out Pitch) != 0)
+			while (SDL_LockTexture(_sdlTexture._texture, 0, out Pixels, out Pitch) != 0)
 			{
 				if (!sdlRenderer.CheckDeviceLost())
 				{
@@ -148,11 +148,11 @@ internal sealed class SDLTexture : IDisposable
 	/// <summary>
 	/// This should only be used for SDL_TEXTUREACCESS_STATIC textures (i.e. ImGui font textures)
 	/// </summary>
-	public void UpdateTexture(int width, int height, IntPtr pixels, int pitch)
+	public void UpdateTexture(int width, int height, nint pixels, int pitch)
 	{
 		SetVideoDimensions(width, height);
 
-		while (SDL_UpdateTexture(_texture, IntPtr.Zero, pixels, pitch) != 0)
+		while (SDL_UpdateTexture(_texture, 0, pixels, pitch) != 0)
 		{
 			if (!_sdlRenderer.CheckDeviceLost())
 			{
@@ -163,10 +163,10 @@ internal sealed class SDLTexture : IDisposable
 
 	public void Dispose()
 	{
-		if (_texture != IntPtr.Zero)
+		if (_texture != 0)
 		{
 			SDL_DestroyTexture(_texture);
-			_texture = IntPtr.Zero;
+			_texture = 0;
 		}
 	}
 }

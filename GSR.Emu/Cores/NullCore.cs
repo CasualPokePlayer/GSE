@@ -25,12 +25,12 @@ internal sealed class NullCore : IEmuCore
 		cpuCycles = samples = 48000 / 60;
 	}
 
-	public ReadOnlySpan<byte> SaveState() => ReadOnlySpan<byte>.Empty;
+	public ReadOnlySpan<byte> SaveState() => [];
 	public bool LoadState(ReadOnlySpan<byte> state) => false;
 
-	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	public void GetMemoryExport(ExportHelper.MemExport which, out nint ptr, out nuint len)
 	{
-		ptr = IntPtr.Zero;
+		ptr = 0;
 		len = 0;
 	}
 
@@ -39,12 +39,12 @@ internal sealed class NullCore : IEmuCore
 	}
 
 	// no need to actually provide these, these will never be used for this core
-	public ReadOnlySpan<uint> VideoBuffer => ReadOnlySpan<uint>.Empty;
+	public ReadOnlySpan<uint> VideoBuffer => [];
 	public int VideoWidth => 0;
 	public int VideoHeight => 0;
 
 	// we still need to provide a dummy audio buffer however
-	public ReadOnlySpan<short> AudioBuffer => _nullAudioBuffer.AsSpan();
+	public ReadOnlySpan<short> AudioBuffer => _nullAudioBuffer;
 	public int AudioFrequency => 48000;
 
 	public uint CpuFrequency => 48000;

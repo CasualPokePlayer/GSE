@@ -53,7 +53,7 @@ internal sealed class GSR : IDisposable
 	];
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-	private static unsafe int SDLEventFilter(IntPtr userdata, IntPtr sdlEvent)
+	private static unsafe int SDLEventFilter(nint userdata, nint sdlEvent)
 	{
 		var e = (SDL_Event*)sdlEvent;
 		return _allowedEvents.Contains(e->type) ? 1 : 0;
@@ -65,7 +65,7 @@ internal sealed class GSR : IDisposable
 		SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0"); // we'll manually update joysticks (don't let the gui thread handle that!)
 		unsafe
 		{
-			SDL_SetEventFilter(&SDLEventFilter, IntPtr.Zero); // filter out events which we don't care for
+			SDL_SetEventFilter(&SDLEventFilter, 0); // filter out events which we don't care for
 		}
 
 #if GSR_WINDOWS
@@ -154,7 +154,7 @@ internal sealed class GSR : IDisposable
 
 	private InputGate InputGateCallback()
 	{
-		if (SDL_GetKeyboardFocus() != IntPtr.Zero)
+		if (SDL_GetKeyboardFocus() != 0)
 		{
 			return new(true, true);
 		}
@@ -179,7 +179,7 @@ internal sealed class GSR : IDisposable
 			_inputManager = new(in _mainWindow.SdlSysWMInfo);
 			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
 			// default bindings will be set if this fails for some reason
-			_config.DeserializeInputBindings(_inputManager, _mainWindow.SdlWindow);
+			_config.DeserializeInputBindings(_inputManager, _mainWindow);
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
 			_emuManager = new(_audioManager);
 			_postProcessor = new(_config, _emuManager, _mainWindow.SdlRenderer);

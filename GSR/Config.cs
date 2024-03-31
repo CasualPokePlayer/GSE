@@ -70,7 +70,7 @@ internal sealed class Config
 	{
 	}
 
-	public void DeserializeInputBindings(InputManager inputManager, IntPtr mainWindow)
+	public void DeserializeInputBindings(InputManager inputManager, ImGuiWindow mainWindow)
 	{
 		try
 		{
@@ -83,7 +83,7 @@ internal sealed class Config
 				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
 				title: "Config load failure",
 				message: "Input bindings failed to be deserizalized, default input bindings will be used instead.",
-				window: mainWindow
+				window: mainWindow.SdlWindow
 			);
 
 			EmuControllerBindings = new();
@@ -171,7 +171,7 @@ internal sealed class Config
 				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
 				title: "Config load failure",
 				message: "Config file failed to load, the default config will be used instead.",
-				window: IntPtr.Zero
+				window: 0
 			);
 
 			return new();

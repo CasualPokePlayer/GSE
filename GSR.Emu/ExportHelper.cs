@@ -1,7 +1,6 @@
 // Copyright (c) 2024 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
-using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -22,5 +21,5 @@ internal static partial class ExportHelper
 
 	[LibraryImport("export_helper")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void export_helper_set_mem_export(MemExport which, IntPtr ptr, nuint len);
+	public static partial void export_helper_set_mem_export(MemExport which, nint ptr, nuint len);
 }

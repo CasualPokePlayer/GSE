@@ -198,7 +198,7 @@ public sealed class EmuManager : IDisposable
 
 		for (MemExport i = 0; i < MemExport.END; i++)
 		{
-			export_helper_set_mem_export(i, IntPtr.Zero, 0);
+			export_helper_set_mem_export(i, 0, 0);
 		}
 
 		_emuCore.Dispose();
@@ -209,7 +209,7 @@ public sealed class EmuManager : IDisposable
 	{
 		for (MemExport i = 0; i < MemExport.END; i++)
 		{
-			export_helper_set_mem_export(i, IntPtr.Zero, 0);
+			export_helper_set_mem_export(i, 0, 0);
 		}
 
 		_emuCore?.Dispose();

@@ -28,11 +28,11 @@ internal sealed partial class GtkFileChooser : IDisposable
 		"libgtk-x11-2.0.so",
 	];
 
-	private static IntPtr GtkImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+	private static nint GtkImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
 	{
 		if (libraryName != LIBGTK)
 		{
-			return NativeLibrary.TryLoad(libraryName, assembly, searchPath, out var handle) ? handle : IntPtr.Zero;
+			return NativeLibrary.TryLoad(libraryName, assembly, searchPath, out var handle) ? handle : 0;
 		}
 
 		foreach (var gtkLibraryName in _gtkLibraryNames)
@@ -49,11 +49,11 @@ internal sealed partial class GtkFileChooser : IDisposable
 			}
 		}
 
-		return IntPtr.Zero;
+		return 0;
 	}
 
 	[UnmanagedCallersOnly]
-	private static void StubGtkLogger(IntPtr log_domain, int log_level, IntPtr message, IntPtr user_data)
+	private static void StubGtkLogger(nint log_domain, int log_level, nint message, nint user_data)
 	{
 	}
 
@@ -66,11 +66,11 @@ internal sealed partial class GtkFileChooser : IDisposable
 
 		try
 		{
-			IsAvailable = gtk_init_check(IntPtr.Zero, IntPtr.Zero);
+			IsAvailable = gtk_init_check(0, 0);
 			// prevent gtk log spam
 			unsafe
 			{
-				_ = g_log_set_default_handler(&StubGtkLogger, IntPtr.Zero);
+				_ = g_log_set_default_handler(&StubGtkLogger, 0);
 			}
 		}
 		catch
@@ -95,12 +95,12 @@ internal sealed partial class GtkFileChooser : IDisposable
 		Cancel = -6,
 	}
 
-	private readonly IntPtr _chooser;
+	private readonly nint _chooser;
 
 	public GtkFileChooser(string title, FileChooserAction action)
 	{
-		_chooser = gtk_file_chooser_dialog_new(title, IntPtr.Zero, action, IntPtr.Zero);
-		if (_chooser == IntPtr.Zero)
+		_chooser = gtk_file_chooser_dialog_new(title, 0, action, 0);
+		if (_chooser == 0)
 		{
 			throw new("Failed to create Gtk file chooser!");
 		}
@@ -114,7 +114,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 	public void AddFilter(string name, IEnumerable<string> patterns)
 	{
 		var filter = gtk_file_filter_new();
-		if (filter == IntPtr.Zero)
+		if (filter == 0)
 		{
 			throw new("Failed to create file filter");
 		}
@@ -150,7 +150,7 @@ internal sealed partial class GtkFileChooser : IDisposable
 		}
 	}
 
-	private record DialogThreadParam(IntPtr Chooser)
+	private record DialogThreadParam(nint Chooser)
 	{
 		public Response Response;
 	}
@@ -206,47 +206,47 @@ internal sealed partial class GtkFileChooser : IDisposable
 
 	[LibraryImport(LIBGTK)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool gtk_init_check(IntPtr argc, IntPtr argv);
+	private static partial bool gtk_init_check(nint argc, nint argv);
 
 	[LibraryImport(LIBGTK)]
-	private static unsafe partial IntPtr g_log_set_default_handler(delegate* unmanaged<IntPtr, int, IntPtr, IntPtr, void> log_func, IntPtr user_data);
+	private static unsafe partial nint g_log_set_default_handler(delegate* unmanaged<nint, int, nint, nint, void> log_func, nint user_data);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial IntPtr gtk_file_chooser_dialog_new(string title, IntPtr parent, FileChooserAction action, IntPtr first_button_text);
+	private static partial nint gtk_file_chooser_dialog_new(string title, nint parent, FileChooserAction action, nint first_button_text);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial IntPtr gtk_dialog_add_button(IntPtr dialog, string button_text, Response response_id);
+	private static partial nint gtk_dialog_add_button(nint dialog, string button_text, Response response_id);
 
 	[LibraryImport(LIBGTK)]
-	private static partial IntPtr gtk_file_filter_new();
+	private static partial nint gtk_file_filter_new();
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void gtk_file_filter_set_name(IntPtr filter, string name);
+	private static partial void gtk_file_filter_set_name(nint filter, string name);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void gtk_file_filter_add_pattern(IntPtr filter, string pattern);
+	private static partial void gtk_file_filter_add_pattern(nint filter, string pattern);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void gtk_file_chooser_add_filter(IntPtr chooser, IntPtr filter);
+	private static partial void gtk_file_chooser_add_filter(nint chooser, nint filter);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool gtk_file_chooser_set_current_folder(IntPtr chooser, string filename);
+	private static partial bool gtk_file_chooser_set_current_folder(nint chooser, string filename);
 
 	[LibraryImport(LIBGTK, StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void gtk_file_chooser_set_current_name(IntPtr chooser, string name);
+	private static partial void gtk_file_chooser_set_current_name(nint chooser, string name);
 
 	[LibraryImport(LIBGTK)]
-	private static partial void gtk_file_chooser_set_do_overwrite_confirmation(IntPtr chooser, [MarshalAs(UnmanagedType.Bool)] bool do_overwrite_confirmation);
+	private static partial void gtk_file_chooser_set_do_overwrite_confirmation(nint chooser, [MarshalAs(UnmanagedType.Bool)] bool do_overwrite_confirmation);
 
 	[LibraryImport(LIBGTK)]
-	private static partial Response gtk_dialog_run(IntPtr dialog);
+	private static partial Response gtk_dialog_run(nint dialog);
 
 	[LibraryImport(LIBGTK)]
-	private static partial IntPtr gtk_file_chooser_get_filename(IntPtr chooser);
+	private static partial nint gtk_file_chooser_get_filename(nint chooser);
 
 	[LibraryImport(LIBGTK)]
-	private static partial void g_free(IntPtr mem);
+	private static partial void g_free(nint mem);
 
 	[LibraryImport(LIBGTK)]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -256,5 +256,5 @@ internal sealed partial class GtkFileChooser : IDisposable
 	private static partial void gtk_main_iteration();
 
 	[LibraryImport(LIBGTK)]
-	private static partial void gtk_widget_destroy(IntPtr widget);
+	private static partial void gtk_widget_destroy(nint widget);
 }

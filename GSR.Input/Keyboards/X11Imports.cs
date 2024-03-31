@@ -9,14 +9,15 @@ namespace GSR.Input.Keyboards;
 
 internal static partial class X11Imports
 {
+	// ReSharper disable once NotAccessedField.Global
 	public static readonly bool HasDisplay;
 
 	static X11Imports()
 	{
 		try
 		{
-			var display = XOpenDisplay(IntPtr.Zero);
-			if (display != IntPtr.Zero)
+			var display = XOpenDisplay(0);
+			if (display != 0)
 			{
 				HasDisplay = true;
 				_ = XCloseDisplay(display);
@@ -29,23 +30,23 @@ internal static partial class X11Imports
 	}
 
 	[LibraryImport("libX11.so.6")]
-	public static partial IntPtr XOpenDisplay(IntPtr display_name);
+	public static partial nint XOpenDisplay(nint display_name);
 
 	[LibraryImport("libX11.so.6")]
-	public static partial int XCloseDisplay(IntPtr display);
+	public static partial int XCloseDisplay(nint display);
 
 	[LibraryImport("libX11.so.6")]
-	public static partial void XLockDisplay(IntPtr display);
+	public static partial void XLockDisplay(nint display);
 
 	[LibraryImport("libX11.so.6")]
-	public static partial void XUnlockDisplay(IntPtr display);
+	public static partial void XUnlockDisplay(nint display);
 
 	// helper struct for XLockDisplay/XUnlockDisplay
 	public readonly ref struct XLock
 	{
-		private readonly IntPtr _display;
+		private readonly nint _display;
 
-		public XLock(IntPtr display)
+		public XLock(nint display)
 		{
 			_display = display;
 			XLockDisplay(display);
@@ -58,7 +59,7 @@ internal static partial class X11Imports
 	}
 
 	[LibraryImport("libX11.so.6")]
-	public static partial int XQueryKeymap(IntPtr display, Span<byte> keys_return);
+	public static partial int XQueryKeymap(nint display, Span<byte> keys_return);
 
 	/// <summary>
 	/// Keysym constants, largely copy pasted from x headers
@@ -349,22 +350,22 @@ internal static partial class X11Imports
 	}
 
 	[LibraryImport("libX11.so.6")]
-	public static partial int XDisplayKeycodes(IntPtr display, out int min_keycodes_return, out int max_keycodes_return);
+	public static partial int XDisplayKeycodes(nint display, out int min_keycodes_return, out int max_keycodes_return);
 
 	// returns Keysym*
 	[LibraryImport("libX11.so.6")]
-	public static unsafe partial nuint* XGetKeyboardMapping(IntPtr display, uint first_keycode, int keycode_count, out int keysyms_per_keycode_return);
+	public static unsafe partial nuint* XGetKeyboardMapping(nint display, uint first_keycode, int keycode_count, out int keysyms_per_keycode_return);
 
 	[LibraryImport("libX11.so.6")]
-	public static partial int XFree(IntPtr data);
-
-	[LibraryImport("libX11.so.6")]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static partial bool XkbQueryExtension(IntPtr display, out int opcode_rtrn, out int event_rtrn, out int error_rtrn, ref int major_in_out, ref int minor_in_out);
+	public static partial int XFree(nint data);
 
 	[LibraryImport("libX11.so.6")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static partial bool XkbSetDetectableAutoRepeat(IntPtr display, [MarshalAs(UnmanagedType.Bool)] bool detectable, [MarshalAs(UnmanagedType.Bool)] out bool supported_rtrn);
+	public static partial bool XkbQueryExtension(nint display, out int opcode_rtrn, out int event_rtrn, out int error_rtrn, ref int major_in_out, ref int minor_in_out);
+
+	[LibraryImport("libX11.so.6")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool XkbSetDetectableAutoRepeat(nint display, [MarshalAs(UnmanagedType.Bool)] bool detectable, [MarshalAs(UnmanagedType.Bool)] out bool supported_rtrn);
 
 	public const int XkbKeyNameLength = 4;
 	public const int XkbNumVirtualMods = 16;
@@ -426,27 +427,27 @@ internal static partial class X11Imports
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct XkbDescRec
 	{
-		public IntPtr dpy;
+		public nint dpy;
 		public ushort flags;
 		public ushort device_spec;
 		public byte min_key_code;
 		public byte max_key_code;
 
-		public IntPtr ctrls;
-		public IntPtr server;
-		public IntPtr map;
-		public IntPtr indicators;
+		public nint ctrls;
+		public nint server;
+		public nint map;
+		public nint indicators;
 		public XkbNamesRec* names;
-		public IntPtr compat;
-		public IntPtr geom;
+		public nint compat;
+		public nint geom;
 	}
 
 	[LibraryImport("libX11.so.6")]
-	public static unsafe partial XkbDescRec* XkbAllocKeyboard(IntPtr display);
+	public static unsafe partial XkbDescRec* XkbAllocKeyboard(nint display);
 
 	[LibraryImport("libX11.so.6")]
 	public static unsafe partial void XkbFreeKeyboard(XkbDescRec* xkb, uint which, [MarshalAs(UnmanagedType.Bool)] bool free_all);
 
 	[LibraryImport("libX11.so.6")]
-	public static unsafe partial int XkbGetNames(IntPtr display, uint which, XkbDescRec* xkb);
+	public static unsafe partial int XkbGetNames(nint display, uint which, XkbDescRec* xkb);
 }

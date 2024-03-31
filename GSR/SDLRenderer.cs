@@ -14,7 +14,7 @@ namespace GSR;
 /// Textures may need to be reset at times due to the native device object being lost
 /// Managing the renderer should be done via this class
 /// </summary>
-internal sealed class SDLRenderer(IntPtr sdlRenderer) : IDisposable
+internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 {
 	// used for tracking if we're in a device lost call
 	// we might end up calling this function recursively
@@ -46,7 +46,7 @@ internal sealed class SDLRenderer(IntPtr sdlRenderer) : IDisposable
 	}
 
 	// only for SDLTexture use (creates an SDL_Texture*)
-	public IntPtr CreateNativeTexture(uint pixelFormat, SDL_TextureAccess textureAccess, int width, int height)
+	public nint CreateNativeTexture(uint pixelFormat, SDL_TextureAccess textureAccess, int width, int height)
 	{
 		return SDL_CreateTexture(sdlRenderer, pixelFormat, (int)textureAccess, width, height);
 	}
@@ -94,7 +94,7 @@ internal sealed class SDLRenderer(IntPtr sdlRenderer) : IDisposable
 			{
 				_inDeviceLostCall = true;
 				foreach (var sdlTexture in _textureIdMap.Values
-					         .Where(t => t.GetNativeTexture() != IntPtr.Zero && (resetAll || t.IsRenderTarget)))
+					         .Where(t => t.GetNativeTexture() != 0 && (resetAll || t.IsRenderTarget)))
 				{
 					sdlTexture.RecreateTexture();
 				}
@@ -118,7 +118,7 @@ internal sealed class SDLRenderer(IntPtr sdlRenderer) : IDisposable
 	public void SetRenderTarget(SDLTexture sdlTexture)
 	{
 		_currentRenderTarget = sdlTexture;
-		while (SDL_SetRenderTarget(sdlRenderer, sdlTexture?.GetNativeTexture() ?? IntPtr.Zero) != 0)
+		while (SDL_SetRenderTarget(sdlRenderer, sdlTexture?.GetNativeTexture() ?? 0) != 0)
 		{
 			if (!CheckDeviceLost())
 			{
@@ -214,10 +214,10 @@ internal sealed class SDLRenderer(IntPtr sdlRenderer) : IDisposable
 		}
 	}
 
-	public void RenderGeometryRaw(nint textureId, IntPtr xy, int xy_stride, IntPtr color, int color_stride, IntPtr uv, int uv_stride, int num_vertices, IntPtr indices, int num_indices, int size_indices)
+	public void RenderGeometryRaw(nint textureId, nint xy, int xy_stride, nint color, int color_stride, nint uv, int uv_stride, int num_vertices, nint indices, int num_indices, int size_indices)
 	{
 		var sdlTexture = textureId == 0 ? null : _textureIdMap[textureId];
-		while (SDL_RenderGeometryRaw(sdlRenderer, sdlTexture?.GetNativeTexture() ?? IntPtr.Zero, xy, xy_stride, color, color_stride, uv, uv_stride, num_vertices, indices, num_indices, size_indices) != 0)
+		while (SDL_RenderGeometryRaw(sdlRenderer, sdlTexture?.GetNativeTexture() ?? 0, xy, xy_stride, color, color_stride, uv, uv_stride, num_vertices, indices, num_indices, size_indices) != 0)
 		{
 			if (!CheckDeviceLost())
 			{

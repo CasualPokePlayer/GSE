@@ -13,7 +13,7 @@ namespace GSR.Emu.Cores;
 
 internal sealed class GambatteCore : IEmuCore
 {
-	private readonly IntPtr _opaque;
+	private readonly nint _opaque;
 	private readonly GBPlatform _gbPlatform;
 
 	private readonly uint[] _videoBuffer;
@@ -46,7 +46,7 @@ internal sealed class GambatteCore : IEmuCore
 	private Buttons CurrentButtons;
 
 	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-	private static Buttons InputGetter(IntPtr userdata)
+	private static Buttons InputGetter(nint userdata)
 	{
 		var core = (GambatteCore)GCHandle.FromIntPtr(userdata).Target!;
 		return core.CurrentButtons;
@@ -55,7 +55,7 @@ internal sealed class GambatteCore : IEmuCore
 	public GambatteCore(EmuLoadArgs loadArgs)
 	{
 		_opaque = gambatte_create();
-		if (_opaque == IntPtr.Zero)
+		if (_opaque == 0)
 		{
 			throw new("Failed to create core opaque state!");
 		}
@@ -321,7 +321,7 @@ internal sealed class GambatteCore : IEmuCore
 		return _resetStage == ResetStage.None && gambatte_loadstate(_opaque, state, state.Length);
 	}
 
-	public void GetMemoryExport(ExportHelper.MemExport which, out IntPtr ptr, out nuint len)
+	public void GetMemoryExport(ExportHelper.MemExport which, out nint ptr, out nuint len)
 	{
 		var area = which switch
 		{
@@ -331,7 +331,7 @@ internal sealed class GambatteCore : IEmuCore
 			_ => MemoryAreas.END
 		};
 
-		ptr = IntPtr.Zero;
+		ptr = 0;
 		len = 0;
 
 		if (area != MemoryAreas.END && gambatte_getmemoryarea(_opaque, area, out var data, out var length))

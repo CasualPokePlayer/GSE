@@ -521,13 +521,13 @@ internal sealed class X11KeyInput : IKeyInput
 	private readonly ScanCode[] _keyToScanCodeMap = new ScanCode[256];
 	private readonly string[] _scanCodeSymStrMap = new string[256];
 
-	private readonly IntPtr _display;
+	private readonly nint _display;
 	private readonly bool[] _lastKeyState = new bool[256];
 
 	public X11KeyInput()
 	{
-		_display = XOpenDisplay(IntPtr.Zero);
-		if (_display == IntPtr.Zero)
+		_display = XOpenDisplay(0);
+		if (_display == 0)
 		{
 			throw new("Failed to open display");
 		}
@@ -655,7 +655,7 @@ internal sealed class X11KeyInput : IKeyInput
 					}
 					finally
 					{
-						_ = XFree((IntPtr)keysyms);
+						_ = XFree((nint)keysyms);
 					}
 				}
 			}

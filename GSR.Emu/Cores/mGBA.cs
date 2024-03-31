@@ -20,12 +20,12 @@ internal static partial class MGBA
 	/// <returns>opaque state pointer</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial IntPtr mgba_create(ReadOnlySpan<byte> romData, int romLength, ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc);
+	public static partial nint mgba_create(ReadOnlySpan<byte> romData, int romLength, ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc);
 
 	/// <param name="core">opaque state pointer</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_destroy(IntPtr core);
+	public static partial void mgba_destroy(nint core);
 
 	/// <summary>
 	/// set color palette lookup
@@ -34,7 +34,7 @@ internal static partial class MGBA
 	/// <param name="colorLut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_setcolorlut(IntPtr core, ReadOnlySpan<uint> colorLut);
+	public static partial void mgba_setcolorlut(nint core, ReadOnlySpan<uint> colorLut);
 
 	/// <summary>
 	/// combination of button flags used in mgba_advance
@@ -65,7 +65,7 @@ internal static partial class MGBA
 	/// <param name="cpuCycles">number of cpu cycles advanced</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_advance(IntPtr core, Buttons buttons, [Out] uint[] videoBuf, [Out] short[] soundBuf, out uint samples, out uint cpuCycles);
+	public static partial void mgba_advance(nint core, Buttons buttons, [Out] uint[] videoBuf, [Out] short[] soundBuf, out uint samples, out uint cpuCycles);
 
 	/// <summary>
 	/// Reset to initial state.
@@ -74,7 +74,7 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_reset(IntPtr core);
+	public static partial void mgba_reset(nint core);
 
 	/// <summary>
 	/// Get persistant cart memory.
@@ -83,7 +83,7 @@ internal static partial class MGBA
 	/// <param name="dest">byte buffer to write into. mgba_getsavedatalength() bytes will be written</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_savesavedata(IntPtr core, [Out] byte[] dest);
+	public static partial void mgba_savesavedata(nint core, [Out] byte[] dest);
 
 	/// <summary>
 	/// restore persistant cart memory.
@@ -92,7 +92,7 @@ internal static partial class MGBA
 	/// <param name="data">byte buffer to read from. mgba_getsavedatalength() bytes will be read</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_loadsavedata(IntPtr core, [In] byte[] data);
+	public static partial void mgba_loadsavedata(nint core, [In] byte[] data);
 
 	/// <summary>
 	/// get the size of the persistant cart memory block. this value DEPENDS ON THE PARTICULAR CART LOADED
@@ -102,7 +102,7 @@ internal static partial class MGBA
 	/// <returns>length in bytes. 0 means no internal persistant cart memory</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int mgba_getsavedatalength(IntPtr core);
+	public static partial int mgba_getsavedatalength(nint core);
 
 	/// <summary>
 	/// Calculates the savestate length. Must be called every time before making a savestate!
@@ -111,7 +111,7 @@ internal static partial class MGBA
 	/// <returns>save state size in bytes</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int mgba_getsavestatelength(IntPtr core);
+	public static partial int mgba_getsavestatelength(nint core);
 
 	/// <summary>
 	/// Saves emulator state to the buffer given by 'stateBuf'.
@@ -122,7 +122,7 @@ internal static partial class MGBA
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_savestate(IntPtr core, [Out] byte[] stateBuf);
+	public static partial bool mgba_savestate(nint core, [Out] byte[] stateBuf);
 
 	/// <summary>
 	/// Loads emulator state from the buffer given by 'stateBuf' of size 'size'.
@@ -134,7 +134,7 @@ internal static partial class MGBA
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_loadstate(IntPtr core, ReadOnlySpan<byte> stateBuf, int size);
+	public static partial bool mgba_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size);
 
 	/// <summary>
 	/// memory blocks that mgba_getmemoryblock() can return
@@ -156,5 +156,5 @@ internal static partial class MGBA
 	/// <param name="len">memory block length, or 0 if not present</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_getmemoryblock(IntPtr core, MemoryBlocks which, out IntPtr ptr, out nuint len);
+	public static partial void mgba_getmemoryblock(nint core, MemoryBlocks which, out nint ptr, out nuint len);
 }

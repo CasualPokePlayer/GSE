@@ -24,7 +24,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 			// check if we can get a connection
 			using var dbusError = new DBusErrorWrapper();
 			var conn = dbus_bus_get(DBusBusType.DBUS_BUS_SESSION, ref dbusError.Native);
-			if (conn != IntPtr.Zero)
+			if (conn != 0)
 			{
 				try
 				{
@@ -61,11 +61,11 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	private static uint GetVersion(IntPtr conn)
+	private static uint GetVersion(nint conn)
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.DBus.Properties", "Get");
-		if (query == IntPtr.Zero)
+		if (query == 0)
 		{
 			throw new("Failed to create Get query");
 		}
@@ -78,7 +78,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 			using var dbusError = new DBusErrorWrapper();
 			var reply = dbus_connection_send_with_reply_and_block(conn, query, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
-			if (reply == IntPtr.Zero)
+			if (reply == 0)
 			{
 				throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
 			}
@@ -109,9 +109,10 @@ internal sealed partial class PortalFileChooser : IDisposable
 
 	// ReSharper disable once FieldCanBeMadeReadOnly.Global
 	public static bool IsAvailable;
+	// ReSharper disable once NotAccessedField.Global
 	public static readonly uint Version;
 
-	private readonly IntPtr _conn;
+	private readonly nint _conn;
 	private readonly string _busUniqueName;
 	private readonly string _uniqueToken;
 	private readonly string _uniqueObjectPath;
@@ -121,7 +122,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	{
 		using var dbusError = new DBusErrorWrapper();
 		_conn = dbus_bus_get(DBusBusType.DBUS_BUS_SESSION, ref dbusError.Native);
-		if (_conn == IntPtr.Zero)
+		if (_conn == 0)
 		{
 			throw new($"Failed to obtain D-Bus connection, D-Bus error: {dbusError.Message}");
 		}
@@ -178,9 +179,9 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	public readonly ref struct DBusMessageWrapper(IntPtr message)
+	public readonly ref struct DBusMessageWrapper(nint message)
 	{
-		public readonly IntPtr Message = message;
+		public readonly nint Message = message;
 
 		public void Dispose()
 		{
@@ -283,7 +284,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "OpenFile");
-		if (query == IntPtr.Zero)
+		if (query == 0)
 		{
 			throw new("Failed to create OpenFile D-Bus query");
 		}
@@ -331,7 +332,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "SaveFile");
-		if (query == IntPtr.Zero)
+		if (query == 0)
 		{
 			throw new("Failed to create SaveFile D-Bus query");
 		}
@@ -383,7 +384,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	{
 		var query = dbus_message_new_method_call("org.freedesktop.portal.Desktop",
 			"/org/freedesktop/portal/desktop", "org.freedesktop.portal.FileChooser", "OpenFile");
-		if (query == IntPtr.Zero)
+		if (query == 0)
 		{
 			throw new("Failed to create OpenFile D-Bus query");
 		}
@@ -425,16 +426,16 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	private record QueryThreadParam(IntPtr Conn)
+	private record QueryThreadParam(nint Conn)
 	{
-		public IntPtr Response;
+		public nint Response;
 	}
 
 	public string RunQuery(DBusMessageWrapper query)
 	{
 		using var dbusError = new DBusErrorWrapper();
 		var reply = dbus_connection_send_with_reply_and_block(_conn, query.Message, DBUS_TIMEOUT_INFINITE, ref dbusError.Native);
-		if (reply == IntPtr.Zero)
+		if (reply == 0)
 		{
 			throw new($"Failed to call query, D-Bus error: {dbusError.Message}");
 		}
@@ -451,7 +452,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 				throw new("Query reply was not an object path");
 			}
 
-			dbus_message_iter_get_basic(ref iter, out IntPtr path);
+			dbus_message_iter_get_basic(ref iter, out nint path);
 			var pathStr = Marshal.PtrToStringUTF8(path);
 			if (pathStr != _uniqueObjectPath)
 			{
@@ -464,27 +465,27 @@ internal sealed partial class PortalFileChooser : IDisposable
 			var queryThreadParam = (QueryThreadParam)param;
 			do
 			{
-				IntPtr message;
-				while ((message = dbus_connection_pop_message(queryThreadParam.Conn)) != IntPtr.Zero)
+				nint message;
+				while ((message = dbus_connection_pop_message(queryThreadParam.Conn)) != 0)
 				{
 					try
 					{
 						if (dbus_message_is_signal(message, "org.freedesktop.portal.Request", "Response"))
 						{
 							queryThreadParam.Response = message;
-							message = IntPtr.Zero;
+							message = 0;
 							break;
 						}
 					}
 					finally
 					{
-						if (message != IntPtr.Zero)
+						if (message != 0)
 						{
 							dbus_message_unref(message);
 						}
 					}
 				}
-			} while (queryThreadParam.Response == IntPtr.Zero && dbus_connection_read_write(queryThreadParam.Conn, -1));
+			} while (queryThreadParam.Response == 0 && dbus_connection_read_write(queryThreadParam.Conn, -1));
 		}
 
 		var queryThread = new Thread(QueryThreadProc) { IsBackground = true };
@@ -498,7 +499,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 
 		var response = queryThreadParam.Response;
-		if (response == IntPtr.Zero)
+		if (response == 0)
 		{
 			throw new("Failed to obtain response from D-Bus portal");
 		}
@@ -547,7 +548,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 					throw new("D-Bus response dict entry did not start with a string");
 				}
 
-				dbus_message_iter_get_basic(ref entryIter, out IntPtr key);
+				dbus_message_iter_get_basic(ref entryIter, out nint key);
 				if (!dbus_message_iter_next(ref entryIter))
 				{
 					throw new("D-Bus response dict entry was missing one or more arguments");
@@ -573,7 +574,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 						throw new("D-Bus response URI field was not DBUS_TYPE_STRING");
 					}
 
-					dbus_message_iter_get_basic(ref uriIter, out IntPtr uri);
+					dbus_message_iter_get_basic(ref uriIter, out nint uri);
 					var uriStr = Marshal.PtrToStringUTF8(uri) ?? throw new("Got null string for URI");
 					return new Uri(uriStr).LocalPath;
 				}
@@ -608,10 +609,10 @@ internal sealed partial class PortalFileChooser : IDisposable
 	[StructLayout(LayoutKind.Sequential)]
 	private struct DBusError
 	{
-		public IntPtr name;
-		public IntPtr message;
+		public nint name;
+		public nint message;
 		public uint dummy;
-		public IntPtr padding;
+		public nint padding;
 	}
 
 	[LibraryImport("libdbus-1.so.3")]
@@ -630,43 +631,43 @@ internal sealed partial class PortalFileChooser : IDisposable
 	}
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial IntPtr dbus_bus_get(DBusBusType type, ref DBusError error);
+	private static partial nint dbus_bus_get(DBusBusType type, ref DBusError error);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial void dbus_connection_unref(IntPtr connection);
+	private static partial void dbus_connection_unref(nint connection);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial IntPtr dbus_bus_get_unique_name(IntPtr connection);
+	private static partial nint dbus_bus_get_unique_name(nint connection);
 
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void dbus_bus_add_match(IntPtr connection, string rule, ref DBusError error);
+	private static partial void dbus_bus_add_match(nint connection, string rule, ref DBusError error);
 
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
-	private static partial void dbus_bus_remove_match(IntPtr connection, string rule, ref DBusError error);
+	private static partial void dbus_bus_remove_match(nint connection, string rule, ref DBusError error);
 
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
-	private static partial IntPtr dbus_message_new_method_call(string destination, string path, string iface, string method);
+	private static partial nint dbus_message_new_method_call(string destination, string path, string iface, string method);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial void dbus_message_unref(IntPtr message);
+	private static partial void dbus_message_unref(nint message);
 
 	[LibraryImport("libdbus-1.so.3", StringMarshalling = StringMarshalling.Utf8)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool dbus_message_is_signal(IntPtr message, string iface, string signal_name);
+	private static partial bool dbus_message_is_signal(nint message, string iface, string signal_name);
 
 	[StructLayout(LayoutKind.Sequential)]
 	private struct DBusMessageIter
 	{
-		public IntPtr dummy1, dummy2;
+		public nint dummy1, dummy2;
 		public uint dummy3;
 		public int dummy4, dummy5, dummy6, dummy7, dummy8, dummy9, dummy10, dummy11;
 		public int pad1;
-		public IntPtr pad2, pad3;
+		public nint pad2, pad3;
 	}
 
 	[LibraryImport("libdbus-1.so.3")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool dbus_message_iter_init(IntPtr message, out DBusMessageIter iter);
+	private static partial bool dbus_message_iter_init(nint message, out DBusMessageIter iter);
 
 	[LibraryImport("libdbus-1.so.3")]
 	private static partial DBusType dbus_message_iter_get_arg_type(ref DBusMessageIter iter);
@@ -675,7 +676,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private static partial void dbus_message_iter_get_basic(ref DBusMessageIter iter, out uint value);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial void dbus_message_iter_get_basic(ref DBusMessageIter iter, out IntPtr value);
+	private static partial void dbus_message_iter_get_basic(ref DBusMessageIter iter, out nint value);
 
 	[LibraryImport("libdbus-1.so.3")]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -685,7 +686,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private static partial void dbus_message_iter_recurse(ref DBusMessageIter iter, out DBusMessageIter sub);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial void dbus_message_iter_init_append(IntPtr message, out DBusMessageIter iter);
+	private static partial void dbus_message_iter_init_append(nint message, out DBusMessageIter iter);
 
 	private enum DBusType
 	{
@@ -727,12 +728,12 @@ internal sealed partial class PortalFileChooser : IDisposable
 	private const int DBUS_TIMEOUT_INFINITE = int.MaxValue;
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial IntPtr dbus_connection_send_with_reply_and_block(IntPtr connection, IntPtr message, int timeout_milliseconds, ref DBusError error);
+	private static partial nint dbus_connection_send_with_reply_and_block(nint connection, nint message, int timeout_milliseconds, ref DBusError error);
 
 	[LibraryImport("libdbus-1.so.3")]
-	private static partial IntPtr dbus_connection_pop_message(IntPtr connection);
+	private static partial nint dbus_connection_pop_message(nint connection);
 
 	[LibraryImport("libdbus-1.so.3")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static partial bool dbus_connection_read_write(IntPtr connection, int timeout_milliseconds);
+	private static partial bool dbus_connection_read_write(nint connection, int timeout_milliseconds);
 }

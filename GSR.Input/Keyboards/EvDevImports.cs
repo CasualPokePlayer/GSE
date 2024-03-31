@@ -1,7 +1,6 @@
 // Copyright (c) 2024 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -287,8 +286,8 @@ internal static class EvDevImports
 	[StructLayout(LayoutKind.Sequential)]
 	public struct EvDevKeyboardEvent
 	{
-		public IntPtr tv_sec;
-		public IntPtr tv_usec;
+		public nint tv_sec;
+		public nint tv_usec;
 		public EvDevEventType type;
 		public EvDevKeyCode code;
 		public EvDevKeyValue value;

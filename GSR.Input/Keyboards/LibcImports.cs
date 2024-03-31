@@ -44,8 +44,8 @@ internal static partial class LibcImports
 	public const nint MAP_FAILED = -1;
 
 	[LibraryImport("libc.so.6")]
-	public static partial IntPtr mmap(IntPtr addr, nuint length, int prot, int flags, int fd, nint offset);
+	public static partial nint mmap(nint addr, nuint length, int prot, int flags, int fd, nint offset);
 
 	[LibraryImport("libc.so.6")]
-	public static partial int munmap(IntPtr addr, nuint length);
+	public static partial int munmap(nint addr, nuint length);
 }

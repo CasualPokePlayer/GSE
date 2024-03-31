@@ -12,16 +12,16 @@ internal static partial class WlImports
 {
 	public static readonly bool HasDisplay;
 
-	public static readonly IntPtr wl_registry_interface;
-	public static readonly IntPtr wl_seat_interface;
-	public static readonly IntPtr wl_keyboard_interface;
+	public static readonly nint wl_registry_interface;
+	public static readonly nint wl_seat_interface;
+	public static readonly nint wl_keyboard_interface;
 
 	static WlImports()
 	{
 		try
 		{
-			var display = wl_display_connect(IntPtr.Zero);
-			if (display != IntPtr.Zero)
+			var display = wl_display_connect(0);
+			if (display != 0)
 			{
 				HasDisplay = true;
 				wl_display_disconnect(display);
@@ -51,88 +51,88 @@ internal static partial class WlImports
 	}
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_display_connect(IntPtr name);
+	public static partial nint wl_display_connect(nint name);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_display_disconnect(IntPtr display);
+	public static partial void wl_display_disconnect(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_display_create_queue(IntPtr display);
+	public static partial nint wl_display_create_queue(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_event_queue_destroy(IntPtr queue);
+	public static partial void wl_event_queue_destroy(nint queue);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_flush(IntPtr display);
+	public static partial int wl_display_flush(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_roundtrip_queue(IntPtr display, IntPtr queue);
+	public static partial int wl_display_roundtrip_queue(nint display, nint queue);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_prepare_read_queue(IntPtr display, IntPtr queue);
+	public static partial int wl_display_prepare_read_queue(nint display, nint queue);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_read_events(IntPtr display);
+	public static partial int wl_display_read_events(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial int wl_display_dispatch_queue_pending(IntPtr display, IntPtr queue);
+	public static partial int wl_display_dispatch_queue_pending(nint display, nint queue);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial IntPtr wl_proxy_create_wrapper(IntPtr proxy);
+	public static partial nint wl_proxy_create_wrapper(nint proxy);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_proxy_wrapper_destroy(IntPtr proxy_wrapper);
+	public static partial void wl_proxy_wrapper_destroy(nint proxy_wrapper);
 
 	[LibraryImport("libwayland-client.so.0")]
-	public static partial void wl_proxy_set_queue(IntPtr proxy, IntPtr queue);
+	public static partial void wl_proxy_set_queue(nint proxy, nint queue);
 
 	// quite a few functions in wayland are simply implemented as static inline functions, using wl_proxy_* methods
 	// so we have to re-create them here
 
 	[LibraryImport("libwayland-client.so.0")]
-	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, IntPtr end_args);
+	private static partial nint wl_proxy_marshal_constructor(nint proxy, uint opcode, nint iface, nint end_args);
 
 	[LibraryImport("libwayland-client.so.0")]
-	private static partial IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, IntPtr iface, uint name, IntPtr iface_name, uint iface_ver, IntPtr end_args);
+	private static partial nint wl_proxy_marshal_constructor(nint proxy, uint opcode, nint iface, uint name, nint iface_name, uint iface_ver, nint end_args);
 
 	[LibraryImport("libwayland-client.so.0")]
-	private static partial int wl_proxy_add_listener(IntPtr proxy, IntPtr implementation, IntPtr data);
+	private static partial int wl_proxy_add_listener(nint proxy, nint implementation, nint data);
 
 	[LibraryImport("libwayland-client.so.0")]
-	private static partial void wl_proxy_destroy(IntPtr proxy);
+	private static partial void wl_proxy_destroy(nint proxy);
 
-	public static IntPtr wl_display_get_registry(IntPtr display)
+	public static nint wl_display_get_registry(nint display)
 	{
 		const uint WL_DISPLAY_GET_REGISTRY = 1;
-		return wl_proxy_marshal_constructor(display, WL_DISPLAY_GET_REGISTRY, wl_registry_interface, IntPtr.Zero);
+		return wl_proxy_marshal_constructor(display, WL_DISPLAY_GET_REGISTRY, wl_registry_interface, 0);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
 	private struct wl_interface
 	{
-		public IntPtr name;
+		public nint name;
 		// there are more members here, but we don't care about them :)
 	}
 
-	public static unsafe IntPtr wl_registry_bind(IntPtr wl_registry, uint name, IntPtr iface, uint ver)
+	public static unsafe nint wl_registry_bind(nint wl_registry, uint name, nint iface, uint ver)
 	{
 		const uint WL_REGISTRY_BIND = 0;
-		return wl_proxy_marshal_constructor(wl_registry, WL_REGISTRY_BIND, iface, name, ((wl_interface*)iface)->name, ver, IntPtr.Zero);
+		return wl_proxy_marshal_constructor(wl_registry, WL_REGISTRY_BIND, iface, name, ((wl_interface*)iface)->name, ver, 0);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct wl_registry_listener
 	{
-		public delegate* unmanaged<IntPtr, IntPtr, uint, IntPtr, uint, void> global;
-		public delegate* unmanaged<IntPtr, IntPtr, uint, void> global_remove;
+		public delegate* unmanaged<nint, nint, uint, nint, uint, void> global;
+		public delegate* unmanaged<nint, nint, uint, void> global_remove;
 	}
 
-	public static int wl_registry_add_listener(IntPtr wl_registry, IntPtr listener, IntPtr data)
+	public static int wl_registry_add_listener(nint wl_registry, nint listener, nint data)
 	{
 		return wl_proxy_add_listener(wl_registry, listener, data);
 	}
 
-	public static void wl_registry_destroy(IntPtr wl_registry)
+	public static void wl_registry_destroy(nint wl_registry)
 	{
 		wl_proxy_destroy(wl_registry);
 	}
@@ -146,22 +146,22 @@ internal static partial class WlImports
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct wl_seat_listener
 	{
-		public delegate* unmanaged<IntPtr, IntPtr, WlSeatCapabilities, void> capabilities;
-		public delegate* unmanaged<IntPtr, IntPtr, IntPtr, void> name;
+		public delegate* unmanaged<nint, nint, WlSeatCapabilities, void> capabilities;
+		public delegate* unmanaged<nint, nint, nint, void> name;
 	}
 
-	public static int wl_seat_add_listener(IntPtr wl_seat, IntPtr listener, IntPtr data)
+	public static int wl_seat_add_listener(nint wl_seat, nint listener, nint data)
 	{
 		return wl_proxy_add_listener(wl_seat, listener, data);
 	}
 
-	public static IntPtr wl_seat_get_keyboard(IntPtr wl_seat)
+	public static nint wl_seat_get_keyboard(nint wl_seat)
 	{
 		const uint WL_SEAT_GET_KEYBOARD = 1;
-		return wl_proxy_marshal_constructor(wl_seat, WL_SEAT_GET_KEYBOARD, wl_keyboard_interface, IntPtr.Zero);
+		return wl_proxy_marshal_constructor(wl_seat, WL_SEAT_GET_KEYBOARD, wl_keyboard_interface, 0);
 	}
 
-	public static void wl_seat_destroy(IntPtr wl_seat)
+	public static void wl_seat_destroy(nint wl_seat)
 	{
 		wl_proxy_destroy(wl_seat);
 	}
@@ -180,28 +180,28 @@ internal static partial class WlImports
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct wl_keyboard_listener
 	{
-		public delegate* unmanaged<IntPtr, IntPtr, WlKeymapFormat, int, uint, void> keymap;
-		public delegate* unmanaged<IntPtr, IntPtr, uint, IntPtr, IntPtr, void> enter;
-		public delegate* unmanaged<IntPtr, IntPtr, uint, IntPtr, void> leave;
-		public delegate* unmanaged<IntPtr, IntPtr, uint, uint, uint, WlKeyState, void> key;
-		public delegate* unmanaged<IntPtr, IntPtr, uint, uint, uint, uint, uint, void> modifiers;
+		public delegate* unmanaged<nint, nint, WlKeymapFormat, int, uint, void> keymap;
+		public delegate* unmanaged<nint, nint, uint, nint, nint, void> enter;
+		public delegate* unmanaged<nint, nint, uint, nint, void> leave;
+		public delegate* unmanaged<nint, nint, uint, uint, uint, WlKeyState, void> key;
+		public delegate* unmanaged<nint, nint, uint, uint, uint, uint, uint, void> modifiers;
 	}
 
-	public static int wl_keyboard_add_listener(IntPtr wl_keyboard, IntPtr listener, IntPtr data)
+	public static int wl_keyboard_add_listener(nint wl_keyboard, nint listener, nint data)
 	{
 		return wl_proxy_add_listener(wl_keyboard, listener, data);
 	}
 
-	public static void wl_keyboard_destroy(IntPtr wl_keyboard)
+	public static void wl_keyboard_destroy(nint wl_keyboard)
 	{
 		wl_proxy_destroy(wl_keyboard);
 	}
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial IntPtr xkb_context_new(int flags);
+	public static partial nint xkb_context_new(int flags);
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial void xkb_context_unref(IntPtr context);
+	public static partial void xkb_context_unref(nint context);
 
 	public enum xkb_keymap_format
 	{
@@ -209,10 +209,10 @@ internal static partial class WlImports
 	}
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial IntPtr xkb_keymap_new_from_string(IntPtr context, IntPtr str, xkb_keymap_format format, int flags);
+	public static partial nint xkb_keymap_new_from_string(nint context, nint str, xkb_keymap_format format, int flags);
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial void xkb_keymap_unref(IntPtr keymap);
+	public static partial void xkb_keymap_unref(nint keymap);
 
 	public enum xkb_keycode_t : uint
 	{
@@ -222,16 +222,16 @@ internal static partial class WlImports
 	public const uint XKB_EVDEV_OFFSET = 8;
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial xkb_keycode_t xkb_keymap_min_keycode(IntPtr keymap);
+	public static partial xkb_keycode_t xkb_keymap_min_keycode(nint keymap);
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial xkb_keycode_t xkb_keymap_max_keycode(IntPtr keymap);
+	public static partial xkb_keycode_t xkb_keymap_max_keycode(nint keymap);
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial IntPtr xkb_state_new(IntPtr keymap);
+	public static partial nint xkb_state_new(nint keymap);
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial void xkb_state_unref(IntPtr state);
+	public static partial void xkb_state_unref(nint state);
 
 	public enum xkb_keysym_t : uint
 	{
@@ -449,5 +449,5 @@ internal static partial class WlImports
 	}
 
 	[LibraryImport("libxkbcommon.so.0")]
-	public static partial xkb_keysym_t xkb_state_key_get_one_sym(IntPtr state, xkb_keycode_t key);
+	public static partial xkb_keysym_t xkb_state_key_get_one_sym(nint state, xkb_keycode_t key);
 }

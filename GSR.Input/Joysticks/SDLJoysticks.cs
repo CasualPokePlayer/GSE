@@ -127,7 +127,7 @@ internal class SDLJoysticks : IDisposable
 	private class SDL2Joystick : IDisposable
 	{
 		/// <summary>SDL_Joystick handle</summary>
-		private readonly IntPtr Opaque;
+		private readonly nint _opaque;
 
 		protected string InputNamePrefix;
 
@@ -136,38 +136,38 @@ internal class SDLJoysticks : IDisposable
 
 		public SDL2Joystick(int index)
 		{
-			Opaque = SDL_JoystickOpen(index);
+			_opaque = SDL_JoystickOpen(index);
 			InstanceID = SDL_JoystickGetDeviceInstanceID(index);
-			DeviceName = SDL_JoystickName(Opaque);
+			DeviceName = SDL_JoystickName(_opaque);
 			UpdateIndex(index);
 		}
 
 		public virtual void Dispose()
 		{
-			SDL_JoystickClose(Opaque);
+			SDL_JoystickClose(_opaque);
 		}
 
 		public virtual void GetInputs(IList<JoystickInput> inputs)
 		{
-			var numButtons = SDL_JoystickNumButtons(Opaque);
+			var numButtons = SDL_JoystickNumButtons(_opaque);
 			for (var i = 0; i < numButtons; i++)
 			{
-				var isPressed = SDL_JoystickGetButton(Opaque, i) == 1;
+				var isPressed = SDL_JoystickGetButton(_opaque, i) == 1;
 				inputs.Add(new($"{InputNamePrefix} Button {i}", isPressed));
 			}
 
-			var numAxes = SDL_JoystickNumAxes(Opaque);
+			var numAxes = SDL_JoystickNumAxes(_opaque);
 			for (var i = 0; i < numAxes; i++)
 			{
-				var axisVal = SDL_JoystickGetAxis(Opaque, i);
+				var axisVal = SDL_JoystickGetAxis(_opaque, i);
 				inputs.Add(new($"{InputNamePrefix} Axis {i} +", axisVal >= 20000));
 				inputs.Add(new($"{InputNamePrefix} Axis {i} -", axisVal <= -20000));
 			}
 
-			var numHats = SDL_JoystickNumHats(Opaque);
+			var numHats = SDL_JoystickNumHats(_opaque);
 			for (var i = 0; i < numHats; i++)
 			{
-				var hatVal = SDL_JoystickGetHat(Opaque, i);
+				var hatVal = SDL_JoystickGetHat(_opaque, i);
 				inputs.Add(new($"{InputNamePrefix} Hat {i} Up", (hatVal & SDL_HAT_UP) == SDL_HAT_UP));
 				inputs.Add(new($"{InputNamePrefix} Hat {i} Right", (hatVal & SDL_HAT_RIGHT) == SDL_HAT_RIGHT));
 				inputs.Add(new($"{InputNamePrefix} Hat {i} Down", (hatVal & SDL_HAT_DOWN) == SDL_HAT_DOWN));
@@ -223,18 +223,18 @@ internal class SDLJoysticks : IDisposable
 		};
 
 		/// <summary>SDL_GameController handle</summary>
-		private readonly IntPtr Opaque;
+		private readonly nint _opaque;
 
 		public SDL2GameController(int index)
 			: base(index)
 		{
-			Opaque = SDL_GameControllerOpen(index);
-			DeviceName = SDL_GameControllerName(Opaque);
+			_opaque = SDL_GameControllerOpen(index);
+			DeviceName = SDL_GameControllerName(_opaque);
 		}
 
 		public override void Dispose()
 		{
-			SDL_GameControllerClose(Opaque);
+			SDL_GameControllerClose(_opaque);
 			base.Dispose();
 		}
 
@@ -242,18 +242,18 @@ internal class SDLJoysticks : IDisposable
 		{
 			for (var i = 0; i < _buttonStrings.Length; i++)
 			{
-				if (SDL_GameControllerHasButton(Opaque, (SDL_GameControllerButton)i) == SDL_bool.SDL_TRUE)
+				if (SDL_GameControllerHasButton(_opaque, (SDL_GameControllerButton)i) == SDL_bool.SDL_TRUE)
 				{
-					var isPressed = SDL_GameControllerGetButton(Opaque, (SDL_GameControllerButton)i) == 1;
+					var isPressed = SDL_GameControllerGetButton(_opaque, (SDL_GameControllerButton)i) == 1;
 					inputs.Add(new($"{InputNamePrefix} {_buttonStrings[i]}", isPressed));
 				}
 			}
 
 			for (var i = 0; i < _stickStrings.Length; i++)
 			{
-				if (SDL_GameControllerHasAxis(Opaque, (SDL_GameControllerAxis)i) == SDL_bool.SDL_TRUE)
+				if (SDL_GameControllerHasAxis(_opaque, (SDL_GameControllerAxis)i) == SDL_bool.SDL_TRUE)
 				{
-					var axisVal = SDL_GameControllerGetAxis(Opaque, (SDL_GameControllerAxis)i);
+					var axisVal = SDL_GameControllerGetAxis(_opaque, (SDL_GameControllerAxis)i);
 					inputs.Add(new($"{InputNamePrefix} {_stickStrings[i]}+", axisVal >= 20000));
 					inputs.Add(new($"{InputNamePrefix} {_stickStrings[i]}-", axisVal <= -20000));
 				}
@@ -261,9 +261,9 @@ internal class SDLJoysticks : IDisposable
 
 			for (var i = 0; i < _triggerStrings.Length; i++)
 			{
-				if (SDL_GameControllerHasAxis(Opaque, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT + i) == SDL_bool.SDL_TRUE)
+				if (SDL_GameControllerHasAxis(_opaque, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT + i) == SDL_bool.SDL_TRUE)
 				{
-					var axisVal = SDL_GameControllerGetAxis(Opaque, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT + i);
+					var axisVal = SDL_GameControllerGetAxis(_opaque, SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT + i);
 					inputs.Add(new($"{InputNamePrefix} {_triggerStrings[i]}", axisVal >= 5000));
 				}
 			}
