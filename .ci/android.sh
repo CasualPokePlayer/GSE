@@ -30,4 +30,4 @@ fi
 cd ..
 mkdir output/$TARGET_RID
 mkdir output/$TARGET_RID/publish
-cp -a -T android/app/build/release/app-release.apk output/$TARGET_RID/publish/GSR.apk
+cp -a -T android/app/build/outputs/apk/release/app-release.apk output/$TARGET_RID/publish/GSR.apk
