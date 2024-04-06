@@ -23,7 +23,7 @@ CMakeNinjaBuild() {
 	# Build as x64
 	mkdir build_$1_x64
 	cd build_$1_x64
-	cmake ../../$1 ^
+	cmake ../../$1 \
 		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
 		-DANDROID_ABI=x86_64 \
 		-DANDROID_PLATFORM=android-21 \
