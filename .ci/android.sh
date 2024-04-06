@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Install ninja (this isn't already installed on CI)
+apt-get install -y ninja-build
+
 # Build all externals
 cd ../externals/android
 ./build_all.sh
