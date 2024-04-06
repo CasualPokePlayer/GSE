@@ -15,6 +15,9 @@ cd ../..
 dotnet publish -r linux-bionic-arm64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 dotnet publish -r linux-bionic-x64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 
+# Set our JAVA_HOME over to Java 17's
+export JAVA_HOME=$JAVA_HOME_17_X64
+
 # Build java project
 cd android
 if [ -f $HOME/gsr-release-keystore.jks ]; then
