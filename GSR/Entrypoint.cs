@@ -13,7 +13,7 @@ internal static class Entrypoint
 	private static GSR _gsr;
 
 	[STAThread]
-	private static int Main()
+	public static int Main()
 	{
 		try
 		{

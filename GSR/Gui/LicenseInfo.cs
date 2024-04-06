@@ -55,7 +55,7 @@ internal static class Licensing
 	private static string GetLicense(string licenseId)
 	{
 		using var license = typeof(Licensing).Assembly
-			.GetManifestResourceStream($"{typeof(Licensing).Assembly.GetName().Name}.res.{licenseId}")!;
+			.GetManifestResourceStream($"GSR.res.{licenseId}")!;
 		using var reader = new StreamReader(license);
 		return reader.ReadToEnd();
 	}

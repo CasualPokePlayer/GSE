@@ -19,7 +19,7 @@ internal static class PathResolver
 #if !GSR_PUBLISH
 		// for local builds, assume we're always portable
 		return AppContext.BaseDirectory;
-#elif GSR_OSX
+#elif GSR_OSX || GSR_ANDROID
 		// for some platforms, we cannot do a portable build (as the application directory cannot be writable)
 		return SDL_GetPrefPath("", "GSR");
 #else
@@ -39,6 +39,9 @@ internal static class PathResolver
 
 	public static string GetPath(PathType pathType, string folderName, string romPath, string customPath)
 	{
+#if GSR_ANDROID
+		var ret = _prefPath;
+#else
 		var ret = pathType switch
 		{
 			PathType.RomPath => romPath,
@@ -46,6 +49,7 @@ internal static class PathResolver
 			PathType.Custom => customPath,
 			_ => throw new InvalidOperationException()
 		};
+#endif
 
 		// if we're pref path based, we'll typically want to create a folder to store our files
 		if (folderName != null && pathType == PathType.PrefPath)

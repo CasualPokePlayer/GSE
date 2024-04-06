@@ -157,4 +157,11 @@ internal static class SelectFolderDialog
 		return null;
 	}
 #endif
+
+#if GSR_ANDROID
+	public static string ShowDialog(string description, string baseDir, ImGuiWindow mainWindow)
+	{
+		return null;
+	}
+#endif
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 
 using static SDL2.SDL;
 
@@ -86,7 +85,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 			return false;
 		}
 
-		var hash = Convert.ToHexString(SHA256.HashData(biosData.Span));
+		var hash = Convert.ToHexString(GSRHash.HashDataSHA256(biosData.Span));
 		return acceptableHashes.Contains(hash);
 	}
 
@@ -165,7 +164,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				_ = SDL_ShowSimpleMessageBox(
 					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
 					title: "ROM Load Failure",
-					message: "Failed to load ROM file",
+					message: $"Failed to load ROM file",
 					window: mainWindow.SdlWindow
 				);
 			}

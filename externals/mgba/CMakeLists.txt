@@ -58,6 +58,11 @@ if(MSVC)
 	target_compile_definitions(mgba-static PUBLIC _CRT_NONSTDC_NO_WARNINGS)
 endif()
 
+# Hack around HAVE_STRTOF_L not being properly defined (broken in 0.10, fixed in 0.11 https://github.com/mgba-emu/mgba/commit/46f59df10acf93320df94546b44411d537efce78)
+if(ANDROID)
+	target_compile_definitions(mgba-static PUBLIC HAVE_STRTOF_L=1)
+endif()
+
 target_compile_definitions(mgba-static PUBLIC MINIMAL_CORE=2 COLOR_16_BIT DISABLE_THREADING MGBA_STANDALONE)
 
 if(GSR_SHARED)

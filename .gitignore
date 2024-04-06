@@ -11,3 +11,4 @@
 **/runtimes/**/*.dll
 **/runtimes/**/*.so
 **/runtimes/**/*.dylib
+**/libs/**/*.so

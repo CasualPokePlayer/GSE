@@ -94,7 +94,7 @@ public sealed class AudioManager : IDisposable
 		wantedSdlAudioSpec.freq = GetDeviceSampleRate(deviceName); // try to use the device sample rate, so we can avoid a secondary resampling by SDL or whatever native api is used
 		wantedSdlAudioSpec.format = AUDIO_S16SYS;
 		wantedSdlAudioSpec.channels = 2;
-		wantedSdlAudioSpec.samples = 4096; // we'll let this change to however SDL best wants it
+		wantedSdlAudioSpec.samples = 512; // we'll let this change to however SDL best wants it
 
 		unsafe
 		{
@@ -129,6 +129,7 @@ public sealed class AudioManager : IDisposable
 
 			if (deviceId == 0)
 			{
+				AudioDeviceName = DEFAULT_AUDIO_DEVICE;
 				throw new($"Failed to open audio device, SDL error: {SDL_GetError()}");
 			}
 		}

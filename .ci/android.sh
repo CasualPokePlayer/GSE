@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Build all externals
+cd ../externals/android
+./build_all.sh
+
+# Set path to find NDK's clang (needed to workaround .NET bug)
+export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+
+# Build libGSR
+cd ../..
+dotnet publish -r linux-bionic-arm64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
+dotnet publish -r linux-bionic-x64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
+
+# Build java project
+cd android
+if [ -f $HOME/gsr-release-keystore.jks ]; then
+	./gradlew assembleRelease -Pkeystore=$HOME/gsr-release-keystore.jks -Pstorepass=$ANDROID_RELEASE_STOREPASS -Pkeyalias=$ANDROID_RELEASE_KEYALIAS -Pkeypass=$ANDROID_RELEASE_KEYPASS
+else
+	./gradlew assembleRelease
+fi
+
+# Copy apk over to output/$TARGET_RID/publish (where our CI looks for artifacts)
+cd ..
+mkdir output/$TARGET_RID
+mkdir output/$TARGET_RID/publish
+cp -a -T android/app/build/release/app-release.apk output/$TARGET_RID/publish/GSR.apk

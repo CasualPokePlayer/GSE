@@ -5,7 +5,6 @@ using System;
 using System.IO.Hashing;
 using System.Collections.Concurrent;
 using System.Numerics;
-using System.Security.Cryptography;
 
 using ImGuiNET;
 
@@ -40,7 +39,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 	public void OnRomLoaded(string romName, ReadOnlySpan<byte> romData)
 	{
 		_currentRomHash = $"{Crc32.HashToUInt32(romData):X8}";
-		var sha256 = Convert.ToHexString(SHA256.HashData(romData));
+		var sha256 = Convert.ToHexString(GSRHash.HashDataSHA256(romData));
 		_isPsrRom = PSRData.GoodRoms.Contains(sha256);
 		_osdMessages.Enqueue($"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_currentRomHash} | Loaded {romName}");
 	}

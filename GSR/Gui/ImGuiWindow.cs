@@ -167,6 +167,8 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
 		SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
+		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+		SDL_SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
 
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
@@ -179,7 +181,7 @@ internal sealed class ImGuiWindow : IDisposable
 		_sdlCursors[(int)ImGuiMouseCursor.NotAllowed] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
 
 		using var notoSansMono = typeof(ImGuiWindow).Assembly
-			.GetManifestResourceStream($"{typeof(ImGuiWindow).Assembly.GetName().Name}.res.NotoSansMono-Medium.ttf")!;
+			.GetManifestResourceStream($"GSR.res.NotoSansMono-Medium.ttf")!;
 		var font = new byte[notoSansMono.Length];
 		notoSansMono.ReadExactly(font, 0, font.Length);
 		_natoSansMonoFont = new(font);
@@ -484,6 +486,11 @@ internal sealed class ImGuiWindow : IDisposable
 			SetWin11CornerPreference(config.DisableWin11RoundCorners);
 #endif
 
+#if GSR_ANDROID
+			// android is always fullscreen (don't let the user toggle this!)
+			ToggleFullscreen();
+#endif
+
 			var videoDriver = SDL_GetCurrentVideoDriver();
 			_mouseCanUseGlobalState = videoDriver is "windows" or "cocoa" or "x11" or "DIVE" or "VMAN";
 
@@ -518,7 +525,11 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 
 			_dpiScale = GetDpiScale();
+
 			var scaleOverride = Environment.GetEnvironmentVariable("GSR_SCALE");
+#if GSR_ANDROID
+			scaleOverride = "3";
+#endif
 			if (float.TryParse(scaleOverride, out var scaleFactor))
 			{
 				_isOverridingScale = true;

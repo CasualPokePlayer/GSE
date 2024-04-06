@@ -37,7 +37,11 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 					// can't use a foreach loop, as LoadRomFile may mutate _config.RecentRoms
 					for (var i = 0; i < config.RecentRoms.Count; i++)
 					{
+#if GSR_ANDROID
+						if (ImGui.MenuItem(Path.GetFileName(config.RecentRoms[i][(config.RecentRoms[i].IndexOf('|') + 1)..])))
+#else
 						if (ImGui.MenuItem(Path.GetFileName(config.RecentRoms[i])))
+#endif
 						{
 							romLoader.LoadRomFile(config.RecentRoms[i]);
 						}
@@ -50,7 +54,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					emuManager.UnloadRom();
 				}
-
+#if !GSR_ANDROID
 				ImGui.Separator();
 
 				if (ImGui.MenuItem("Save State as...", emuManager.RomIsLoaded))
@@ -78,6 +82,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						}
 					}
 				}
+#endif
 
 				ImGui.Separator();
 
@@ -187,13 +192,14 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				{
 					imGuiModals.OpenMiscModal = true;
 				}
-
+#if !GSR_ANDROID
 				ImGui.Separator();
 
 				if (ImGui.MenuItem("Toggle Fullscreen"))
 				{
 					mainWindow.ToggleFullscreen();
 				}
+#endif
 
 				ImGui.EndMenu();
 			}

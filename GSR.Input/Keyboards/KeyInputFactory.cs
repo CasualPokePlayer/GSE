@@ -48,5 +48,9 @@ internal static class KeyInputFactory
 
 		throw new NotSupportedException("Linux key input requires Wayland, X11, or rootless evdev");
 #endif
+
+#if GSR_ANDROID
+		return new AndroidKeyInput();
+#endif
 	}
 }

@@ -35,6 +35,11 @@ set(SDL_SENSOR OFF)
 set(SDL_LOCALE OFF)
 set(SDL_MISC OFF)
 
+# Workaround SDL bug which makes compilation fail if SDL_Haptic is off
+if(ANDROID)
+	set(SDL_HAPTIC ON)
+endif()
+
 set(SDL2_DISABLE_SDL2MAIN ON)
 set(SDL2_DISABLE_INSTALL ON)
 set(SDL2_DISABLE_UNINSTALL ON)
