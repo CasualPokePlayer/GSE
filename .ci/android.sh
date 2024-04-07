@@ -23,7 +23,7 @@ cd android
 if [ -f $HOME/gsr-release-keystore.jks ]; then
 	./gradlew assembleRelease -Pkeystore=$HOME/gsr-release-keystore.jks -Pstorepass=$ANDROID_RELEASE_STOREPASS -Pkeyalias=$ANDROID_RELEASE_KEYALIAS -Pkeypass=$ANDROID_RELEASE_KEYPASS
 else
-	./gradlew assembleRelease --debug
+	./gradlew assembleRelease --info
 fi
 
 # Copy apk over to output/$TARGET_RID/publish (where our CI looks for artifacts)
