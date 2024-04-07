@@ -4,9 +4,9 @@
 sudo apt-get install -y ninja-build
 
 # set ourselves to the latest NDK
-export $ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
-export $ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME
-export $ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
+export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+export ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME
+export ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
 
 # Build all externals
 cd ../externals/android
