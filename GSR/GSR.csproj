@@ -99,8 +99,7 @@
 	</PropertyGroup>
 	<!-- https://github.com/dotnet/runtime/issues/92272 -->
 	<ItemGroup Condition="'$(GSR_ANDROID)' == 'true'">
-		<LinkerArg Include="-Wl,--defsym,_init=__libc_init" />
-		<LinkerArg Include="-Wl,--defsym,_fini=__libc_fini" />
+		<LinkerArg Include="-Wl,--undefined-version" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true' Or '$(GSR_ANDROID)' == 'true'">
 		<Content Include="$(CIMGUI_PATH)">
