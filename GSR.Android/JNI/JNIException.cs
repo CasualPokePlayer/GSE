@@ -44,7 +44,7 @@ internal class JNIException : Exception
 			}
 
 			var jmessage = (JString)env->Vtbl->CallObjectMethodA(env, jException, getMessageMethodId, null);
-			if (jmessage.IsNull)
+			if (env->Vtbl->ExceptionCheck(env) || jmessage.IsNull)
 			{
 				env->Vtbl->ExceptionClear(env);
 				throw new("Unknown Java exception occurred (CallObjectMethodA for Java exception getMessage failed?)");
@@ -53,7 +53,7 @@ internal class JNIException : Exception
 			try
 			{
 				var jmessageLen = env->Vtbl->GetStringLength(env, jmessage);
-				var message = jmessageLen >= 1024 ? new char[jmessageLen] : stackalloc char[jmessageLen];
+				var message = jmessageLen > 1024 ? new char[jmessageLen] : stackalloc char[jmessageLen];
 				fixed (char* messagePtr = message)
 				{
 					env->Vtbl->GetStringRegion(env, jmessage, 0, jmessageLen, (JChar*)messagePtr);

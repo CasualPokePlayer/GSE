@@ -164,7 +164,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				_ = SDL_ShowSimpleMessageBox(
 					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
 					title: "ROM Load Failure",
-					message: $"Failed to load ROM file",
+					message: "Failed to load ROM file",
 					window: mainWindow.SdlWindow
 				);
 			}

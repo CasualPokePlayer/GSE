@@ -113,7 +113,13 @@ internal readonly unsafe struct JNIEnvPtr
 
 	public JObject ToReflectedField(JClass cls, JFieldID fieldID, JBoolean isStatic)
 	{
-		return _jniEnv->Vtbl->ToReflectedField(_jniEnv, cls, fieldID, isStatic);
+		var field = _jniEnv->Vtbl->ToReflectedField(_jniEnv, cls, fieldID, isStatic);
+		if (field.IsNull)
+		{
+			JNIException.ThrowForError(this, nameof(ToReflectedField));
+		}
+
+		return field;
 	}
 
 	public JThrowable ExceptionOccurred()
@@ -1256,6 +1262,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JChar* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetStringRegion(_jniEnv, str, start, buf.Length, bufPtr);
+			JNIException.ThrowIfExceptionPending(this);
 		}
 	}
 
