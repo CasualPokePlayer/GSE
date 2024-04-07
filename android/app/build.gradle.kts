@@ -31,13 +31,13 @@ android {
             if (project.hasProperty("keystore")) {
                 signingConfig = signingConfigs.getByName("release")
                 if (getIsNightlyVersion()) {
-                    resValue("string", "app_name_suffixed", "GSR Nightly")
+                    resValue("string", "app_name", "GSR Nightly")
                     applicationIdSuffix = ".nightly"
                     versionNameSuffix = "-nightly"
                 }
             } else {
                 // this path would be taken by PRs
-                resValue("string", "app_name_suffixed", "GSR Canary")
+                resValue("string", "app_name", "GSR Canary")
                 applicationIdSuffix = ".canary"
                 versionNameSuffix = "-canary"
                 signingConfig = signingConfigs.getByName("debug")
@@ -48,7 +48,7 @@ android {
         }
 
         debug {
-           resValue("string", "app_name_suffixed", "GSR Debug")
+           resValue("string", "app_name", "GSR Debug")
            applicationIdSuffix = ".debug"
            versionNameSuffix = "-debug"
            signingConfig = signingConfigs.getByName("debug")

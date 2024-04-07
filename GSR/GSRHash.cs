@@ -13,7 +13,7 @@ using GSR.Android;
 namespace GSR;
 
 /// <summary>
-/// Workaround hashing methods being broken on Android for some reason
+/// Workaround System.Security.Cryptography being unavailable on Android
 /// </summary>
 internal static class GSRHash
 {
@@ -22,7 +22,7 @@ internal static class GSRHash
 #if !GSR_ANDROID
 		return SHA256.HashData(source);
 #else
-		return AndroidHash.HashDataSHA256(source);
+		return AndroidCryptography.HashDataSHA256(source);
 #endif
 	}
 }

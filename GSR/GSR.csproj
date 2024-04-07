@@ -35,6 +35,7 @@
 		<ProjectReference Include="$(ProjectDir)../GSR.Audio/GSR.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
+		<ProjectReference Condition="'$(GSR_ANDROID)' == 'true'" Include="$(ProjectDir)../GSR.Android/GSR.Android.csproj" />
 	</ItemGroup>
 	<PropertyGroup>
 		<GitDefaultBranch>master</GitDefaultBranch>
