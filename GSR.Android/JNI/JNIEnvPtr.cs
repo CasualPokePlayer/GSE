@@ -58,7 +58,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var clazz = _jniEnv->Vtbl->DefineClass(_jniEnv, namePtr, loader, bufPtr, buf.Length);
 			if (clazz.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(DefineClass));
+				JNIException.ThrowForError(_jniEnv, nameof(DefineClass));
 			}
 
 			return clazz;
@@ -72,7 +72,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var clazz = _jniEnv->Vtbl->FindClass(_jniEnv, namePtr);
 			if (clazz.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(FindClass));
+				JNIException.ThrowForError(_jniEnv, nameof(FindClass));
 			}
 
 			return clazz;
@@ -94,7 +94,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var method = _jniEnv->Vtbl->ToReflectedMethod(_jniEnv, cls, methodID, isStatic);
 		if (method.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(ToReflectedMethod));
+			JNIException.ThrowForError(_jniEnv, nameof(ToReflectedMethod));
 		}
 
 		return method;
@@ -116,7 +116,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var field = _jniEnv->Vtbl->ToReflectedField(_jniEnv, cls, fieldID, isStatic);
 		if (field.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(ToReflectedField));
+			JNIException.ThrowForError(_jniEnv, nameof(ToReflectedField));
 		}
 
 		return field;
@@ -142,7 +142,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var res = _jniEnv->Vtbl->PushLocalFrame(_jniEnv, capacity);
 		if (res < 0)
 		{
-			JNIException.ThrowForError(this, nameof(PushLocalFrame));
+			JNIException.ThrowForError(_jniEnv, nameof(PushLocalFrame));
 		}
 	}
 
@@ -156,7 +156,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var globalRef = _jniEnv->Vtbl->NewGlobalRef(_jniEnv, obj);
 		if (globalRef.IsNull)
 		{
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 
 		return globalRef;
@@ -187,7 +187,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var res = _jniEnv->Vtbl->EnsureLocalCapacity(_jniEnv, capacity);
 		if (res < 0)
 		{
-			JNIException.ThrowForError(this, nameof(EnsureLocalCapacity));
+			JNIException.ThrowForError(_jniEnv, nameof(EnsureLocalCapacity));
 		}
 	}
 
@@ -196,7 +196,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var obj = _jniEnv->Vtbl->AllocObject(_jniEnv, clazz);
 		if (obj.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(AllocObject));
+			JNIException.ThrowForError(_jniEnv, nameof(AllocObject));
 		}
 
 		return obj;
@@ -209,7 +209,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var obj = _jniEnv->Vtbl->NewObjectA(_jniEnv, clazz, methodID, argsPtr);
 			if (obj.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(NewObjectA));
+				JNIException.ThrowForError(_jniEnv, nameof(NewObjectA));
 			}
 
 			return obj;
@@ -233,7 +233,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var methodID = _jniEnv->Vtbl->GetMethodID(_jniEnv, clazz, namePtr, sigPtr);
 			if (methodID.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(GetMethodID));
+				JNIException.ThrowForError(_jniEnv, nameof(GetMethodID));
 			}
 
 			return methodID;
@@ -245,7 +245,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallObjectMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -255,7 +255,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallBooleanMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -265,7 +265,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallByteMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -275,7 +275,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallCharMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -285,7 +285,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallShortMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -295,7 +295,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallIntMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -305,7 +305,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallLongMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -315,7 +315,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallFloatMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -325,7 +325,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallDoubleMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -335,7 +335,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			_jniEnv->Vtbl->CallVoidMethodA(_jniEnv, obj, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -344,7 +344,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualObjectMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -354,7 +354,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualBooleanMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -364,7 +364,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualByteMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -374,7 +374,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualCharMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -384,7 +384,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualShortMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -394,7 +394,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualIntMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -404,7 +404,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualLongMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -414,7 +414,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualFloatMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -424,7 +424,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallNonvirtualDoubleMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -434,7 +434,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			_jniEnv->Vtbl->CallNonvirtualVoidMethodA(_jniEnv, obj, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -445,7 +445,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var fieldID = _jniEnv->Vtbl->GetFieldID(_jniEnv, clazz, namePtr, sigPtr);
 			if (fieldID.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(GetFieldID));
+				JNIException.ThrowForError(_jniEnv, nameof(GetFieldID));
 			}
 
 			return fieldID;
@@ -549,7 +549,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var methodID = _jniEnv->Vtbl->GetStaticMethodID(_jniEnv, clazz, namePtr, sigPtr);
 			if (methodID.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(GetStaticMethodID));
+				JNIException.ThrowForError(_jniEnv, nameof(GetStaticMethodID));
 			}
 
 			return methodID;
@@ -561,7 +561,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticObjectMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -571,7 +571,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticBooleanMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -581,7 +581,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticByteMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -591,7 +591,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticCharMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -601,7 +601,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticShortMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -611,7 +611,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticIntMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -621,7 +621,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticLongMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -631,7 +631,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticFloatMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -641,7 +641,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			var ret = _jniEnv->Vtbl->CallStaticDoubleMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 			return ret;
 		}
 	}
@@ -651,7 +651,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JValue* argsPtr = args)
 		{
 			_jniEnv->Vtbl->CallStaticVoidMethodA(_jniEnv, clazz, methodID, argsPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -662,7 +662,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var fieldID = _jniEnv->Vtbl->GetStaticFieldID(_jniEnv, clazz, namePtr, sigPtr);
 			if (fieldID.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(GetStaticFieldID));
+				JNIException.ThrowForError(_jniEnv, nameof(GetStaticFieldID));
 			}
 
 			return fieldID;
@@ -766,7 +766,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var str = _jniEnv->Vtbl->NewString(_jniEnv, unicodeCharsPtr, unicodeChars.Length);
 			if (str.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(NewString));
+				JNIException.ThrowForError(_jniEnv, nameof(NewString));
 			}
 
 			return str;
@@ -783,7 +783,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var chars = _jniEnv->Vtbl->GetStringChars(_jniEnv, str, null);
 		if (chars == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetStringChars));
+			JNIException.ThrowForError(_jniEnv, nameof(GetStringChars));
 		}
 
 		return chars;
@@ -801,7 +801,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var str = _jniEnv->Vtbl->NewStringUTF(_jniEnv, bytesPtr);
 			if (str.IsNull)
 			{
-				JNIException.ThrowForError(this, nameof(NewStringUTF));
+				JNIException.ThrowForError(_jniEnv, nameof(NewStringUTF));
 			}
 
 			return str;
@@ -818,7 +818,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var chars = _jniEnv->Vtbl->GetStringUTFChars(_jniEnv, str, null);
 		if (chars == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetStringUTFChars)); 
+			JNIException.ThrowForError(_jniEnv, nameof(GetStringUTFChars)); 
 		}
 
 		return chars;
@@ -839,7 +839,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewObjectArray(_jniEnv, length, elementClass, initialElement);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewObjectArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewObjectArray));
 		}
 
 		return array;
@@ -848,14 +848,14 @@ internal readonly unsafe struct JNIEnvPtr
 	public JObject GetObjectArrayElement(JObjectArray array, JSize index)
 	{
 		var ret = _jniEnv->Vtbl->GetObjectArrayElement(_jniEnv, array, index);
-		JNIException.ThrowIfExceptionPending(this);
+		JNIException.ThrowIfExceptionPending(_jniEnv);
 		return ret;
 	}
 
 	public void SetObjectArrayElement(JObjectArray array, JSize index, JObject value)
 	{
 		_jniEnv->Vtbl->SetObjectArrayElement(_jniEnv, array, index, value);
-		JNIException.ThrowIfExceptionPending(this);
+		JNIException.ThrowIfExceptionPending(_jniEnv);
 	}
 
 	public JBooleanArray NewBooleanArray(JSize length)
@@ -863,7 +863,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewBooleanArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewBooleanArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewBooleanArray));
 		}
 
 		return array;
@@ -874,7 +874,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewByteArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewByteArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewByteArray));
 		}
 
 		return array;
@@ -885,7 +885,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewCharArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewCharArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewCharArray));
 		}
 
 		return array;
@@ -896,7 +896,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewShortArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewShortArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewShortArray));
 		}
 
 		return array;
@@ -907,7 +907,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewIntArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewIntArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewIntArray));
 		}
 
 		return array;
@@ -918,7 +918,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewLongArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewLongArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewLongArray));
 		}
 
 		return array;
@@ -929,7 +929,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewFloatArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewFloatArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewFloatArray));
 		}
 
 		return array;
@@ -940,7 +940,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var array = _jniEnv->Vtbl->NewDoubleArray(_jniEnv, length);
 		if (array.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewDoubleArray));
+			JNIException.ThrowForError(_jniEnv, nameof(NewDoubleArray));
 		}
 
 		return array;
@@ -951,7 +951,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetBooleanArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetBooleanArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetBooleanArrayElements));
 		}
 
 		return elems;
@@ -962,7 +962,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetByteArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetByteArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetByteArrayElements));
 		}
 
 		return elems;
@@ -973,7 +973,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetCharArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetCharArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetCharArrayElements));
 		}
 
 		return elems;
@@ -984,7 +984,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetShortArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetShortArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetShortArrayElements));
 		}
 
 		return elems;
@@ -995,7 +995,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetIntArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetIntArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetIntArrayElements));
 		}
 
 		return elems;
@@ -1006,7 +1006,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetLongArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetLongArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetLongArrayElements));
 		}
 
 		return elems;
@@ -1017,7 +1017,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetFloatArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetFloatArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetFloatArrayElements));
 		}
 
 		return elems;
@@ -1028,7 +1028,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var elems = _jniEnv->Vtbl->GetDoubleArrayElements(_jniEnv, array, null);
 		if (elems == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetDoubleArrayElements));
+			JNIException.ThrowForError(_jniEnv, nameof(GetDoubleArrayElements));
 		}
 
 		return elems;
@@ -1079,7 +1079,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JBoolean* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetBooleanArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1088,7 +1088,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JByte* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetByteArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1097,7 +1097,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JChar* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetCharArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1106,7 +1106,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JShort* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetShortArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1115,7 +1115,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JInt* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetIntArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1124,7 +1124,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JLong* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetLongArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1133,7 +1133,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JFloat* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetFloatArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1142,7 +1142,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JDouble* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetDoubleArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1151,7 +1151,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JBoolean* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetBooleanArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1160,7 +1160,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JByte* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetByteArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1169,7 +1169,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JChar* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetCharArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1178,7 +1178,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JShort* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetShortArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1187,7 +1187,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JInt* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetIntArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1196,7 +1196,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JLong* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetLongArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1205,7 +1205,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JFloat* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetFloatArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1214,7 +1214,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JDouble* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->SetDoubleArrayRegion(_jniEnv, array, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1225,7 +1225,7 @@ internal readonly unsafe struct JNIEnvPtr
 			var res = _jniEnv->Vtbl->RegisterNatives(_jniEnv, clazz, methodsPtr, methods.Length);
 			if (res < 0)
 			{
-				JNIException.ThrowForError(this, nameof(RegisterNatives));
+				JNIException.ThrowForError(_jniEnv, nameof(RegisterNatives));
 			}
 		}
 	}
@@ -1235,7 +1235,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var res = _jniEnv->Vtbl->UnregisterNatives(_jniEnv, clazz);
 		if (res < 0)
 		{
-			JNIException.ThrowForError(this, nameof(UnregisterNatives));
+			JNIException.ThrowForError(_jniEnv, nameof(UnregisterNatives));
 		}
 	}
 
@@ -1244,7 +1244,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var res = _jniEnv->Vtbl->MonitorEnter(_jniEnv, obj);
 		if (res < 0)
 		{
-			JNIException.ThrowForError(this, nameof(MonitorEnter));
+			JNIException.ThrowForError(_jniEnv, nameof(MonitorEnter));
 		}
 	}
 
@@ -1253,7 +1253,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var res = _jniEnv->Vtbl->MonitorExit(_jniEnv, obj);
 		if (res < 0)
 		{
-			JNIException.ThrowForError(this, nameof(MonitorExit));
+			JNIException.ThrowForError(_jniEnv, nameof(MonitorExit));
 		}
 	}
 
@@ -1262,7 +1262,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (JChar* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetStringRegion(_jniEnv, str, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1271,7 +1271,7 @@ internal readonly unsafe struct JNIEnvPtr
 		fixed (byte* bufPtr = buf)
 		{
 			_jniEnv->Vtbl->GetStringUTFRegion(_jniEnv, str, start, buf.Length, bufPtr);
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 	}
 
@@ -1280,7 +1280,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var carray = _jniEnv->Vtbl->GetPrimitiveArrayCritical(_jniEnv, array, null);
 		if (carray == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetPrimitiveArrayCritical));
+			JNIException.ThrowForError(_jniEnv, nameof(GetPrimitiveArrayCritical));
 		}
 
 		return carray;
@@ -1296,7 +1296,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var carray = _jniEnv->Vtbl->GetStringCritical(_jniEnv, str, null);
 		if (carray == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetStringCritical));
+			JNIException.ThrowForError(_jniEnv, nameof(GetStringCritical));
 		}
 
 		return carray;
@@ -1313,7 +1313,7 @@ internal readonly unsafe struct JNIEnvPtr
 		if (ret.IsNull)
 		{
 			// null is not necessarily an error
-			JNIException.ThrowIfExceptionPending(this);
+			JNIException.ThrowIfExceptionPending(_jniEnv);
 		}
 
 		return ret;
@@ -1334,7 +1334,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var buf = _jniEnv->Vtbl->NewDirectByteBuffer(_jniEnv, address, capacity);
 		if (buf.IsNull)
 		{
-			JNIException.ThrowForError(this, nameof(NewDirectByteBuffer));
+			JNIException.ThrowForError(_jniEnv, nameof(NewDirectByteBuffer));
 		}
 
 		return buf;
@@ -1345,7 +1345,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var address = _jniEnv->Vtbl->GetDirectBufferAddress(_jniEnv, buf);
 		if (address == null)
 		{
-			JNIException.ThrowForError(this, nameof(GetDirectBufferAddress));
+			JNIException.ThrowForError(_jniEnv, nameof(GetDirectBufferAddress));
 		}
 
 		return (byte*)address;
@@ -1356,7 +1356,7 @@ internal readonly unsafe struct JNIEnvPtr
 		var capacity = _jniEnv->Vtbl->GetDirectBufferCapacity(_jniEnv, buf);
 		if (capacity == -1)
 		{
-			JNIException.ThrowForError(this, nameof(GetDirectBufferCapacity));
+			JNIException.ThrowForError(_jniEnv, nameof(GetDirectBufferCapacity));
 		}
 
 		return capacity;

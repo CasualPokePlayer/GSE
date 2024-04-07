@@ -1,5 +1,7 @@
 ## Setting up development environment
 
+> None of this guide currently covers building for Android
+
 Before starting, fork the repository on GitHub (use the "Fork" button on the top right of the page).
 
 GSR's source code must be obtained with [git](https://git-scm.com/download). This sometimes is included already within your IDE (e.g. XCode). It's recommended to use the git CLI for git operations (examples of CLI usage will be in this document), although a git GUI should work fine (examples not provided).

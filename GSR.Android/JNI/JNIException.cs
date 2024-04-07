@@ -2,23 +2,20 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace GSR.Android.JNI;
 
-internal class JNIException : Exception
+internal unsafe class JNIException : Exception
 {
 	private JNIException(string message)
 		: base(message)
 	{
 	}
 
-	public static unsafe JNIException GetExceptionFromJava(JNIEnvPtr envPtr)
+	// JNIEnvPtr functions may call GetExceptionFromJava (or a function that does so)
+	// To avoid possible recursion, we'll directly use JNIEnv*
+	public static JNIException GetExceptionFromJava(JNIEnv* env)
 	{
-		// JNIEnvPtr functions may call GetExceptionFromJava (or a function that does so)
-		// to avoid possible recursion, we'll directly use JNIEnv*
-		// JNIEnvPtr as a value is the same as JNIEnv*, so we can just cast it
-		var env = (JNIEnv*)Unsafe.As<JNIEnvPtr, nint>(ref envPtr);
 		if (!env->Vtbl->ExceptionCheck(env))
 		{
 			return null;
@@ -79,12 +76,12 @@ internal class JNIException : Exception
 		}
 	}
 
-	public static void ThrowForError(JNIEnvPtr env, string envFunc)
+	public static void ThrowForError(JNIEnv* env, string envFunc)
 	{
 		throw GetExceptionFromJava(env) ?? new($"{envFunc} failed, but no Java exception was present");
 	}
 
-	public static void ThrowIfExceptionPending(JNIEnvPtr env)
+	public static void ThrowIfExceptionPending(JNIEnv* env)
 	{
 		var jniEx = GetExceptionFromJava(env);
 		if (jniEx != null)
