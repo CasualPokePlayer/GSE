@@ -91,4 +91,8 @@
 		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">linux-bionic-arm64</GSR_RID>
 		<DefineConstants>$(DefineConstants);GSR_ANDROID</DefineConstants>
 	</PropertyGroup>
+	<!-- https://github.com/dotnet/runtime/issues/92272 -->
+	<ItemGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<LinkerArg Include="-Wl,--undefined-version" />
+	</ItemGroup>
 </Project>
