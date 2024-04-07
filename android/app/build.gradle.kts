@@ -5,6 +5,7 @@ plugins {
 android {
     namespace = "org.psr.gsr"
     compileSdk = 34
+	ndkVersion = 26.2.11394342
 
     defaultConfig {
         applicationId = "org.psr.gsr"
