@@ -25,6 +25,7 @@ export JAVA_HOME=$JAVA_HOME_17_X64
 
 # Build java project
 cd android
+echo "ndk.dir ${ANDROID_NDK_ROOT}" > local.properties
 if [ -f $HOME/gsr-release-keystore.jks ]; then
 	./gradlew assembleRelease \
 		-Pkeystore=$HOME/gsr-release-keystore.jks \
