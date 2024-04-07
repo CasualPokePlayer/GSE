@@ -3,6 +3,11 @@
 # Install ninja (this isn't already installed on CI)
 sudo apt-get install -y ninja-build
 
+# set ourselves to the latest NDK
+export $ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+export $ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME
+export $ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
+
 # Build all externals
 cd ../externals/android
 ./build_all.sh
@@ -28,7 +33,7 @@ if [ -f $HOME/gsr-release-keystore.jks ]; then
 		-Pkeypass=$ANDROID_RELEASE_KEYPASS \
 		-Pandroid.ndkPath=$ANDROID_NDK_ROOT
 else
-	./gradlew assembleRelease -Pandroid.ndkPath=$ANDROID_NDK_ROOT
+	./gradlew assembleRelease --info -Pandroid.ndkPath=$ANDROID_NDK_ROOT
 fi
 
 # Copy apk over to output/$TARGET_RID/publish (where our CI looks for artifacts)
