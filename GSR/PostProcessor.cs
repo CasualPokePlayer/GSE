@@ -30,10 +30,11 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
-	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
+	private (bool KeepAspectRatio, ScalingFilter VideoFilter, bool EmuTextureReset) _lastFrameConfig;
 
 	public void ResetEmuTexture(int width, int height)
 	{
+		_lastFrameConfig.EmuTextureReset = true;
 		_emuTexture.ResetTexture(width, height);
 	}
 
@@ -123,7 +124,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 	{
 		// check if the current config changed since last frame, we'll do additional clears in such a case
 		// don't need to check the window scaling here, finalWidth/finalHeight changing will cover that
-		var curConfig = (config.KeepAspectRatio, config.OutputFilter);
+		var curConfig = (config.KeepAspectRatio, config.OutputFilter, false);
 		var configChanged = curConfig != _lastFrameConfig;
 		_lastFrameConfig = curConfig;
 
