@@ -40,14 +40,14 @@ internal class JNIException : Exception
 			if (getMessageMethodId.IsNull)
 			{
 				env->Vtbl->ExceptionClear(env);
-				throw new("Unknown Java exception occurred (GetMethodID for Java exception getMessage failed?)");
+				return new("Unknown Java exception occurred (GetMethodID for Java exception getMessage failed?)");
 			}
 
 			var jmessage = (JString)env->Vtbl->CallObjectMethodA(env, jException, getMessageMethodId, null);
 			if (env->Vtbl->ExceptionCheck(env) || jmessage.IsNull)
 			{
 				env->Vtbl->ExceptionClear(env);
-				throw new("Unknown Java exception occurred (CallObjectMethodA for Java exception getMessage failed?)");
+				return new("Unknown Java exception occurred (CallObjectMethodA for Java exception getMessage failed?)");
 			}
 
 			try
@@ -62,7 +62,7 @@ internal class JNIException : Exception
 				if (env->Vtbl->ExceptionCheck(env))
 				{
 					env->Vtbl->ExceptionClear(env);
-					throw new("Unknown Java exception occurred (GetStringRegion for Java exception string failed?)");
+					return new("Unknown Java exception occurred (GetStringRegion for Java exception string failed?)");
 				}
 
 				return new(new(message));
