@@ -5,12 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+#if !GSR_ANDROID
 using System.IO;
+#endif
 using System.Linq;
 
 using ImGuiNET;
 
+#if !GSR_ANDROID
 using static SDL2.SDL;
+#endif
 
 using GSR.Audio;
 using GSR.Emu;
@@ -356,12 +360,7 @@ internal sealed class ImGuiModals
 				ImGui.TextUnformatted($"{system} BIOS:");
 
 				ImGui.SameLine(ImGui.GetFontSize() * 5.5f);
-#if GSR_ANDROID
-				var biosPathReal = biosPathConfig?[(biosPathConfig.IndexOf('|') + 1)..] ?? "Path not set...";
-				if (ImGui.Button($"{biosPathReal}##{system}"))
-#else
-				if (ImGui.Button($"{biosPathConfig ?? "Path not set..."}##{system}"))
-#endif
+				if (ImGui.Button($"{GSRFile.MakeFriendlyPath(biosPathConfig) ?? "Path not set..."}##{system}"))
 				{
 					var biosPath = OpenFileDialog.ShowDialog($"{system} BIOS File", null, RomLoader.BiosAndCompressionExtensions, mainWindow);
 					if (biosPath != null)
@@ -377,6 +376,7 @@ internal sealed class ImGuiModals
 			_config.GbcBiosPath = AddBiosPathButton("GBC", _config.GbcBiosPath, _mainWindow);
 			_config.Sgb2BiosPath = AddBiosPathButton("SGB2", _config.Sgb2BiosPath, _mainWindow);
 			_config.GbaBiosPath = AddBiosPathButton("GBA", _config.GbaBiosPath, _mainWindow);
+
 #if !GSR_ANDROID
 			ImGui.Separator();
 
@@ -420,6 +420,8 @@ internal sealed class ImGuiModals
 			(_config.SavePathLocation, _config.SavePathCustom) = AddPathLocationButton("Save", _config.SavePathLocation, _config.SavePathCustom, _mainWindow);
 			(_config.StatePathLocation, _config.StatePathCustom) = AddPathLocationButton("State", _config.StatePathLocation, _config.StatePathCustom, _mainWindow);
 #endif
+
+			// TODO: Add menus for opening up the user path (needed on Android, nice to have on other platforms)
 			ImGui.EndPopup();
 		}
 
@@ -448,6 +450,7 @@ internal sealed class ImGuiModals
 					ImGui.EndTabItem();
 				}
 
+#if !GSR_ANDROID
 				if (ImGui.BeginTabItem("Misc"))
 				{
 					var bkgInput = _config.AllowBackgroundInput;
@@ -475,6 +478,7 @@ internal sealed class ImGuiModals
 
 					ImGui.EndTabItem();
 				}
+#endif
 
 				ImGui.EndTabBar();
 			}
@@ -539,6 +543,7 @@ internal sealed class ImGuiModals
 
 			ImGui.Separator();
 
+#if !GSR_ANDROID
 			var allowManualResizing = _config.AllowManualResizing;
 			if (ImGui.Checkbox("Allow Manual Resizing", ref allowManualResizing))
 			{
@@ -572,6 +577,7 @@ internal sealed class ImGuiModals
 				_config.WindowScale = windowScale + 1;
 				UpdateWindowScale();
 			}
+#endif
 
 			var keepAspectRatio = _config.KeepAspectRatio;
 			if (ImGui.Checkbox("Keep Aspect Ratio", ref keepAspectRatio))

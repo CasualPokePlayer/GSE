@@ -8,8 +8,10 @@ import android.view.KeyEvent;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 
 import org.libsdl.app.SDLActivity;
+import org.libsdl.app.SDLControllerManager;
 
 public class GSRActivity extends SDLActivity
 {
@@ -25,7 +27,7 @@ public class GSRActivity extends SDLActivity
 	protected String[] getLibraries()
 	{
 		// SDL2 must be the first object, and GSR must be the last object
-		return new String[] { "SDL2", "cimgui", "gambatte", "mgba", "GSR" };
+		return new String[] { "SDL2", "cimgui", "export_helper", "gambatte", "mgba", "GSR" };
 	}
 
 	@Override
@@ -50,11 +52,14 @@ public class GSRActivity extends SDLActivity
 		   return false;
 		}
 
-		var keyCode = event.getKeyCode();
-		var action = event.getAction();
-		if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP)
+		var deviceId = event.getDeviceId();
+		if (!SDLControllerManager.isDeviceSDLJoystick(deviceId))
 		{
-			DispatchAndroidKeyEvent(keyCode, action == KeyEvent.ACTION_DOWN);
+			var action = event.getAction();
+			if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP)
+			{
+				DispatchAndroidKeyEvent(event.getKeyCode(), action == KeyEvent.ACTION_DOWN);
+			}
 		}
 
 		return super.dispatchKeyEvent(event);
@@ -190,5 +195,12 @@ public class GSRActivity extends SDLActivity
 			System.err.println(ex.getMessage());
 			return null;
 		}
+	}
+
+	// Called by C# side via JNI
+	public static int GetRandomInt32(int toExclusive)
+	{
+		var random = new SecureRandom();
+		return random.nextInt(toExclusive);
 	}
 }

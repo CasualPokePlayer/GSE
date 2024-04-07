@@ -93,4 +93,13 @@ internal sealed class GSRFile
 			throw new($"Could not find file under extensions {string.Join('/', validExts)}");
 		}
 	}
+
+	public static string MakeFriendlyPath(string path)
+	{
+#if GSR_ANDROID
+		return path?[(path.IndexOf('|') + 1)..];
+#else
+		return path;
+#endif
+	}
 }

@@ -527,9 +527,6 @@ internal sealed class ImGuiWindow : IDisposable
 			_dpiScale = GetDpiScale();
 
 			var scaleOverride = Environment.GetEnvironmentVariable("GSR_SCALE");
-#if GSR_ANDROID
-			scaleOverride = "3";
-#endif
 			if (float.TryParse(scaleOverride, out var scaleFactor))
 			{
 				_isOverridingScale = true;
@@ -538,6 +535,13 @@ internal sealed class ImGuiWindow : IDisposable
 			{
 				scaleFactor = _dpiScale;
 			}
+
+#if GSR_ANDROID
+			// Ugly hack around default scaling not be suitable on Android
+			// TODO: Probably want to do some heuristics based on screen size? (maybe GetDpiScale needs adjustments?)
+			_isOverridingScale = true;
+			scaleFactor = 3;
+#endif
 
 			SetTheme(config.DarkMode);
 

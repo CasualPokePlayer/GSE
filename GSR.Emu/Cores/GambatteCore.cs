@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 using static GSR.Emu.Cores.Gambatte;
 
@@ -206,7 +205,7 @@ internal sealed class GambatteCore : IEmuCore
 					if (_resetFadeout != 0)
 					{
 						_resetStage = ResetStage.Fadeout;
-						_resetCounter = _resetFadeout + RandomNumberGenerator.GetInt32(35112);
+						_resetCounter = _resetFadeout + GSRRandom.GetInt32(35112);
 					}
 					else
 					{

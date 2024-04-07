@@ -37,11 +37,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 					// can't use a foreach loop, as LoadRomFile may mutate _config.RecentRoms
 					for (var i = 0; i < config.RecentRoms.Count; i++)
 					{
-#if GSR_ANDROID
-						if (ImGui.MenuItem(Path.GetFileName(config.RecentRoms[i][(config.RecentRoms[i].IndexOf('|') + 1)..])))
-#else
-						if (ImGui.MenuItem(Path.GetFileName(config.RecentRoms[i])))
-#endif
+						if (ImGui.MenuItem($"{Path.GetFileName(GSRFile.MakeFriendlyPath(config.RecentRoms[i]))}##{i}"))
 						{
 							romLoader.LoadRomFile(config.RecentRoms[i]);
 						}
