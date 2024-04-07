@@ -21,9 +21,14 @@ export JAVA_HOME=$JAVA_HOME_17_X64
 # Build java project
 cd android
 if [ -f $HOME/gsr-release-keystore.jks ]; then
-	./gradlew assembleRelease -Pkeystore=$HOME/gsr-release-keystore.jks -Pstorepass=$ANDROID_RELEASE_STOREPASS -Pkeyalias=$ANDROID_RELEASE_KEYALIAS -Pkeypass=$ANDROID_RELEASE_KEYPASS
+	./gradlew assembleRelease \
+		-Pkeystore=$HOME/gsr-release-keystore.jks \
+		-Pstorepass=$ANDROID_RELEASE_STOREPASS \
+		-Pkeyalias=$ANDROID_RELEASE_KEYALIAS \
+		-Pkeypass=$ANDROID_RELEASE_KEYPASS \
+		-Pandroid.ndkPath=$ANDROID_NDK_ROOT
 else
-	./gradlew assembleRelease --info
+	./gradlew assembleRelease -Pandroid.ndkPath=$ANDROID_NDK_ROOT
 fi
 
 # Copy apk over to output/$TARGET_RID/publish (where our CI looks for artifacts)
