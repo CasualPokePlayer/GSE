@@ -93,8 +93,8 @@
 		<ExtraLinkerArg Include="-weak_framework,QuartzCore" />
 		<ExtraLinkerArg Include="-weak_framework,CoreHaptics" />
 	</ItemGroup>
-	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_LINUX)' == 'true'">
-		<!-- gambatte is C++, so it needs libstdc++ linked in -->
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And ('$(GSR_LINUX)' == 'true' Or '$(GSR_ANDROID)' == 'true')">
+		<!-- For some platforms, we need to dynamically link the standard C++ library -->
 		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true' Or '$(GSR_ANDROID)' == 'true'">
@@ -115,6 +115,17 @@
 			<Visible>false</Visible>
 		</Content>
 		<Content Include="$(EXPORT_HELPER_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+	</ItemGroup>
+	<!-- Gradle doesn't understand we depend on libc++_shared, so we need to manually add it -->
+	<PropertyGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<NDK_SYSROOT_TRIPLE Condition="$(GSR_ARM64) == 'true'">aarch64-linux-android</NDK_SYSROOT_TRIPLE>
+		<NDK_SYSROOT_TRIPLE Condition="$(GSR_X64) == 'true'">x86_64-linux-android</NDK_SYSROOT_TRIPLE>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<Content Include="$(SysRoot)/usr/lib/$(NDK_SYSROOT_TRIPLE)/libc++_shared.so">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>

@@ -15,8 +15,9 @@ CMakeNinjaBuild() {
 		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
 		-DANDROID_ABI=arm64-v8a \
 		-DANDROID_PLATFORM=android-21 \
-		-DANDROID_STL=c++_static \
+		-DANDROID_STL=c++_shared \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DGSR_SHARED=ON \
 		-G Ninja
 	ninja
 	cd ..
@@ -27,8 +28,9 @@ CMakeNinjaBuild() {
 		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
 		-DANDROID_ABI=x86_64 \
 		-DANDROID_PLATFORM=android-21 \
-		-DANDROID_STL=c++_static \
+		-DANDROID_STL=c++_shared \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DGSR_SHARED=ON \
 		-G Ninja
 	ninja
 	cd ..
