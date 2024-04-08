@@ -3,6 +3,9 @@
 # Install build tools
 brew install ninja create-dmg
 
+# For reasons unknown this is required
+xcodebuild -runFirstLaunch
+
 CMakeNinjaBuild() {
 	# One time for x64
 	mkdir build_$1_static_osx-x64
