@@ -6,10 +6,24 @@
 		<SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion>
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
+	<!-- Automatically set sysroot for Android if we got ANDROID_NDK_ROOT defined -->
+	<!-- Note that this doesn't work for CppCompilerAndLinker, due to the checks for PATH not liking a full path -->
+	<PropertyGroup Condition="'$(GSR_ANDROID)' == 'true' And '$(ANDROID_NDK_ROOT)' != ''">
+		<NDK_HOST_TRIPLE Condition="$(IsWindowsHost) == 'true'">windows-x86_64</NDK_HOST_TRIPLE>
+		<NDK_HOST_TRIPLE Condition="$(IsOSXHost) == 'true'">darwin-x86_64</NDK_HOST_TRIPLE>
+		<NDK_HOST_TRIPLE Condition="$(IsLinuxHost) == 'true'">linux-x86_64</NDK_HOST_TRIPLE>
+		<SysRoot>$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/$(NDK_HOST_TRIPLE)/sysroot</SysRoot>
+		<!-- <CppCompilerAndLinker>$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/$(NDK_HOST_TRIPLE)/bin/clang</CppCompilerAndLinker> -->
+	</PropertyGroup>
 	<PropertyGroup>
 		<OutputPath>$(ProjectDir)../output</OutputPath>
 		<OutputType Condition="'$(GSR_WINDOWS)' == 'true'">WinExe</OutputType>
 		<OutputType Condition="'$(GSR_WINDOWS)' != 'true'">Exe</OutputType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<OutputType>Library</OutputType>
+		<NativeLib>Shared</NativeLib>
+		<TargetName>libGSR</TargetName>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ImGui.NET" Version="1.90.1.1" ExcludeAssets="native" />
@@ -21,6 +35,7 @@
 		<ProjectReference Include="$(ProjectDir)../GSR.Audio/GSR.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Emu/GSR.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
+		<ProjectReference Condition="'$(GSR_ANDROID)' == 'true'" Include="$(ProjectDir)../GSR.Android/GSR.Android.csproj" />
 	</ItemGroup>
 	<PropertyGroup>
 		<GitDefaultBranch>master</GitDefaultBranch>
@@ -42,7 +57,7 @@
 		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)mgba$(GSR_LIB_EXT)</MGBA_PATH>
 		<EXPORT_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSR_RID)/$(GSR_LIB_PREFIX)export_helper$(GSR_LIB_EXT)</EXPORT_HELPER_PATH>
 	</PropertyGroup>
-	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true'">
+	<ItemGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_ANDROID)' != 'true'">
 		<DirectPInvoke Include="cimgui" />
 		<DirectPInvoke Include="SDL2" />
 		<DirectPInvoke Include="gambatte" />
@@ -78,11 +93,11 @@
 		<ExtraLinkerArg Include="-weak_framework,QuartzCore" />
 		<ExtraLinkerArg Include="-weak_framework,CoreHaptics" />
 	</ItemGroup>
-	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And '$(GSR_LINUX)' == 'true'">
-		<!-- gambatte is C++, so it needs libstdc++ linked in -->
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true' And ('$(GSR_LINUX)' == 'true' Or '$(GSR_ANDROID)' == 'true')">
+		<!-- For some platforms, we need to dynamically link the standard C++ library -->
 		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
 	</PropertyGroup>
-	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true'">
+	<ItemGroup Condition="'$(GSR_PUBLISH)' != 'true' Or '$(GSR_ANDROID)' == 'true'">
 		<Content Include="$(CIMGUI_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
@@ -104,4 +119,26 @@
 			<Visible>false</Visible>
 		</Content>
 	</ItemGroup>
+	<!-- Gradle doesn't understand we depend on libc++_shared, so we need to manually add it -->
+	<PropertyGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<NDK_SYSROOT_TRIPLE Condition="$(GSR_ARM64) == 'true'">aarch64-linux-android</NDK_SYSROOT_TRIPLE>
+		<NDK_SYSROOT_TRIPLE Condition="$(GSR_X64) == 'true'">x86_64-linux-android</NDK_SYSROOT_TRIPLE>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<Content Include="$(SysRoot)/usr/lib/$(NDK_SYSROOT_TRIPLE)/libc++_shared.so">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+	</ItemGroup>
+	<!-- Copy libraries over to the Android Java project -->
+	<Target Name="AndroidCopyLibraries" Condition="'$(GSR_ANDROID)' == 'true'" AfterTargets="Publish">
+		<PropertyGroup>
+			<GSR_ANDROID_PROJECT_LIB_DIR Condition="$(GSR_ARM64) == 'true'">$(ProjectDir)../android/app/src/main/libs/arm64-v8a</GSR_ANDROID_PROJECT_LIB_DIR>
+			<GSR_ANDROID_PROJECT_LIB_DIR Condition="$(GSR_X64) == 'true'">$(ProjectDir)../android/app/src/main/libs/x86_64</GSR_ANDROID_PROJECT_LIB_DIR>
+		</PropertyGroup>
+		<ItemGroup>
+			<GSR_PUBLISH_OUTPUT Include="$(PublishDir)**" />
+		</ItemGroup>
+		<Copy SourceFiles="@(GSR_PUBLISH_OUTPUT)" DestinationFolder="$(GSR_ANDROID_PROJECT_LIB_DIR)" />
+	</Target>
 </Project>

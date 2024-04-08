@@ -5,12 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+#if !GSR_ANDROID
 using System.IO;
+#endif
 using System.Linq;
 
 using ImGuiNET;
 
+#if !GSR_ANDROID
 using static SDL2.SDL;
+#endif
 
 using GSR.Audio;
 using GSR.Emu;
@@ -356,8 +360,7 @@ internal sealed class ImGuiModals
 				ImGui.TextUnformatted($"{system} BIOS:");
 
 				ImGui.SameLine(ImGui.GetFontSize() * 5.5f);
-
-				if (ImGui.Button($"{biosPathConfig ?? "Path not set..."}##{system}"))
+				if (ImGui.Button($"{GSRFile.MakeFriendlyPath(biosPathConfig) ?? "Path not set..."}##{system}"))
 				{
 					var biosPath = OpenFileDialog.ShowDialog($"{system} BIOS File", null, RomLoader.BiosAndCompressionExtensions, mainWindow);
 					if (biosPath != null)
@@ -374,6 +377,7 @@ internal sealed class ImGuiModals
 			_config.Sgb2BiosPath = AddBiosPathButton("SGB2", _config.Sgb2BiosPath, _mainWindow);
 			_config.GbaBiosPath = AddBiosPathButton("GBA", _config.GbaBiosPath, _mainWindow);
 
+#if !GSR_ANDROID
 			ImGui.Separator();
 
 			static (PathResolver.PathType, string) AddPathLocationButton(string label, PathResolver.PathType pathType, string customPath, ImGuiWindow mainWindow)
@@ -415,7 +419,9 @@ internal sealed class ImGuiModals
 
 			(_config.SavePathLocation, _config.SavePathCustom) = AddPathLocationButton("Save", _config.SavePathLocation, _config.SavePathCustom, _mainWindow);
 			(_config.StatePathLocation, _config.StatePathCustom) = AddPathLocationButton("State", _config.StatePathLocation, _config.StatePathCustom, _mainWindow);
+#endif
 
+			// TODO: Add menus for opening up the user path (needed on Android, nice to have on other platforms)
 			ImGui.EndPopup();
 		}
 
@@ -444,6 +450,7 @@ internal sealed class ImGuiModals
 					ImGui.EndTabItem();
 				}
 
+#if !GSR_ANDROID
 				if (ImGui.BeginTabItem("Misc"))
 				{
 					var bkgInput = _config.AllowBackgroundInput;
@@ -471,6 +478,7 @@ internal sealed class ImGuiModals
 
 					ImGui.EndTabItem();
 				}
+#endif
 
 				ImGui.EndTabBar();
 			}
@@ -535,6 +543,7 @@ internal sealed class ImGuiModals
 
 			ImGui.Separator();
 
+#if !GSR_ANDROID
 			var allowManualResizing = _config.AllowManualResizing;
 			if (ImGui.Checkbox("Allow Manual Resizing", ref allowManualResizing))
 			{
@@ -568,6 +577,7 @@ internal sealed class ImGuiModals
 				_config.WindowScale = windowScale + 1;
 				UpdateWindowScale();
 			}
+#endif
 
 			var keepAspectRatio = _config.KeepAspectRatio;
 			if (ImGui.Checkbox("Keep Aspect Ratio", ref keepAspectRatio))
@@ -597,7 +607,24 @@ internal sealed class ImGuiModals
 			if (ImGui.Combo("Audio Device", ref _audioDeviceIndex, _audioDevices, _audioDevices.Length))
 			{
 				_config.AudioDeviceName = _audioDevices[_audioDeviceIndex];
-				_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+				try
+				{
+					_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+				}
+				catch
+				{
+					// ChangeConfig generally should not throw
+					// However, Android audio seems to be buggy and will be completely wreaked if opening a device id it doesn't like
+					// So much to the point that proceeding to fallback on the default audio device will fail
+					// Make sure to force the config back to the default audio device to avoid opening the app causing an instant crash
+					if (_audioManager.AudioDeviceName == AudioManager.DEFAULT_AUDIO_DEVICE)
+					{
+						_config.AudioDeviceName = AudioManager.DEFAULT_AUDIO_DEVICE;
+					}
+
+					throw;
+				}
+
 				// check if we ended up falling back to the default audio device (config change failed?), and adjust the config accordingly
 				// TODO: probably want to popup a message box in this case?
 				if (_audioDeviceIndex > 0 && _audioManager.AudioDeviceName == AudioManager.DEFAULT_AUDIO_DEVICE)

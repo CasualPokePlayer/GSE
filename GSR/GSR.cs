@@ -23,6 +23,10 @@ using GSR.Emu.Controllers;
 using GSR.Gui;
 using GSR.Input;
 
+#if GSR_ANDROID
+using GSR.Android;
+#endif
+
 namespace GSR;
 
 /// <summary>
@@ -193,9 +197,18 @@ internal sealed class GSR : IDisposable
 			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _stateManager, _mainWindow, _imGuiModals);
 			_mainWindow.SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			_mainWindow.SetVisible(true);
+#if GSR_ANDROID
+			AndroidInput.InputManager = _inputManager;
+#endif
 		}
 		catch
 		{
+			// this just works around a potential Android bug when opening an audio device it doesn't like
+			if (_inputManager != null && _audioManager == null)
+			{
+				_config.AudioDeviceName = AudioManager.DEFAULT_AUDIO_DEVICE;
+			}
+
 			Dispose();
 			throw;
 		}
@@ -203,6 +216,9 @@ internal sealed class GSR : IDisposable
 
 	public void Dispose()
 	{
+#if GSR_ANDROID
+		AndroidInput.InputManager = null;
+#endif
 		_postProcessor?.Dispose();
 		_emuManager?.Dispose();
 		_audioManager?.Dispose();

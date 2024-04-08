@@ -325,4 +325,10 @@ public sealed class InputManager : IDisposable
 
 		return false;
 	}
+
+	// ReSharper disable once UnusedMember.Global
+	public void DispatchAndroidKeyEvent(int keycode, bool pressed)
+	{
+		((AndroidKeyInput)_keyInput).DispatchKeyEvent(keycode, pressed);
+	}
 }

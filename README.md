@@ -66,6 +66,7 @@ GSR currently requires one of the following operating systems:
 * Windows 7 SP1+
 * macOS 10.15+
 * Linux (glibc 2.31+ / libstdc++ 3.4.28+)
+* Android 5.0+ (Lollipop)
 
 Both x64 and ARM64 machines are supported. On macOS, a "universal" binary is distributed, which works on both x64 and ARM64 machines.
 

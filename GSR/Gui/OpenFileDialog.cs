@@ -22,6 +22,10 @@ using AppKit;
 using UniformTypeIdentifiers;
 #endif
 
+#if GSR_ANDROID
+using GSR.Android;
+#endif
+
 namespace GSR.Gui;
 
 /// <summary>
@@ -183,6 +187,17 @@ internal static class OpenFileDialog
 		}
 
 		return null;
+	}
+#endif
+
+#if GSR_ANDROID
+	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
+	{
+		_ = description;
+		_ = baseDir;
+		_ = fileTypes;
+		_ = mainWindow;
+		return AndroidFile.RequestDocument();
 	}
 #endif
 }

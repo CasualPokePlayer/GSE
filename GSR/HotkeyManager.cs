@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+
 using GSR.Audio;
 using GSR.Emu;
 using GSR.Gui;
@@ -118,7 +119,9 @@ internal sealed class HotkeyManager
 		_hotkeys =
 		[
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, emuManager.TogglePause),
+#if !GSR_ANDROID
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
+#endif
 			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, emuManager.DoFrameStep),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeUpButtonBindings, VolumeUp),

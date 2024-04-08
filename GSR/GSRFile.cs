@@ -10,6 +10,10 @@ using System.Linq;
 using SharpCompress.Archives;
 using SharpCompress.Factories;
 
+#if GSR_ANDROID
+using GSR.Android;
+#endif
+
 namespace GSR;
 
 /// <summary>
@@ -41,6 +45,10 @@ internal sealed class GSRFile
 
 	public GSRFile(string path, IEnumerable<string> validExtensions)
 	{
+#if GSR_ANDROID
+		var contentUri = path[..path.IndexOf('|')];
+		path = path[(path.IndexOf('|') + 1)..];
+#endif
 		Directory = Path.GetDirectoryName(path);
 
 		var validExts = validExtensions as string[] ?? validExtensions.ToArray();
@@ -49,11 +57,19 @@ internal sealed class GSRFile
 		{
 			UnderlyingFileName = Path.GetFileNameWithoutExtension(path);
 			UnderlyingExtension = ext;
+#if GSR_ANDROID
+			Buffer = AndroidFile.OpenBufferedStream(contentUri).ToArray();
+#else
 			Buffer = File.ReadAllBytes(path);
+#endif
 			return;
 		}
 
+#if GSR_ANDROID
+		using var fs = AndroidFile.OpenBufferedStream(contentUri);
+#else
 		using var fs = File.OpenRead(path);
+#endif
 		if (ArchiveFactory.IsArchive(fs, out _))
 		{
 			using var archive = ArchiveFactory.Open(fs);
@@ -76,5 +92,14 @@ internal sealed class GSRFile
 		{
 			throw new($"Could not find file under extensions {string.Join('/', validExts)}");
 		}
+	}
+
+	public static string MakeFriendlyPath(string path)
+	{
+#if GSR_ANDROID
+		return path?[(path.IndexOf('|') + 1)..];
+#else
+		return path;
+#endif
 	}
 }

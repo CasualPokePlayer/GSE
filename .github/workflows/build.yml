@@ -41,6 +41,12 @@ jobs:
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
+        - name: android
+          runner: ubuntu-latest
+          container: debian:11
+          shell: sh
+          build_script: ./android.sh
+          rid: android
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.runner }}
     container: ${{ matrix.platform.container }}
@@ -62,9 +68,18 @@ jobs:
         path: GSR
         fetch-depth: 0
         submodules: recursive
+    - name: Setup Android release keystore
+      if: matrix.platform.rid == 'android' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
+      env:
+        ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
+      run: |
+        echo $ANDROID_RELEASE_KEYSTORE | base64 --decode > $HOME/gsr-release-keystore.jks
     - name: Run CI build script
       env:
         TARGET_RID: ${{ matrix.platform.rid }}
+        ANDROID_RELEASE_STOREPASS: ${{ secrets.ANDROID_RELEASE_STOREPASS }}
+        ANDROID_RELEASE_KEYALIAS: ${{ secrets.ANDROID_RELEASE_KEYALIAS }}
+        ANDROID_RELEASE_KEYPASS: ${{ secrets.ANDROID_RELEASE_KEYPASS }}
       run: |
         cd GSR/.ci
         ${{ matrix.platform.build_script }}

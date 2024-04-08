@@ -1,9 +1,9 @@
-<Project InitialTargets="CheckPlatform">
+<Project>
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<Platforms>x64;ARM64</Platforms>
-		<RuntimeIdentifiers>win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
+		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-bionic-x64;linux-bionic-arm64</RuntimeIdentifiers>
 		<AnalysisLevel>8</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<Features>strict</Features>
@@ -20,13 +20,28 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<GSR_PUBLISH Condition="'$(_IsPublishing)' == 'true'">true</GSR_PUBLISH>
-		<!-- Note that .NET AOT does not support cross compiling across OSes (only across architectures), therefore we can assume the host OS is going to be the target OS -->
-		<GSR_WINDOWS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</GSR_WINDOWS>
-		<GSR_OSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</GSR_OSX>
-		<GSR_LINUX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</GSR_LINUX>
+		<IsWindowsHost>$([MSBuild]::IsOSPlatform('Windows'))</IsWindowsHost>
+		<IsOSXHost>$([MSBuild]::IsOSPlatform('OSX'))</IsOSXHost>
+		<IsLinuxHost>$([MSBuild]::IsOSPlatform('Linux'))</IsLinuxHost>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' == 'true'">
+		<!-- Use RID to compute the OS if we're publishing -->
+		<GSR_WINDOWS>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('win-'))</GSR_WINDOWS>
+		<GSR_OSX>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx-'))</GSR_OSX>
+		<!-- .NET NativeAOT on Android uses linux-bionic-* rather than android-* RIDs -->
+		<GSR_ANDROID>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-bionic-'))</GSR_ANDROID>
+		<GSR_LINUX Condition="'$(GSR_ANDROID)' != 'true'">$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-'))</GSR_LINUX>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSR_PUBLISH)' != 'true'">
+		<!-- Make sure we compute the correct platform if we're not publishing (i.e. local build) -->
+		<GSR_WINDOWS>$(IsWindowsHost)</GSR_WINDOWS>
+		<GSR_OSX>$(IsOSXHost)</GSR_OSX>
+		<GSR_LINUX>$(IsLinuxHost)</GSR_LINUX>
+	</PropertyGroup>
+	<PropertyGroup>
 		<!-- Try to use RID to identify the target architecture -->
-		<GSR_X64 Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">true</GSR_X64>
-		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == 'win-arm64' Or '$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'linux-arm64'">true</GSR_ARM64>
+		<GSR_X64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x64'))</GSR_X64>
+		<GSR_ARM64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm64'))</GSR_ARM64>
 		<!-- Use the selected platform otherwise -->
 		<GSR_X64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'x64'">true</GSR_X64>
 		<GSR_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'ARM64'">true</GSR_ARM64>
@@ -68,7 +83,16 @@
 		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">linux-arm64</GSR_RID>
 		<DefineConstants>$(DefineConstants);GSR_LINUX</DefineConstants>
 	</PropertyGroup>
-	<Target Name="CheckPlatform">
-		<Error Condition="'$(GSR_RID)' == ''" Text="Unsupported Platform" />
-	</Target>
+	<!-- We must be publishing for Android -->
+	<PropertyGroup Condition="'$(GSR_ANDROID)' == 'true' And '$(GSR_PUBLISH)' == 'true'">
+		<GSR_LIB_PREFIX>lib</GSR_LIB_PREFIX>
+		<GSR_LIB_EXT>.so</GSR_LIB_EXT>
+		<GSR_RID Condition="'$(GSR_X64)' == 'true'">linux-bionic-x64</GSR_RID>
+		<GSR_RID Condition="'$(GSR_ARM64)' == 'true'">linux-bionic-arm64</GSR_RID>
+		<DefineConstants>$(DefineConstants);GSR_ANDROID</DefineConstants>
+	</PropertyGroup>
+	<!-- https://github.com/dotnet/runtime/issues/92272 -->
+	<ItemGroup Condition="'$(GSR_ANDROID)' == 'true'">
+		<LinkerArg Include="-Wl,--undefined-version" />
+	</ItemGroup>
 </Project>

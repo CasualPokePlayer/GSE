@@ -178,4 +178,11 @@ internal static class SaveFileDialog
 		return null;
 	}
 #endif
+
+#if GSR_ANDROID
+	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
+	{
+		return null;
+	}
+#endif
 }

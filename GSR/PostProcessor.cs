@@ -31,6 +31,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
+	private (int Width, int Height) _lastEmuTextureDimensions;
 
 	public void ResetEmuTexture(int width, int height)
 	{
@@ -140,6 +141,10 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 			srcRect.h = 144;
 		}
 
+		var curEmuTextureDimensions = (srcRect.w, srcRect.h);
+		var emuTextureDimensionsChanged = curEmuTextureDimensions != _lastEmuTextureDimensions;
+		_lastEmuTextureDimensions = curEmuTextureDimensions;
+
 		var dstTex = config.OutputFilter == ScalingFilter.Bilinear ? _blScaledTexture : _nnScaledTexture;
 		var dstRect = new SDL_Rect { x = 0, y = 0, w = finalWidth, h = finalHeight };
 		CalculateScaledRect(in srcRect, ref dstRect, config.OutputFilter == ScalingFilter.SharpBilinear);
@@ -148,7 +153,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		var needsClear = dstTex.Width != finalWidth || dstTex.Height != finalHeight;
 		dstTex.SetVideoDimensions(finalWidth, finalHeight);
 
-		RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged);
+		RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
 
 		if (config.OutputFilter == ScalingFilter.SharpBilinear)
 		{
@@ -166,7 +171,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 				dstTex = _blScaledTexture;
 				needsClear = dstTex.Width != finalWidth || dstTex.Height != finalHeight;
 				dstTex.SetVideoDimensions(finalWidth, finalHeight);
-				RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged);
+				RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
 			}
 		}
 
