@@ -2,6 +2,8 @@
 
 # This script expects to be running on Debian 11 under root
 
+base64 --help
+
 # Install build tools
 apt-get install -y wget unzip openjdk-17-jdk-headless
 
@@ -49,7 +51,7 @@ cd android
 if [ -f $HOME/gsr-release-keystore.jks ]; then
 	./gradlew assembleRelease -Pkeystore=$HOME/gsr-release-keystore.jks -Pstorepass=$ANDROID_RELEASE_STOREPASS -Pkeyalias=$ANDROID_RELEASE_KEYALIAS -Pkeypass=$ANDROID_RELEASE_KEYPASS
 else
-	./gradlew assembleRelease --info
+	./gradlew assembleRelease
 fi
 
 # Copy apk over to output/$TARGET_RID/publish (where our CI looks for artifacts)
