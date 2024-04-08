@@ -3,7 +3,7 @@
 # This script expects to be running on Debian 11 under root
 
 # Install build tools
-apt-get install -y wget unzip cmake ninja-build openjdk-17-jdk-headless
+apt-get install -y wget unzip openjdk-17-jdk-headless
 
 # Get Android Command Line Tools
 wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O commandlinetools.zip
@@ -21,8 +21,10 @@ mv ./cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34"
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.2.11394342"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.28"
 
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/26.2.11394342"
+export PATH=$PATH:$ANDROID_HOME/cmake/3.28/bin
 
 # Build all externals
 cd ../externals/android
