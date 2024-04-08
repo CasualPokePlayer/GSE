@@ -43,6 +43,7 @@ jobs:
           rid: linux-arm64
         - name: android
           runner: ubuntu-latest
+          container: debian:11
           shell: sh
           build_script: ./android.sh
           rid: android
