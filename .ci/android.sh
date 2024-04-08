@@ -6,8 +6,8 @@
 apt-get install -y wget unzip openjdk-17-jdk-headless
 
 # Get Android Command Line Tools
-wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O commandlinetools.zip
-unzip ./commandlinetools.zip
+wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+unzip ./cmdline-tools.zip
 
 # Set ANDROID_HOME to somewhere known
 export ANDROID_HOME=$HOME/.android_sdk
