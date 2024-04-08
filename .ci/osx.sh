@@ -3,7 +3,7 @@
 # Install build tools
 brew install ninja create-dmg
 
-# This is required for CMAKE_SYSTEM_VERSIO to properly work
+# This is required for CMAKE_SYSTEM_VERSION to properly work
 sudo xcodebuild -license
 
 CMakeNinjaBuild() {
