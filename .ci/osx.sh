@@ -4,7 +4,8 @@
 brew install ninja create-dmg
 
 # For reasons unknown this is required
-xcodebuild -runFirstLaunch
+xcode-select --install
+sudo xcodebuild -license
 
 CMakeNinjaBuild() {
 	# One time for x64
