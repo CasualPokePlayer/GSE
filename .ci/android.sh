@@ -44,6 +44,12 @@ cd ../..
 dotnet publish -r linux-bionic-arm64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 dotnet publish -r linux-bionic-x64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 
+# Gradle won't understand if libraries being missing means the build should fail, so check against failure here
+if [ ! -f output/linux-bionic-arm64/publish/libGSR.so ] || [ ! -f output/linux-bionic-x64/publish/libGSR.so ]; then
+	echo "dotnet publish failed, aborting"
+	exit 1
+fi
+
 # Build java project
 cd android
 if [ -f $HOME/gsr-release-keystore.jks ]; then
