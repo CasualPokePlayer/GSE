@@ -15,7 +15,7 @@ namespace GSR.Android;
 /// <summary>
 /// Holds methods for opening Android files
 /// </summary>
-public static unsafe class AndroidFile
+public static class AndroidFile
 {
 	private static JClass _gsrActivityClassId;
 	private static JMethodID _requestDocumentMethodId;
@@ -31,6 +31,7 @@ public static unsafe class AndroidFile
 	private static readonly AutoResetEvent _documentRequestDone = new(false);
 	private static string _requestedDocument;
 
+	// ReSharper disable once UnusedMember.Global
 	public static string RequestDocument()
 	{
 		var env = JNIEnvPtr.GetEnv();
@@ -57,6 +58,7 @@ public static unsafe class AndroidFile
 		_documentRequestDone.Set();
 	}
 
+	// ReSharper disable once UnusedMember.Global
 	public static MemoryStream OpenBufferedStream(string contentUri)
 	{
 		var env = JNIEnvPtr.GetEnv();

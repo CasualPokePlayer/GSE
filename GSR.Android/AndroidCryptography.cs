@@ -26,6 +26,7 @@ public static class AndroidCryptography
 		_getRandomInt32MethodId = env.GetStaticMethodID(_gsrActivityClassId, "GetRandomInt32"u8, "(I)I"u8);
 	}
 
+	// ReSharper disable once UnusedMember.Global
 	public static unsafe byte[] HashDataSHA256(ReadOnlySpan<byte> data)
 	{
 		var env = JNIEnvPtr.GetEnv();
@@ -42,6 +43,7 @@ public static class AndroidCryptography
 		}
 	}
 
+	// ReSharper disable once UnusedMember.Global
 	public static int GetRandomInt32(int toExclusive)
 	{
 		var env = JNIEnvPtr.GetEnv();

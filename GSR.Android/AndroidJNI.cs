@@ -7,6 +7,9 @@ using GSR.Android.JNI;
 
 namespace GSR.Android;
 
+// ReSharper disable once UnusedType.Global
+// ReSharper disable once UnusedMember.Global
+
 /// <summary>
 /// Handles Android JNI initialization
 /// </summary>
