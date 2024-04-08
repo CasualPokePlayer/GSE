@@ -59,7 +59,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.platform.msvc_arch }}
-    - name: Setup Xcode
+    - name: Setup Xcode environment
       if: matrix.platform.rid == 'osx'
       uses: maxim-lobanov/setup-xcode@v1
       with:
