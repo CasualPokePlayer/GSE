@@ -2,8 +2,6 @@
 
 # This script expects to be running on Debian 11 under root
 
-base64 --help
-
 # Install build tools
 apt-get install -y wget unzip openjdk-17-jdk-headless
 
