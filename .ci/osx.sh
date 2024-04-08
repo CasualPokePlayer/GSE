@@ -4,7 +4,7 @@
 brew install ninja create-dmg
 
 # This is required for CMAKE_SYSTEM_VERSION to properly work
-sudo xcodebuild -license
+# sudo xcodebuild -license accept
 
 CMakeNinjaBuild() {
 	# One time for x64
