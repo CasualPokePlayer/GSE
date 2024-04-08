@@ -11,7 +11,8 @@ namespace GSR;
 
 /// <summary>
 /// Exports must be placed in the GSR project, as it is the published assembly
-/// Note too entrypoints have to be defined under
+/// Note that we register JNI entrypoints using the JNI RegisterNatives method
+/// This way we don't need to export JNI entrypoints
 /// </summary>
 internal static class AndroidExports
 {
