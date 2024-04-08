@@ -25,7 +25,7 @@ jobs:
           rid: win-arm64
           msvc_arch: x64_arm64
         - name: macos-universal
-          runner: macos-13
+          runner: macos-14
           shell: sh
           build_script: ./osx.sh
           rid: osx
@@ -59,6 +59,11 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.platform.msvc_arch }}
+    - name: Setup Xcode environment
+      if: matrix.platform.rid == 'osx'
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     - name: Setup base Linux environment
       if: matrix.platform.container != ''
       run: apt-get update && apt-get install -y git

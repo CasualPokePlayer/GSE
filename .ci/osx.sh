@@ -14,6 +14,8 @@ CMakeNinjaBuild() {
 		-DCMAKE_OBJC_COMPILER=clang \
 		-DCMAKE_OBJCXX_COMPILER=clang++ \
 		-DCMAKE_OSX_ARCHITECTURES=x86_64 \
+		-DCMAKE_SYSTEM_NAME=Darwin \
+		-DCMAKE_SYSTEM_PROCESSOR=x86_64 \
 		-G Ninja \
 		-DGSR_SHARED=OFF
 	ninja
@@ -47,6 +49,12 @@ cd ..
 dotnet workload install macos
 dotnet publish -r osx-x64
 dotnet publish -r osx-arm64
+
+# Abort if the build failed for whatever reason
+if [ ! -f output/osx-x64/GSR.app/Contents/MacOS/GSR ] || [ ! -f output/osx-arm64//GSR.app/Contents/MacOS/GSR ]; then
+	echo "dotnet publish failed, aborting"
+	exit 1
+fi
 
 # Merge the binaries together
 mkdir output/$TARGET_RID
