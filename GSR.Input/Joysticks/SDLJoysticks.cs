@@ -16,6 +16,7 @@ internal class SDLJoysticks : IDisposable
 	static SDLJoysticks()
 	{
 		SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
 	}
 
 	public SDLJoysticks()
