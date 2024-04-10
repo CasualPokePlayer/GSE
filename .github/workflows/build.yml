@@ -79,12 +79,21 @@ jobs:
         ANDROID_RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE }}
       run: |
         echo $ANDROID_RELEASE_KEYSTORE | base64 --decode > $HOME/gsr-release-keystore.jks
+    - name: Setup Android upload keystore
+      if: matrix.platform.rid == 'android' && startsWith(github.ref, 'refs/tags/')
+      env:
+        ANDROID_UPLOAD_KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE }}
+      run: |
+        echo $ANDROID_UPLOAD_KEYSTORE | base64 --decode > $HOME/gsr-upload-keystore.jks
     - name: Run CI build script
       env:
         TARGET_RID: ${{ matrix.platform.rid }}
         ANDROID_RELEASE_STOREPASS: ${{ secrets.ANDROID_RELEASE_STOREPASS }}
         ANDROID_RELEASE_KEYALIAS: ${{ secrets.ANDROID_RELEASE_KEYALIAS }}
         ANDROID_RELEASE_KEYPASS: ${{ secrets.ANDROID_RELEASE_KEYPASS }}
+        ANDROID_UPLOAD_STOREPASS: ${{ secrets.ANDROID_UPLOAD_STOREPASS }}
+        ANDROID_UPLOAD_KEYALIAS: ${{ secrets.ANDROID_UPLOAD_KEYALIAS }}
+        ANDROID_UPLOAD_KEYPASS: ${{ secrets.ANDROID_UPLOAD_KEYPASS }}
       run: |
         cd GSR/.ci
         ${{ matrix.platform.build_script }}

@@ -63,3 +63,11 @@ cd ..
 mkdir output/$TARGET_RID
 mkdir output/$TARGET_RID/publish
 cp -a -T android/app/build/outputs/apk/release/app-release.apk output/$TARGET_RID/publish/GSR.apk
+
+# Also possibly build an app bundle (for Play Store submission)
+if [ -f $HOME/gsr-upload-keystore.jks ]; then
+	cd android
+	./gradlew bundleRelease -Pkeystore="$HOME/gsr-upload-keystore.jks" -Pstorepass="$ANDROID_UPLOAD_STOREPASS" -Pkeyalias="$ANDROID_UPLOAD_KEYALIAS" -Pkeypass="$ANDROID_UPLOAD_KEYPASS"
+	cd ..
+	cp -a -T android/app/build/outputs/bundle/release/app-release.aab output/$TARGET_RID/publish/GSR.aab
+fi
