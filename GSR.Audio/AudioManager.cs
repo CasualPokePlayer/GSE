@@ -21,8 +21,8 @@ public sealed class AudioManager : IDisposable
 	public const int MAXIMUM_LATENCY_MS = 100;
 
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
- 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static unsafe void SDLAudioCallback(nint userdata, nint stream, int len)
 	{
 		var manager = (AudioManager)GCHandle.FromIntPtr(userdata).Target!;

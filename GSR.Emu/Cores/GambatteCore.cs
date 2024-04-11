@@ -44,7 +44,7 @@ internal sealed class GambatteCore : IEmuCore
 
 	private Buttons CurrentButtons;
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static Buttons InputGetter(nint userdata)
 	{
 		var core = (GambatteCore)GCHandle.FromIntPtr(userdata).Target!;

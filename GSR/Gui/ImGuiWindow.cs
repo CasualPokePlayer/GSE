@@ -212,7 +212,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private nint ClipboardText;
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static nint GetClipboardText(nint userdata)
 	{
 		var window = (ImGuiWindow)GCHandle.FromIntPtr(userdata).Target!;
@@ -221,13 +221,13 @@ internal sealed class ImGuiWindow : IDisposable
 		return window.ClipboardText;
 	}
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static unsafe void SetClipboardText(nint userdata, nint text)
 	{
 		_ = INTERNAL_SDL_SetClipboardText((byte*)text);
 	}
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static unsafe void SetPlatformImeData(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 	{
 		if (data->WantVisible != 0)

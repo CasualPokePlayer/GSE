@@ -45,7 +45,7 @@ internal sealed class RawKeyInput : IKeyInput
 		}
 	});
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvStdcall) ])]
 	private static unsafe LRESULT WndProc(HWND hWnd, uint uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		if (uMsg != PInvoke.WM_INPUT)

@@ -56,7 +56,7 @@ internal sealed class GSR : IDisposable
 		SDL_EventType.SDL_RENDER_TARGETS_RESET, SDL_EventType.SDL_RENDER_DEVICE_RESET,
 	];
 
-	[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static unsafe int SDLEventFilter(nint userdata, nint sdlEvent)
 	{
 		var e = (SDL_Event*)sdlEvent;
