@@ -13,7 +13,7 @@ internal sealed class MGBACore : IEmuCore
 	private readonly nint _opaque;
 	private readonly uint[] _videoBuffer = new uint[240 * 160];
 	private readonly short[] _audioBuffer = new short[1024 * 2];
-	private readonly byte[] _saveBuffer = new byte[0x20000 + 16];
+	private readonly byte[] _savBuffer = new byte[0x20000 + 16];
 	private readonly string _savPath;
 	private readonly Action _resetCallback;
 
@@ -38,9 +38,9 @@ internal sealed class MGBACore : IEmuCore
 			if (savFi.Exists)
 			{
 				using var sav = savFi.OpenRead();
-				mgba_savesavedata(_opaque, _saveBuffer);
-				sav.Read(_saveBuffer);
-				mgba_loadsavedata(_opaque, _saveBuffer);
+				mgba_savesavedata(_opaque, _savBuffer);
+				sav.Read(_savBuffer);
+				mgba_loadsavedata(_opaque, _savBuffer);
 			}
 
 			_savPath = savPath;
@@ -72,14 +72,21 @@ internal sealed class MGBACore : IEmuCore
 			if (saveDataLength > 0)
 			{
 				using var sav = File.OpenWrite(_savPath);
-				mgba_savesavedata(_opaque, _saveBuffer);
-				sav.Write(_saveBuffer.AsSpan()[..saveDataLength]);
+				mgba_savesavedata(_opaque, _savBuffer);
+				sav.Write(_savBuffer.AsSpan()[..saveDataLength]);
 			}
 		}
 		catch
 		{
 			// ignored
 		}
+	}
+
+	private void DoReset()
+	{
+		WriteSav();
+		mgba_reset(_opaque);
+		_resetCallback();
 	}
 
 	public void Advance(EmuControllerState controllerState, out bool completedFrame, out uint samples, out uint cpuCycles)
@@ -90,15 +97,54 @@ internal sealed class MGBACore : IEmuCore
 
 		if (doReset)
 		{
-			WriteSav();
-			mgba_reset(_opaque);
-			_resetCallback();
+			DoReset();
 		}
 
 		mgba_advance(_opaque, (Buttons)controllerState.GBAInputState, _videoBuffer, _audioBuffer, out var samplesRan, out var cpuCyclesRan);
 		completedFrame = true;
 		samples = samplesRan;
 		cpuCycles = cpuCyclesRan;
+	}
+
+	public bool LoadSave(ReadOnlySpan<byte> sav)
+	{
+		var saveDataLength = mgba_getsavedatalength(_opaque);
+		if (saveDataLength == 0)
+		{
+			return false;
+		}
+
+		if (sav.Length >= saveDataLength)
+		{
+			// if we're large enough, we can send the buffer in directly
+			mgba_loadsavedata(_opaque, sav);
+			DoReset();
+			return true;
+		}
+
+		var savBuffer = _savBuffer.AsSpan();
+		// make sure we don't trash RTC/etc state
+		var footerLength = saveDataLength & 0xFF;
+		if (footerLength != 0)
+		{
+			// update the footer
+			mgba_savesavedata(_opaque, savBuffer);
+			sav.CopyTo(savBuffer);
+			var remainingSaveLength = saveDataLength - sav.Length - footerLength;
+			if (remainingSaveLength > 0)
+			{
+				savBuffer.Slice(sav.Length, remainingSaveLength).Fill(0xFF);
+			}
+		}
+		else
+		{
+			sav.CopyTo(savBuffer);
+			savBuffer[sav.Length..saveDataLength].Fill(0xFF);
+		}
+
+		mgba_loadsavedata(_opaque, savBuffer);
+		DoReset();
+		return true;
 	}
 
 	public ReadOnlySpan<byte> SaveState()

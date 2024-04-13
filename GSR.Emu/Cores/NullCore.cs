@@ -25,6 +25,8 @@ internal sealed class NullCore : IEmuCore
 		cpuCycles = samples = 48000 / 60;
 	}
 
+	public bool LoadSave(ReadOnlySpan<byte> sav) => false;
+
 	public ReadOnlySpan<byte> SaveState() => [];
 	public bool LoadState(ReadOnlySpan<byte> state) => false;
 

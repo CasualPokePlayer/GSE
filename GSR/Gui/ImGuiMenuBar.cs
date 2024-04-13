@@ -11,7 +11,7 @@ using GSR.Emu;
 
 namespace GSR.Gui;
 
-internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoader romLoader, StateManager stateManager, ImGuiWindow mainWindow, ImGuiModals imGuiModals)
+internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoader romLoader, StateManager stateManager, OSDManager osdManager, ImGuiWindow mainWindow, ImGuiModals imGuiModals)
 {
 	public void RunMenuBar()
 	{
@@ -53,6 +53,25 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 #if !GSR_ANDROID
 				ImGui.Separator();
 
+				if (ImGui.MenuItem("Import Save...", emuManager.RomIsLoaded))
+				{
+					using (new EmuPause(emuManager))
+					{
+						var filePath = OpenFileDialog.ShowDialog("Save File", emuManager.CurrentSavePath, [".sav"], mainWindow);
+						if (filePath != null)
+						{
+							// note that importing a save does an implicit reset, if successful
+							// due to this, we only want to queue an OSD message on failure
+							if (!emuManager.LoadSave(filePath))
+							{
+								osdManager.QueueMessage("Failed to import save!");
+							}
+						}
+					}
+				}
+
+				ImGui.Separator();
+
 				if (ImGui.MenuItem("Save State as...", emuManager.RomIsLoaded))
 				{
 					using (new EmuPause(emuManager))
@@ -60,8 +79,9 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var filePath = SaveFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentStatePath, emuManager.CurrentRomName, ".gqs", mainWindow);
 						if (filePath != null)
 						{
-							// TODO: OSD message on success/fail
-							_ = emuManager.SaveState(filePath);
+							osdManager.QueueMessage(emuManager.SaveState(filePath)
+								? "State saved to user selected path"
+								: "Failed to save state!");
 						}
 					}
 				}
@@ -73,8 +93,9 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var filePath = OpenFileDialog.ShowDialog("GSR Quick State", emuManager.CurrentStatePath, [".gqs"], mainWindow);
 						if (filePath != null)
 						{
-							// TODO: OSD message on success/fail
-							_ = emuManager.LoadState(filePath);
+							osdManager.QueueMessage(emuManager.LoadState(filePath)
+								? "State loaded from user selected path"
+								: "Failed to load state!");
 						}
 					}
 				}

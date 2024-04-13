@@ -135,7 +135,7 @@ internal sealed class GambatteCore : IEmuCore
 			gambatte_setcgbpalette(_opaque,
 				loadArgs.ApplyColorCorrection ? GBColors.GetLut(_gbPlatform) : GBColors.TrueColorLut);
 
-			_stateBuffer = new byte[gambatte_savestate(_opaque, null, 0, null)];
+			_stateBuffer = new byte[gambatte_savestate(_opaque, [], 0, [])];
 
 			var savPath = Path.Combine(loadArgs.SaveFilePath, loadArgs.RomName) + ".sav";
 			var savBuffer = new byte[gambatte_getsavedatalength(_opaque)];
@@ -308,9 +308,59 @@ internal sealed class GambatteCore : IEmuCore
 		ResetStepPost(samplesToRun, completedFrame);
 	}
 
+	public bool LoadSave(ReadOnlySpan<byte> sav)
+	{
+		if (_resetStage != ResetStage.None || _savBuffer.Length == 0)
+		{
+			return false;
+		}
+
+		if (sav.Length >= _savBuffer.Length)
+		{
+			// if we're large enough, we can send the buffer in directly
+			gambatte_loadsavedata(_opaque, sav);
+			DoReset();
+			if (_resetStage == ResetStage.None)
+			{
+				_resetCallback();
+			}
+
+			return true;
+		}
+
+		var savBuffer = _savBuffer.AsSpan();
+		// make sure we don't trash RTC/etc state
+		var footerLength = savBuffer.Length & 0xFF;
+		if (footerLength != 0)
+		{
+			// update the footer
+			gambatte_savesavedata(_opaque, savBuffer);
+			sav.CopyTo(savBuffer);
+			var remainingSavLength = savBuffer.Length - sav.Length - footerLength;
+			if (remainingSavLength > 0)
+			{
+				savBuffer.Slice(sav.Length, remainingSavLength).Fill(0xFF);
+			}
+		}
+		else
+		{
+			sav.CopyTo(savBuffer);
+			savBuffer[sav.Length..].Fill(0xFF);
+		}
+
+		gambatte_loadsavedata(_opaque, savBuffer);
+		DoReset();
+		if (_resetStage == ResetStage.None)
+		{
+			_resetCallback();
+		}
+
+		return true;
+	}
+
 	public ReadOnlySpan<byte> SaveState()
 	{
-		gambatte_savestate(_opaque, null, 0, _stateBuffer);
+		gambatte_savestate(_opaque, [], 0, _stateBuffer);
 		return _stateBuffer;
 	}
 

@@ -194,7 +194,7 @@ internal sealed class GSR : IDisposable
 			_stateManager = new(_config, _emuManager, _osdManager);
 			_hotkeyManager = new(_config, _emuManager, _audioManager, _osdManager, _inputManager, _stateManager, _mainWindow, HotkeyInputGateCallback);
 			_imGuiModals = new(_config, _emuManager, _inputManager, _audioManager, _hotkeyManager, _osdManager, _mainWindow);
-			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _stateManager, _mainWindow, _imGuiModals);
+			_imGuiMenuBar = new(_config, _emuManager, _romLoader, _stateManager, _osdManager, _mainWindow, _imGuiModals);
 			_mainWindow.SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			_mainWindow.SetVisible(true);
 #if GSR_ANDROID

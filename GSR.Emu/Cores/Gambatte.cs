@@ -81,7 +81,7 @@ internal static partial class Gambatte
 	/// <returns>sample number at which the video frame was produced. -1 means no frame was produced.</returns>
 	[LibraryImport("gambatte")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static unsafe partial int gambatte_runfor(nint core, uint* videoBuf, int pitch, [Out] uint[] soundBuf, ref uint samples);
+	public static unsafe partial int gambatte_runfor(nint core, uint* videoBuf, int pitch, Span<uint> soundBuf, ref uint samples);
 
 	[LibraryImport("gambatte")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
@@ -139,7 +139,7 @@ internal static partial class Gambatte
 	/// <param name="dest">byte buffer to write into. gambatte_getsavedatalength() bytes will be written</param>
 	[LibraryImport("gambatte")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void gambatte_savesavedata(nint core, [Out] byte[] dest);
+	public static partial void gambatte_savesavedata(nint core, Span<byte> dest);
 
 	/// <summary>
 	/// restore persistant cart memory.
@@ -148,7 +148,7 @@ internal static partial class Gambatte
 	/// <param name="data">byte buffer to read from. gambatte_getsavedatalength() bytes will be read</param>
 	[LibraryImport("gambatte")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void gambatte_loadsavedata(nint core, [In] byte[] data);
+	public static partial void gambatte_loadsavedata(nint core, ReadOnlySpan<byte> data);
 
 	/// <summary>
 	/// get the size of the persistant cart memory block. this value DEPENDS ON THE PARTICULAR CART LOADED
@@ -199,7 +199,7 @@ internal static partial class Gambatte
 	/// <returns>size</returns>
 	[LibraryImport("gambatte")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int gambatte_savestate(nint core, [In] uint[] videoBuf, int pitch, [Out] byte[] stateBuf);
+	public static partial int gambatte_savestate(nint core, ReadOnlySpan<uint> videoBuf, int pitch, Span<byte> stateBuf);
 
 	/// <summary>
 	/// Loads emulator state from the buffer given by 'stateBuf' of size 'size'.

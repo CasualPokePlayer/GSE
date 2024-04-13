@@ -83,7 +83,7 @@ internal static partial class MGBA
 	/// <param name="dest">byte buffer to write into. mgba_getsavedatalength() bytes will be written</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_savesavedata(nint core, [Out] byte[] dest);
+	public static partial void mgba_savesavedata(nint core, Span<byte> dest);
 
 	/// <summary>
 	/// restore persistant cart memory.
@@ -92,7 +92,7 @@ internal static partial class MGBA
 	/// <param name="data">byte buffer to read from. mgba_getsavedatalength() bytes will be read</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_loadsavedata(nint core, [In] byte[] data);
+	public static partial void mgba_loadsavedata(nint core, ReadOnlySpan<byte> data);
 
 	/// <summary>
 	/// get the size of the persistant cart memory block. this value DEPENDS ON THE PARTICULAR CART LOADED
@@ -122,7 +122,7 @@ internal static partial class MGBA
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_savestate(nint core, [Out] byte[] stateBuf);
+	public static partial bool mgba_savestate(nint core, Span<byte> stateBuf);
 
 	/// <summary>
 	/// Loads emulator state from the buffer given by 'stateBuf' of size 'size'.

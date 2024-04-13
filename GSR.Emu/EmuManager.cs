@@ -42,6 +42,7 @@ public sealed class EmuManager : IDisposable
 	public bool EmuAcceptingInputs => RomIsLoaded && !_emuPaused;
 	public bool RomIsLoaded { get; private set; }
 	public string CurrentRomName { get; private set; }
+	public string CurrentSavePath { get; private set; }
 	public string CurrentStatePath { get; private set; }
 	public GBPlatform CurrentGbPlatform { get; private set; }
 
@@ -301,6 +302,7 @@ public sealed class EmuManager : IDisposable
 				}
 
 				CurrentRomName = loadArgs.RomName;
+				CurrentSavePath = loadArgs.SaveFilePath;
 				CurrentStatePath = loadArgs.SaveStatePath;
 				CurrentGbPlatform = loadArgs.GbPlatform;
 				RomIsLoaded = true;
@@ -347,6 +349,21 @@ public sealed class EmuManager : IDisposable
 		return hideSgbBorder && CurrentGbPlatform == GBPlatform.SGB2
 			? (160, 144) // kind of annoying hardcoding, but eh
 			: (_emuCore.VideoWidth, _emuCore.VideoHeight);
+	}
+
+	public bool LoadSave(string savPath)
+	{
+		byte[] savBuf;
+		try
+		{
+			savBuf = File.ReadAllBytes(savPath);
+		}
+		catch
+		{
+			return false;
+		}
+
+		return _emuCore.LoadSave(savBuf);
 	}
 
 	public bool SaveState(string statePath)
@@ -448,8 +465,9 @@ public sealed class EmuManager : IDisposable
 			br.Read(MemoryMarshal.AsBytes(videoBuffer.AsSpan()));
 			return new(videoBuffer, width, height);
 		}
-		catch
+		catch (Exception ex)
 		{
+			Console.Error.WriteLine(ex);
 			return new();
 		}
 	}

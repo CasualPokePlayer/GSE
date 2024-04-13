@@ -62,7 +62,7 @@ internal sealed class Config
 	public bool AllowManualResizing { get; set; }
 
 	public string AudioDeviceName { get; set; } = AudioManager.DEFAULT_AUDIO_DEVICE;
-	public int LatencyMs { get; set; } = 68;
+	public int LatencyMs { get; set; } = AudioManager.MINIMUM_LATENCY_MS;
 	public int Volume { get; set; } = 100;
 
 	[JsonConstructor]
