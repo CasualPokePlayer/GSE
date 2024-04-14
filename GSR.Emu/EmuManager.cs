@@ -218,7 +218,7 @@ public sealed class EmuManager : IDisposable
 		_emuController = NullController.Singleton;
 		_emuCycleCount = 0;
 		_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
-		CurrentRomName = CurrentStatePath = null;
+		CurrentRomName = CurrentStatePath = CurrentStatePath = null;
 		RomIsLoaded = false;
 	}
 
