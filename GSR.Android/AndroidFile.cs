@@ -21,9 +21,9 @@ public static class AndroidFile
 	private static JMethodID _requestDocumentMethodId;
 	private static JMethodID _openContentMethodId;
 
-	internal static void InitializeJNI(JNIEnvPtr env)
+	internal static void InitializeJNI(JNIEnvPtr env, JClass gsrActivityClassId)
 	{
-		_gsrActivityClassId = env.FindClass("org/psr/gsr/GSRActivity"u8);
+		_gsrActivityClassId = gsrActivityClassId;
 		_requestDocumentMethodId = env.GetStaticMethodID(_gsrActivityClassId, "RequestDocument"u8, "()V"u8);
 		_openContentMethodId = env.GetStaticMethodID(_gsrActivityClassId, "OpenContent"u8, "(Ljava/lang/String;)I"u8);
 	}

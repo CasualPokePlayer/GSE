@@ -45,6 +45,19 @@ internal static class AndroidExports
 		_ = reserved;
 		return AndroidJNI.Initialize(vm);
 	}
+
+	/// <summary>
+	/// Called by Java side when the native library is garbage collected
+	/// JNI entrypoints should be unregistered at this point, and other JNI deinitialization should occur here too
+	/// </summary>
+	/// <param name="vm">pointer to JavaVM</param>
+	/// <param name="reserved">reserved</param>
+	[UnmanagedCallersOnly(EntryPoint = "JNI_OnUnload")]
+	public static void JNIOnUnload(nint vm, nint reserved)
+	{
+		_ = reserved;
+		AndroidJNI.Deinitialize(vm);
+	}
 }
 
 #endif

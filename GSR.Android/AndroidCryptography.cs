@@ -19,9 +19,9 @@ public static class AndroidCryptography
 	private static JMethodID _hashDataSha256MethodId;
 	private static JMethodID _getRandomInt32MethodId;
 
-	internal static void InitializeJNI(JNIEnvPtr env)
+	internal static void InitializeJNI(JNIEnvPtr env, JClass gsrActivityClassId)
 	{
-		_gsrActivityClassId = env.FindClass("org/psr/gsr/GSRActivity"u8);
+		_gsrActivityClassId = gsrActivityClassId;
 		_hashDataSha256MethodId = env.GetStaticMethodID(_gsrActivityClassId, "HashDataSHA256"u8, "(Ljava/nio/ByteBuffer;)[B"u8);
 		_getRandomInt32MethodId = env.GetStaticMethodID(_gsrActivityClassId, "GetRandomInt32"u8, "(I)I"u8);
 	}
