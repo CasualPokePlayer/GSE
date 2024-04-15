@@ -99,6 +99,8 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						}
 					}
 				}
+#else
+				_ = osdManager;
 #endif
 
 				ImGui.Separator();

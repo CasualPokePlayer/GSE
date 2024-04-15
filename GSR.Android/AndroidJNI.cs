@@ -75,7 +75,7 @@ public static unsafe class AndroidJNI
 		}
 	}
 
-	private static void Deinitialize(nint vm)
+	public static void Deinitialize(nint vm)
 	{
 		if (!_gsrActivityClassId.IsNull)
 		{
