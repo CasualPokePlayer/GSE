@@ -260,30 +260,40 @@ internal sealed class ImGuiModals
 		}
 	}
 
-	private void DoInputTab(IEnumerable<InputConfig> inputConfigs, float textSpacing)
+	// ReSharper disable once SuggestBaseTypeForParameter
+	private void DoInputTab(InputConfig[] inputConfigs, float textSpacing)
 	{
-		foreach (var inputConfig in inputConfigs)
+		// create input labels for all input configs
+		// we need to do this now, as we need to know the minimum size for a button
+		// there's probably a better way to do this, but this works fine
+		var inputLabels = new string[inputConfigs.Length];
+		var buttonWidth = ImGui.CalcTextSize("Clear").X + ImGui.GetStyle().FramePadding.X * 2;
+		for (var i = 0; i < inputLabels.Length; i++)
+		{
+			inputLabels[i] = string.Join(',',
+				inputConfigs[i].InputBindings.Select(b => b.ModifierLabel != null ? $"{b.ModifierLabel}+{b.MainInputLabel}" : b.MainInputLabel));
+			var labelSize = ImGui.CalcTextSize(inputLabels[i]).X + ImGui.GetStyle().FramePadding.X * 2;
+			buttonWidth = Math.Max(buttonWidth, labelSize);
+		}
+
+		for (var i = 0; i < inputConfigs.Length; i++)
 		{
 			ImGui.AlignTextToFramePadding();
-			ImGui.TextUnformatted(inputConfig.InputName);
+			ImGui.TextUnformatted(inputConfigs[i].InputName);
 			ImGui.SameLine(ImGui.GetFontSize() * textSpacing);
 
-			var inputLabel = string.Join(',', inputConfig.InputBindings.Select(b => b.ModifierLabel != null ? $"{b.ModifierLabel}+{b.MainInputLabel}" : b.MainInputLabel));
-			var labelSize = ImGui.CalcTextSize(inputLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-			var maxLabelSize = ImGui.GetWindowContentRegionMax().X - ImGui.GetFontSize() * (textSpacing + 3.2f);
-			var buttonWidth = maxLabelSize > labelSize ? maxLabelSize : 0;
-			if (ImGui.Button($"{inputLabel}##{inputConfig.InputName}", new(buttonWidth, 0)))
+			if (ImGui.Button($"{inputLabels[i]}##{inputConfigs[i].InputName}", new(buttonWidth, 0)))
 			{
-				_currentInputBindingList = inputConfig.InputBindings;
+				_currentInputBindingList = inputConfigs[i].InputBindings;
 				_inputManager.BeginInputBinding();
 				_startingInputBinding = true;
 				_mainWindow.SuppressEscape = true;
 			}
 
 			ImGui.SameLine();
-			if (ImGui.Button($"Clear##{inputConfig.InputName}"))
+			if (ImGui.Button($"Clear##{inputConfigs[i].InputName}"))
 			{
-				inputConfig.InputBindings.Clear();
+				inputConfigs[i].InputBindings.Clear();
 			}
 		}
 	}
