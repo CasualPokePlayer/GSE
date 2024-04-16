@@ -476,6 +476,17 @@ internal sealed class ImGuiModals
 						ImGui.EndDisabled();
 					}
 
+#if GSR_WINDOWS
+					ImGui.Separator();
+
+					var enableDirectInput = _config.EnableDirectInput;
+					if (ImGui.Checkbox("Enable DirectInput", ref enableDirectInput))
+					{
+						_config.EnableDirectInput = enableDirectInput;
+						_inputManager.SetDirectInputEnable(enableDirectInput);
+					}
+#endif
+
 					ImGui.EndTabItem();
 				}
 #endif

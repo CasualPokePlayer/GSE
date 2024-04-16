@@ -10,8 +10,9 @@ namespace GSR.Input.Joysticks;
 
 internal class SDLJoysticks : IDisposable
 {
-	private readonly Dictionary<int, SDL2Joystick> Joysticks = new();
+	private readonly Dictionary<int, SDL2Joystick> Joysticks = [];
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
+	private bool _enableDirectInput;
 
 	static SDLJoysticks()
 	{
@@ -19,8 +20,15 @@ internal class SDLJoysticks : IDisposable
 		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
 	}
 
-	public SDLJoysticks()
+	public SDLJoysticks(bool enableDirectInput)
 	{
+		Initialize(enableDirectInput);
+	}
+
+	private void Initialize(bool enableDirectInput)
+	{
+		_enableDirectInput = enableDirectInput;
+		SDL_SetHint("SDL_DIRECTINPUT_ENABLED", _enableDirectInput ? "1" : "0");
 		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 		{
 			throw new($"SDL failed to init, SDL error: {SDL_GetError()}");
@@ -35,6 +43,7 @@ internal class SDLJoysticks : IDisposable
 		}
 
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+		SDL_FlushEvents(SDL_EventType.SDL_JOYDEVICEADDED, SDL_EventType.SDL_JOYDEVICEREMOVED);
 	}
 
 	private void RefreshJoyIndexes()
@@ -85,8 +94,17 @@ internal class SDLJoysticks : IDisposable
 		RefreshJoyIndexes();
 	}
 
-	public IEnumerable<JoystickInput> GetInputs()
+	public IEnumerable<JoystickInput> GetInputs(bool enableDirectInput)
 	{
+		// to change direct input being enabled, we have to deinit and init again
+		// this can only be done on the input thread, hence the deferring
+		if (_enableDirectInput != enableDirectInput)
+		{
+			Dispose();
+			Joysticks.Clear();
+			Initialize(enableDirectInput);
+		}
+
 		// This is needed to add joy add/remove events
 		SDL_JoystickUpdate();
 

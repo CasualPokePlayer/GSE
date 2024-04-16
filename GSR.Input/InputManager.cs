@@ -31,6 +31,7 @@ public sealed class InputManager : IDisposable
 	private volatile Exception _inputThreadException;
 
 	private readonly SDL_SysWMinfo _mainWindowWmInfo;
+	private volatile bool _enableDirectInput;
 
 	// These must be created/destroyed on the input thread!
 	private IKeyInput _keyInput;
@@ -47,7 +48,7 @@ public sealed class InputManager : IDisposable
 		try
 		{
 			_keyInput = KeyInputFactory.CreateKeyInput(in _mainWindowWmInfo);
-			_sdlJoysticks = new();
+			_sdlJoysticks = new(_enableDirectInput);
 
 			_inputThreadInitFinished.Set();
 
@@ -62,7 +63,7 @@ public sealed class InputManager : IDisposable
 				}
 #endif
 				var keyEvents = _keyInput.GetEvents();
-				var joystickInputs = _sdlJoysticks.GetInputs();
+				var joystickInputs = _sdlJoysticks.GetInputs(_enableDirectInput);
 
 				foreach (var keyEvent in keyEvents)
 				{
@@ -120,9 +121,10 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
-	public InputManager(in SDL_SysWMinfo mainWindowWmInfo)
+	public InputManager(in SDL_SysWMinfo mainWindowWmInfo, bool enableDirectInput)
 	{
 		_mainWindowWmInfo = mainWindowWmInfo;
+		_enableDirectInput = enableDirectInput;
 		_inputThread = new(InputThreadProc) { IsBackground = true, Name = "Input Thread" };
 		_inputThread.Start();
 		_inputThreadInitFinished.Wait();
@@ -142,6 +144,13 @@ public sealed class InputManager : IDisposable
 		_inputThreadThrottleEnd.Dispose();
 		_inputThreadLoopThrottle.Dispose();
 	}
+
+#if GSR_WINDOWS
+	public void SetDirectInputEnable(bool enableDirectInput)
+	{
+		_enableDirectInput = enableDirectInput;
+	}
+#endif
 
 	/// <summary>
 	/// NOTE: CALLED ON GUI THREAD

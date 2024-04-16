@@ -54,6 +54,7 @@ internal sealed class Config
 	public HotkeyBindings HotkeyBindings { get; set; } = new();
 	public bool AllowBackgroundInput { get; set; }
 	public bool BackgroundInputForJoysticksOnly { get; set; }
+	public bool EnableDirectInput { get; set; } = true;
 
 	public bool KeepAspectRatio { get; set; } = true;
 	public ScalingFilter OutputFilter { get; set; } = ScalingFilter.SharpBilinear;
