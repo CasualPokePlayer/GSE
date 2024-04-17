@@ -796,6 +796,11 @@ internal sealed class ImGuiModals
 				ImGui.SameLine();
 				if (ImGui.Button(copyrightInfo.ProductUrl))
 				{
+#if GSR_OSX || GSR_ANDROID
+					// we prefer SDL's OpenURL on some platforms
+					// (mainly as some platforms just don't support Process.Start's shell execute)
+					_ = SDL_OpenURL(copyrightInfo.ProductUrl);
+#else
 					try
 					{
 						Process.Start(new ProcessStartInfo(copyrightInfo.ProductUrl) { UseShellExecute = true });
@@ -804,6 +809,7 @@ internal sealed class ImGuiModals
 					{
 						// ignored
 					}
+#endif
 				}
 
 				ImGui.TextUnformatted($"Copyright (c) {copyrightInfo.CopyrightHolder}");
