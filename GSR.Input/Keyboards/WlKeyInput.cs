@@ -384,6 +384,8 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private readonly nint _wlEventQueue;
 	private readonly nint _wlRegistry;
 
+	private GCHandle _wlUserData;
+
 	private readonly nint XkbContext;
 
 	private nint WlSeat;
@@ -437,8 +439,8 @@ internal sealed class WlKeyInput : EvDevKeyInput
 				throw new("Failed to create xkb context");
 			}
 
-			var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(handle));
+			_wlUserData = GCHandle.Alloc(this, GCHandleType.Weak);
+			_ = wl_registry_add_listener(_wlRegistry, _wlRegistryListener, GCHandle.ToIntPtr(_wlUserData));
 
 			// sync so we get the seat
 			_ = wl_display_roundtrip_queue(_wlDisplay, _wlEventQueue);
@@ -536,6 +538,11 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		if (_ownsDisplay)
 		{
 			wl_display_disconnect(_wlDisplay);
+		}
+
+		if (_wlUserData.IsAllocated)
+		{
+			_wlUserData.Free();
 		}
 
 		base.Dispose();

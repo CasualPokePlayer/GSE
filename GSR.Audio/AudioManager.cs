@@ -49,6 +49,7 @@ public sealed class AudioManager : IDisposable
 	private int _volume;
 
 	private uint _sdlAudioDeviceId;
+	private GCHandle _sdlUserData;
 
 	public static string[] EnumerateAudioDevices()
 	{
@@ -95,12 +96,11 @@ public sealed class AudioManager : IDisposable
 		wantedSdlAudioSpec.format = AUDIO_S16SYS;
 		wantedSdlAudioSpec.channels = 2;
 		wantedSdlAudioSpec.samples = 512; // we'll let this change to however SDL best wants it
+		wantedSdlAudioSpec.userdata = GCHandle.ToIntPtr(_sdlUserData);
 
 		unsafe
 		{
 			wantedSdlAudioSpec.callback = &SDLAudioCallback;
-			var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-			wantedSdlAudioSpec.userdata = GCHandle.ToIntPtr(handle);
 		}
 
 		var deviceId = SDL_OpenAudioDevice(
@@ -258,6 +258,7 @@ public sealed class AudioManager : IDisposable
 
 		try
 		{
+			_sdlUserData = GCHandle.Alloc(this, GCHandleType.Weak);
 			ChangeConfig(audioDeviceName, latencyMs, volume);
 		}
 		catch
@@ -274,6 +275,11 @@ public sealed class AudioManager : IDisposable
 		if (_sdlAudioDeviceId != 0)
 		{
 			SDL_CloseAudioDevice(_sdlAudioDeviceId);
+		}
+
+		if (_sdlUserData.IsAllocated)
+		{
+			_sdlUserData.Free();
 		}
 
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);

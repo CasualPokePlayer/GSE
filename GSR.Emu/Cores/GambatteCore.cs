@@ -23,6 +23,8 @@ internal sealed class GambatteCore : IEmuCore
 	// blank buffer for resetting (i.e. fadeout would cut off audio while the game is still running)
 	private readonly short[] _resetAudioBuffer = new short[(35112 + 2064) * 2];
 
+	private GCHandle _inputGetterUserData;
+
 	private readonly byte[] _stateBuffer;
 
 	private readonly byte[] _savBuffer;
@@ -126,10 +128,11 @@ internal sealed class GambatteCore : IEmuCore
 				throw new($"Failed to load BIOS! Core returned {loadRes}");
 			}
 
+			_inputGetterUserData = GCHandle.Alloc(this, GCHandleType.Weak);
+
 			unsafe
 			{
-				var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-				gambatte_setinputgetter(_opaque, &InputGetter, GCHandle.ToIntPtr(handle));
+				gambatte_setinputgetter(_opaque, &InputGetter, GCHandle.ToIntPtr(_inputGetterUserData));
 			}
 
 			gambatte_setcgbpalette(_opaque,
@@ -184,6 +187,11 @@ internal sealed class GambatteCore : IEmuCore
 	{
 		WriteSav();
 		gambatte_destroy(_opaque);
+
+		if (_inputGetterUserData.IsAllocated)
+		{
+			_inputGetterUserData.Free();
+		}
 	}
 
 	private void DoReset()

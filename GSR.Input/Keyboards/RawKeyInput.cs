@@ -20,8 +20,10 @@ namespace GSR.Input.Keyboards;
 [SupportedOSPlatform("windows6.0.6000")] // Windows Vista (technically Windows XP also works, but MapVirtualKey only works for extended scancodes starting in Windows Vista)
 internal sealed class RawKeyInput : IKeyInput
 {
-	private readonly HWND RawInputWindow;
+	private readonly HWND _rawInputWindow;
 	private readonly List<KeyEvent> KeyEvents = [];
+
+	private GCHandle _windowUserData;
 
 	private static readonly Lazy<ushort> _rawInputWindowAtom = new(() =>
 	{
@@ -111,7 +113,7 @@ internal sealed class RawKeyInput : IKeyInput
 		{
 			fixed (char* windowName = "RawKeyInput")
 			{
-				RawInputWindow = PInvoke.CreateWindowEx(
+				_rawInputWindow = PInvoke.CreateWindowEx(
 					dwExStyle: 0,
 					lpClassName: (char*)_rawInputWindowAtom.Value,
 					lpWindowName: windowName,
@@ -126,7 +128,7 @@ internal sealed class RawKeyInput : IKeyInput
 					lpParam: null);
 			}
 
-			if (RawInputWindow.IsNull)
+			if (_rawInputWindow.IsNull)
 			{
 				throw new Win32Exception("Failed to create RAWINPUT window");
 			}
@@ -137,18 +139,18 @@ internal sealed class RawKeyInput : IKeyInput
 				rid.usUsagePage = PInvoke.HID_USAGE_PAGE_GENERIC;
 				rid.usUsage = PInvoke.HID_USAGE_GENERIC_KEYBOARD;
 				rid.dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK;
-				rid.hwndTarget = RawInputWindow;
+				rid.hwndTarget = _rawInputWindow;
 
 				if (!PInvoke.RegisterRawInputDevices(&rid, 1, (uint)sizeof(RAWINPUTDEVICE)))
 				{
 					throw new Win32Exception("Failed to register RAWINPUTDEVICE");
 				}
 
-				var handle = GCHandle.Alloc(this, GCHandleType.Weak);
+				_windowUserData = GCHandle.Alloc(this, GCHandleType.Weak);
 #if GSR_64BIT
-				_ = PInvoke.SetWindowLongPtr(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA, GCHandle.ToIntPtr(handle));
+				_ = PInvoke.SetWindowLongPtr(_rawInputWindow, WINDOW_LONG_PTR_INDEX.GWLP_USERDATA, GCHandle.ToIntPtr(_windowUserData));
 #else
-				_ = PInvoke.SetWindowLong(RawInputWindow, WINDOW_LONG_PTR_INDEX.GWL_USERDATA, (int)GCHandle.ToIntPtr(handle));
+				_ = PInvoke.SetWindowLong(_rawInputWindow, WINDOW_LONG_PTR_INDEX.GWL_USERDATA, (int)GCHandle.ToIntPtr(_windowUserData));
 #endif
 				if (Marshal.GetLastSystemError() != 0)
 				{
@@ -157,15 +159,25 @@ internal sealed class RawKeyInput : IKeyInput
 			}
 			catch
 			{
-				_ = PInvoke.DestroyWindow(RawInputWindow);
+				Dispose();
 				throw;
 			}
 		}
 	}
 
-	public void Dispose()
+	public unsafe void Dispose()
 	{
-		_ = PInvoke.DestroyWindow(RawInputWindow);
+		var rid = default(RAWINPUTDEVICE);
+		rid.usUsagePage = PInvoke.HID_USAGE_PAGE_GENERIC;
+		rid.usUsage = PInvoke.HID_USAGE_GENERIC_KEYBOARD;
+		rid.dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_REMOVE;
+		_ = PInvoke.RegisterRawInputDevices(&rid, 1, (uint)sizeof(RAWINPUTDEVICE));
+		_ = PInvoke.DestroyWindow(_rawInputWindow);
+
+		if (_windowUserData.IsAllocated)
+		{
+			_windowUserData.Free();
+		}
 	}
 
 	public IEnumerable<KeyEvent> GetEvents()

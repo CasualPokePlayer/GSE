@@ -188,6 +188,7 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	private readonly nint _imGuiContext;
+	private GCHandle _imGuiUserData;
 	private readonly SDLTexture _fontSdlTexture;
 	private readonly bool _isOverridingScale;
 	private float _dpiScale;
@@ -511,8 +512,8 @@ internal sealed class ImGuiWindow : IDisposable
 				io.NativePtr->IniFilename = null;
 			}
 
-			var handle = GCHandle.Alloc(this, GCHandleType.Weak);
-			io.BackendPlatformUserData = GCHandle.ToIntPtr(handle);
+			_imGuiUserData = GCHandle.Alloc(this, GCHandleType.Weak);
+			io.BackendPlatformUserData = GCHandle.ToIntPtr(_imGuiUserData);
 			io.BackendRendererUserData = io.BackendPlatformUserData;
 			io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors | ImGuiBackendFlags.HasSetMousePos | ImGuiBackendFlags.RendererHasVtxOffset;
 
@@ -574,6 +575,11 @@ internal sealed class ImGuiWindow : IDisposable
 			io.ClipboardUserData = 0;
 
 			ImGui.DestroyContext(_imGuiContext);
+		}
+
+		if (_imGuiUserData.IsAllocated)
+		{
+			_imGuiUserData.Free();
 		}
 
 		SDL_free(ClipboardText);
