@@ -26,5 +26,6 @@ RI_KEY_MAKE
 RI_KEY_BREAK
 RI_KEY_E0
 
-MapVirtualKeyW
+GetKeyboardLayout
+MapVirtualKeyExW
 VIRTUAL_KEY

@@ -368,29 +368,64 @@ internal sealed class RawKeyInput : IKeyInput
 		[VIRTUAL_KEY.VK_OEM_CLEAR] = "Oem Clear",
 	}.ToFrozenDictionary();
 
-	public string ConvertScanCodeToString(ScanCode key)
+	// some keys don't work quite well with MapVirtualKeyEx, so we define some overrides
+	private static readonly FrozenDictionary<ScanCode, string> _scStrOverrides = new Dictionary<ScanCode, string>
 	{
-		// this apparently just shares its VKey with normal Enter
-		if (key == ScanCode.SC_NUMPADENTER)
-		{
-			return "Numpad Enter";
-		}
+		[ScanCode.SC_NUMPAD0] = "Numpad 0",
+		[ScanCode.SC_NUMPAD1] = "Numpad 1",
+		[ScanCode.SC_NUMPAD2] = "Numpad 2",
+		[ScanCode.SC_NUMPAD3] = "Numpad 3",
+		[ScanCode.SC_NUMPAD4] = "Numpad 4",
+		[ScanCode.SC_NUMPAD5] = "Numpad 5",
+		[ScanCode.SC_NUMPAD6] = "Numpad 6",
+		[ScanCode.SC_NUMPAD7] = "Numpad 7",
+		[ScanCode.SC_NUMPAD8] = "Numpad 8",
+		[ScanCode.SC_NUMPAD9] = "Numpad 9",
+		[ScanCode.SC_DECIMAL] = "Decimal",
+		[ScanCode.SC_NUMPADENTER] = "Numpad Enter",
+		[ScanCode.SC_PAUSE] = "Pause",
+		[ScanCode.SC_POWER] = "Power",
+		[ScanCode.SC_WAKE] = "Wake",
+		[ScanCode.SC_INTL2] = "Intl 2",
+		[ScanCode.SC_INTL3] = "Intl 3",
+		[ScanCode.SC_INTL4] = "Intl 4",
+		[ScanCode.SC_LANG3] = "Lang 3",
+		[ScanCode.SC_LANG4] = "Lang 4",
+	}.ToFrozenDictionary();
 
-		var scanCode = (uint)key;
-		if ((scanCode & 0x80) != 0)
+	private static readonly string[] _scanCodeVkStrMap = CreateScanCodeVkStringMap();
+
+	private static string[] CreateScanCodeVkStringMap()
+	{
+		// we use the same keyboard layout the entire lifetime of the process
+		// if the user wants to change this, they'll need to restart the process
+		var kbLayout = PInvoke.GetKeyboardLayout(0);
+		var scanCodeVkStrMap = new string[256];
+		for (var i = 0; i < scanCodeVkStrMap.Length; i++)
 		{
-			if (key == ScanCode.SC_PAUSE)
+			var key = (ScanCode)i;
+			if (_scStrOverrides.TryGetValue(key, out var scStrOverride))
 			{
-				scanCode = 0xE11D;
+				scanCodeVkStrMap[i] = scStrOverride;
+				continue;
 			}
-			else
+
+			var scanCode = (uint)key;
+			if ((scanCode & 0x80) != 0)
 			{
 				scanCode &= 0x7F;
 				scanCode |= 0xE000;
 			}
+
+			var virtualKey = (VIRTUAL_KEY)PInvoke.MapVirtualKeyEx(scanCode, MAP_VIRTUAL_KEY_TYPE.MAPVK_VSC_TO_VK_EX, kbLayout);
+			scanCodeVkStrMap[i] = _vkStringMap.GetValueOrDefault(virtualKey);
 		}
 
-		var virtualKey = (VIRTUAL_KEY)PInvoke.MapVirtualKey(scanCode, MAP_VIRTUAL_KEY_TYPE.MAPVK_VSC_TO_VK_EX);
-		return _vkStringMap.GetValueOrDefault(virtualKey);
+		return scanCodeVkStrMap;
+	}
+
+	public string ConvertScanCodeToString(ScanCode key)
+	{
+		return _scanCodeVkStrMap[(byte)key];
 	}
 }
