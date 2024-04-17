@@ -12,9 +12,7 @@ using System.Linq;
 
 using ImGuiNET;
 
-#if !GSR_ANDROID
 using static SDL2.SDL;
-#endif
 
 using GSR.Audio;
 using GSR.Emu;
