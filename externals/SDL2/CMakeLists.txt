@@ -33,7 +33,6 @@ set(SDL_HAPTIC OFF)
 set(SDL_POWER OFF)
 set(SDL_SENSOR OFF)
 set(SDL_LOCALE OFF)
-set(SDL_MISC OFF)
 
 # Workaround SDL bug which makes compilation fail if SDL_Haptic is off
 if(ANDROID)
