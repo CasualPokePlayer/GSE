@@ -28,7 +28,7 @@ public sealed class InputManager : IDisposable
 	private readonly AutoResetEvent _inputThreadLoopThrottle = new(false);
 
 	private volatile bool _disposing;
-	private volatile Exception _inputThreadException;
+	private volatile InputThreadException _inputThreadException;
 
 	private readonly SDL_SysWMinfo _mainWindowWmInfo;
 	private volatile bool _enableDirectInput;
@@ -103,7 +103,7 @@ public sealed class InputManager : IDisposable
 		}
 		catch (Exception e)
 		{
-			_inputThreadException = e;
+			_inputThreadException = new(e);
 			_inputThreadInitFinished.Set();
 		}
 		finally

@@ -29,7 +29,7 @@ public sealed class EmuManager : IDisposable
 	private readonly object _emuCoreLock = new();
 
 	private volatile bool _disposing;
-	private volatile Exception _emuThreadException;
+	private volatile EmuThreadException _emuThreadException;
 
 	private IEmuCore _emuCore;
 	private IEmuController _emuController;
@@ -164,7 +164,7 @@ public sealed class EmuManager : IDisposable
 		}
 		catch (Exception e)
 		{
-			_emuThreadException = e;
+			_emuThreadException = new(e);
 		}
 #if GSR_WINDOWS
 		finally
