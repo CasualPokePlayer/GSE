@@ -56,7 +56,7 @@ public class GSRActivity extends SDLActivity
 		// note that SOURCE_DPAD can come from keyboards!
 		var sources = device.getSources();
 		return (sources & InputDevice.SOURCE_CLASS_JOYSTICK) == InputDevice.SOURCE_CLASS_JOYSTICK ||
-				(sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+		       (sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
 	}
 
 	@Override
