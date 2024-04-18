@@ -3,6 +3,7 @@ package org.psr.gsr;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.DocumentsContract;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 
 import java.io.File;
@@ -11,7 +12,6 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import org.libsdl.app.SDLActivity;
-import org.libsdl.app.SDLControllerManager;
 
 public class GSRActivity extends SDLActivity
 {
@@ -44,6 +44,21 @@ public class GSRActivity extends SDLActivity
 	// Implemented C# side
 	public static native void DispatchAndroidKeyEvent(int keycode, boolean pressed);
 
+	// can't use SDLControllerManager.isDeviceSDLJoystick(), as that might false flag some keyboards
+	private static boolean IsSDLJoystick(int deviceId)
+	{
+		var device = InputDevice.getDevice(deviceId);
+		if (device == null || deviceId < 0)
+		{
+			return false;
+		}
+
+		// note that SOURCE_DPAD can come from keyboards!
+		var sources = device.getSources();
+		return (sources & InputDevice.SOURCE_CLASS_JOYSTICK) == InputDevice.SOURCE_CLASS_JOYSTICK ||
+				(sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+	}
+
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event)
 	{
@@ -52,8 +67,7 @@ public class GSRActivity extends SDLActivity
 		   return false;
 		}
 
-		var deviceId = event.getDeviceId();
-		if (!SDLControllerManager.isDeviceSDLJoystick(deviceId))
+		if (!IsSDLJoystick(event.getDeviceId()))
 		{
 			var action = event.getAction();
 			if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP)
