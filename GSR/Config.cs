@@ -18,7 +18,7 @@ namespace GSR;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(Config))]
-internal partial class ConfigSerializerContext : JsonSerializerContext;
+internal sealed partial class ConfigSerializerContext : JsonSerializerContext;
 
 internal sealed class Config
 {

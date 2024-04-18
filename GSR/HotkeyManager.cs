@@ -23,7 +23,7 @@ internal sealed class HotkeyManager
 		void UpdateHotkeyState(InputGate inputGate);
 	}
 
-	private class PressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress) : IHotkey
+	private sealed class PressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress) : IHotkey
 	{
 		private bool _wasPressed;
 
@@ -45,7 +45,7 @@ internal sealed class HotkeyManager
 		}
 	}
 
-	private class PressUnpressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress, Action onUnpress) : IHotkey
+	private sealed class PressUnpressTriggerHotkeyState(InputManager inputManager, List<InputBinding> inputBindings, Action onPress, Action onUnpress) : IHotkey
 	{
 		private bool _wasPressed;
 
@@ -76,7 +76,7 @@ internal sealed class HotkeyManager
 		}
 	}
 
-	private class PressTriggerHotkeySlotState(InputManager inputManager, List<InputBinding> inputBindings, Action<int> onPress, int slot) : IHotkey
+	private sealed class PressTriggerHotkeySlotState(InputManager inputManager, List<InputBinding> inputBindings, Action<int> onPress, int slot) : IHotkey
 	{
 		private bool _wasPressed;
 

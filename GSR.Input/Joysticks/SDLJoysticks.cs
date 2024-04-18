@@ -8,7 +8,7 @@ using static SDL2.SDL;
 
 namespace GSR.Input.Joysticks;
 
-internal class SDLJoysticks : IDisposable
+internal sealed class SDLJoysticks : IDisposable
 {
 	private readonly Dictionary<int, SDL2Joystick> Joysticks = [];
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
@@ -29,7 +29,7 @@ internal class SDLJoysticks : IDisposable
 	{
 		_enableDirectInput = enableDirectInput;
 		SDL_SetHint("SDL_DIRECTINPUT_ENABLED", _enableDirectInput ? "1" : "0");
-		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
+		if (SDL_Init(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 		{
 			throw new($"SDL failed to init, SDL error: {SDL_GetError()}");
 		}
@@ -42,7 +42,7 @@ internal class SDLJoysticks : IDisposable
 			joystick.Dispose();
 		}
 
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+		SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 		SDL_FlushEvents(SDL_EventType.SDL_JOYDEVICEADDED, SDL_EventType.SDL_JOYDEVICEREMOVED);
 	}
 
@@ -200,10 +200,10 @@ internal class SDLJoysticks : IDisposable
 		}
 	}
 
-	private class SDL2GameController : SDL2Joystick
+	private sealed class SDL2GameController : SDL2Joystick
 	{
 		private static readonly string[] _buttonStrings =
-		{
+		[
 			"A",
 			"B",
 			"X",
@@ -225,21 +225,21 @@ internal class SDLJoysticks : IDisposable
 			"Paddle 3",
 			"Paddle 4",
 			"Touchpad"
-		};
+		];
 
 		private static readonly string[] _stickStrings =
-		{
+		[
 			"Left Stick X",
 			"Left Stick Y",
 			"Right Stick X",
 			"Right Stick Y",
-		};
+		];
 
 		private static readonly string[] _triggerStrings =
-		{
+		[
 			"Left Trigger",
 			"Right Trigger",
-		};
+		];
 
 		/// <summary>SDL_GameController handle</summary>
 		private readonly nint _opaque;

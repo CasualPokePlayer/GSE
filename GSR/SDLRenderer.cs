@@ -20,7 +20,7 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 	// we might end up calling this function recursively
 	// if we are, we need to bail out immediately
 	private bool _inDeviceLostCall;
-	private class RecursiveDeviceLostCallException : Exception;
+	private sealed class RecursiveDeviceLostCallException : Exception;
 
 	private nint _nextTextureId;
 	private readonly Dictionary<nint, SDLTexture> _textureIdMap = [];

@@ -5,7 +5,7 @@ using System;
 
 namespace GSR.Android.JNI;
 
-internal unsafe class JNIException : Exception
+internal sealed unsafe class JNIException : Exception
 {
 	private JNIException(string message)
 		: base(message)

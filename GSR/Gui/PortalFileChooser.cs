@@ -589,7 +589,7 @@ internal sealed partial class PortalFileChooser : IDisposable
 		}
 	}
 
-	private class DBusErrorWrapper : IDisposable
+	private sealed class DBusErrorWrapper : IDisposable
 	{
 		public DBusError Native;
 
