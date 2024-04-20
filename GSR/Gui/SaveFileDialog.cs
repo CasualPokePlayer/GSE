@@ -63,6 +63,9 @@ internal static class SaveFileDialog
 				}
 			}
 
+			fileDialog->SetFileName(filename);
+			fileDialog->SetDefaultExtension(ext);
+
 			fixed (char* filterName = description, filterPattern = $"*{ext}")
 			{
 				COMDLG_FILTERSPEC filter;
