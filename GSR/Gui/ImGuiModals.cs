@@ -628,7 +628,7 @@ internal sealed class ImGuiModals
 				_config.AudioDeviceName = _audioDevices[_audioDeviceIndex];
 				try
 				{
-					_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+					_audioManager.SetAudioDevice(_config.AudioDeviceName);
 				}
 				catch
 				{
@@ -659,14 +659,14 @@ internal sealed class ImGuiModals
 			if (ImGui.SliderInt("Latency Ms", ref latencyMs, AudioManager.MINIMUM_LATENCY_MS, AudioManager.MAXIMUM_LATENCY_MS))
 			{
 				_config.LatencyMs = latencyMs;
-				_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+				_audioManager.SetLatency(latencyMs);
 			}
 
 			var volume = _config.Volume;
 			if (ImGui.SliderInt("Volume", ref volume, 0, 100))
 			{
 				_config.Volume = volume;
-				_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+				_audioManager.SetVolume(volume);
 			}
 
 			ImGui.EndPopup();

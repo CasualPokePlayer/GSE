@@ -184,7 +184,7 @@ internal sealed class HotkeyManager
 		if (_config.Volume < 100)
 		{
 			_config.Volume++;
-			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+			_audioManager.SetVolume(_config.Volume);
 		}
 
 		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
@@ -195,7 +195,7 @@ internal sealed class HotkeyManager
 		if (_config.Volume > 0)
 		{
 			_config.Volume--;
-			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+			_audioManager.SetVolume(_config.Volume);
 		}
 
 		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
@@ -206,7 +206,7 @@ internal sealed class HotkeyManager
 		if (_config.Volume < 100)
 		{
 			_config.Volume = Math.Min(_config.Volume + 10, 100);
-			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+			_audioManager.SetVolume(_config.Volume);
 		}
 
 		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
@@ -217,7 +217,7 @@ internal sealed class HotkeyManager
 		if (_config.Volume > 0)
 		{
 			_config.Volume = Math.Max(_config.Volume - 10, 0);
-			_audioManager.ChangeConfig(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
+			_audioManager.SetVolume(_config.Volume);
 		}
 
 		_osdManager.QueueMessage($"Volume set to {_config.Volume}%");
