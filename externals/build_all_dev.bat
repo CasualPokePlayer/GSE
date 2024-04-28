@@ -13,5 +13,5 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -G Ninja
 ninja
-cd ..
+cd ..\..
 GOTO:EOF
