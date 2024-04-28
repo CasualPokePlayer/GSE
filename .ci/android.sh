@@ -6,8 +6,8 @@
 apt-get install -y wget unzip openjdk-17-jdk-headless
 
 # Get Android Command Line Tools
-wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-unzip ./cmdline-tools.zip
+wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O $HOME/cmdline-tools.zip
+unzip $HOME/cmdline-tools.zip -d $HOME
 
 # Set ANDROID_HOME to somewhere known
 export ANDROID_HOME=$HOME/.android_sdk
@@ -15,7 +15,7 @@ mkdir $ANDROID_HOME
 
 # Move Command Line Tools over to its expected location
 mkdir $ANDROID_HOME/cmdline-tools
-mv ./cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+mv $HOME/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 
 # Install Android SDK and NDK
 yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
@@ -24,17 +24,17 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.2.11394342"
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.22.1"
 
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/26.2.11394342"
-export PATH=$PATH:$ANDROID_HOME/cmake/3.22.1/bin
+export PATH=$ANDROID_HOME/cmake/3.22.1/bin:$PATH
 
 # Build all externals
 cd ../externals/android
 ./build_all.sh
 
 # Install dotnet8 sdk
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --channel 8.0
-export PATH=$PATH:$HOME/.dotnet
+wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
+chmod +x $HOME/dotnet-install.sh
+$HOME/dotnet-install.sh --channel 8.0
+export PATH=$HOME/.dotnet:$PATH
 
 # Set path to find NDK's clang (needed to workaround .NET bug)
 export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH

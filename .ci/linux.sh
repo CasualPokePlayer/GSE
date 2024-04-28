@@ -8,10 +8,10 @@
 # Install some base tools
 apt-get install -y wget lsb-release software-properties-common gpg cmake ninja-build pkg-config
 
-# Install clang 17
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-./llvm.sh 17
+# Install clang 18
+wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
+chmod +x $HOME/llvm.sh
+$HOME/llvm.sh 18
 
 # Enable backports packages
 echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
@@ -62,8 +62,8 @@ CMakeNinjaBuild() {
 	cd build_$1_static_$TARGET_RID
 	cmake ../../externals/$1 \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_COMPILER=clang-17 \
-		-DCMAKE_CXX_COMPILER=clang++-17 \
+		-DCMAKE_C_COMPILER=clang-18 \
+		-DCMAKE_CXX_COMPILER=clang++-18 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
 		-DGSR_SHARED=OFF
@@ -78,11 +78,11 @@ CMakeNinjaBuild mgba
 CMakeNinjaBuild export_helper
 
 # Install dotnet8 sdk
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --channel 8.0
-export PATH=$PATH:$HOME/.dotnet
+wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
+chmod +x $HOME/dotnet-install.sh
+$HOME/dotnet-install.sh --channel 8.0
+export PATH=$HOME/.dotnet:$PATH
 
 # Build GSR
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-17 -p:LinkerFlavor=lld-17 -p:ObjCopyName=llvm-objcopy-17
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-18 -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18

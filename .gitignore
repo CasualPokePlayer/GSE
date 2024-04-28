@@ -5,6 +5,7 @@
 **/bin/**
 **/obj/**
 **/build/**
+**/build_*/**
 *.DotSettings.user
 **/runtimes/**/*.lib
 **/runtimes/**/*.a
