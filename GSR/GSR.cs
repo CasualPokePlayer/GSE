@@ -359,26 +359,29 @@ internal sealed class GSR : IDisposable
 
 			_mainWindow.NewFrame();
 
-			var statusBarHeight = 0f;
+			_imGuiMenuBar.RunMenuBar();
+			// position of the emu window is below the menu bar
+			var barHeight = ImGui.GetFrameHeight();
+
+			var statusBarHeight = 0.0f;
 			if (!_config.HideStatusBar)
 			{
 				_osdManager.RunStatusBar();
-				statusBarHeight = ImGui.GetFrameHeight();
+				statusBarHeight = barHeight;
 			}
 
 			var vp = ImGui.GetMainViewport();
-			ImGui.SetNextWindowPos(vp.Pos);
-			ImGui.SetNextWindowSize(vp.Size - new Vector2(0, statusBarHeight));
+			ImGui.SetNextWindowPos(vp.Pos + new Vector2(0, barHeight));
+			ImGui.SetNextWindowSize(vp.Size - new Vector2(0, barHeight + statusBarHeight));
 
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 
-			if (ImGui.Begin("GSR", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoBringToFrontOnFocus))
+			if (ImGui.Begin("GSR", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus))
 			{
 				DrawEmu();
 				ImGui.PopStyleVar(3);
-				_imGuiMenuBar.RunMenuBar();
 				_imGuiModals.RunModals();
 			}
 			else

@@ -554,6 +554,10 @@ internal sealed class ImGuiWindow : IDisposable
 			// this doesn't matter too much in dark mode
 			// but without a border light mode is terrible
 			style.FrameBorderSize = 1;
+
+			// this must be done in order to scaling to properly take effect for e.g. GetFrameHeight() calls
+			ImGui.NewFrame();
+			ImGui.EndFrame();
 		}
 		catch
 		{
@@ -922,20 +926,11 @@ internal sealed class ImGuiWindow : IDisposable
 				SetFont(dpiScale);
 				_dpiScale = dpiScale;
 
-				// can't use SetWindowSize, ImGui.GetFrameHeight() is not up to date
-				if (!_isFullscreen)
-				{
-					var newWidth = _lastWidth * _lastScale;
-					var newHeight = _lastHeight * _lastScale;
-					// nasty hack to account for ImGui.GetFrameHeight() not being up to date
-					var frameHeight = io.Fonts.Fonts[0].FontSize + ImGui.GetStyle().FramePadding.Y * 2.0f;
-					newHeight += (int)(frameHeight * _lastBars);
-					SdlRenderer.GetRendererOutputSize(out var lastDisplayW, out var lastDisplayH);
-					SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
-					newWidth = newWidth * lastWindowWidth / lastDisplayW;
-					newHeight = newHeight * lastWindowHeight / lastDisplayH;
-					SDL_SetWindowSize(SdlWindow, newWidth, newHeight);
-				}
+				// get ImGui.GetFrameHeight() up to date (important for SetWindowSize)
+				ImGui.NewFrame();
+				ImGui.EndFrame();
+
+				SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
 			}
 		}
 

@@ -15,7 +15,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 {
 	public void RunMenuBar()
 	{
-		if (ImGui.BeginMenuBar())
+		if (ImGui.BeginMainMenuBar())
 		{
 			if (ImGui.BeginMenu("File"))
 			{
@@ -233,7 +233,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				ImGui.EndMenu();
 			}
 
-			ImGui.EndMenuBar();
+			ImGui.EndMainMenuBar();
 		}
 	}
 }
