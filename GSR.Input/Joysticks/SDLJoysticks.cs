@@ -10,6 +10,9 @@ namespace GSR.Input.Joysticks;
 
 internal sealed class SDLJoysticks : IDisposable
 {
+	// fake "+" symbol, needed as we need to distinguish against +s from input combos
+	private const char POSITIVE_CHAR = '＋';
+
 	private readonly Dictionary<int, SDL2Joystick> Joysticks = [];
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
 	private bool _enableDirectInput;
@@ -179,7 +182,7 @@ internal sealed class SDLJoysticks : IDisposable
 			for (var i = 0; i < numAxes; i++)
 			{
 				var axisVal = SDL_JoystickGetAxis(_opaque, i);
-				inputs.Add(new($"{InputNamePrefix} Axis {i} +", axisVal >= 20000));
+				inputs.Add(new($"{InputNamePrefix} Axis {i} {POSITIVE_CHAR}", axisVal >= 20000));
 				inputs.Add(new($"{InputNamePrefix} Axis {i} -", axisVal <= -20000));
 			}
 
@@ -273,7 +276,7 @@ internal sealed class SDLJoysticks : IDisposable
 				if (SDL_GameControllerHasAxis(_opaque, (SDL_GameControllerAxis)i) == SDL_bool.SDL_TRUE)
 				{
 					var axisVal = SDL_GameControllerGetAxis(_opaque, (SDL_GameControllerAxis)i);
-					inputs.Add(new($"{InputNamePrefix} {_stickStrings[i]}+", axisVal >= 20000));
+					inputs.Add(new($"{InputNamePrefix} {_stickStrings[i]}{POSITIVE_CHAR}", axisVal >= 20000));
 					inputs.Add(new($"{InputNamePrefix} {_stickStrings[i]}-", axisVal <= -20000));
 				}
 			}
