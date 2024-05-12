@@ -31,6 +31,9 @@ public sealed class EmuManager : IDisposable
 	private volatile bool _disposing;
 	private volatile EmuThreadException _emuThreadException;
 
+	// hack due to wonky locking in NativeAOT
+	private volatile bool _wantEmuThreadLock;
+
 	private IEmuCore _emuCore;
 	private IEmuController _emuController;
 	private bool _emuPaused;
@@ -160,6 +163,14 @@ public sealed class EmuManager : IDisposable
 						}
 					}
 				}
+
+				if (_wantEmuThreadLock)
+				{
+					// if someone else is trying to lock the emu thread, we need to wait a bit after unlocking it
+					// as it seems (at least under NativeAOT) if it's re-acquired too quickly, other threads have a hard time acquiring it
+					// (perhaps this is a .NET bug, perhaps it isn't)
+					Thread.Yield();
+				}
 			}
 		}
 		catch (Exception e)
@@ -286,8 +297,10 @@ public sealed class EmuManager : IDisposable
 
 	public void LoadRom(EmuLoadArgs loadArgs)
 	{
+		_wantEmuThreadLock = true;
 		lock (_emuThreadLock)
 		{
+			_wantEmuThreadLock = false;
 			UnloadRom();
 			try
 			{
@@ -321,8 +334,10 @@ public sealed class EmuManager : IDisposable
 
 	public void UnloadRom()
 	{
+		_wantEmuThreadLock = true;
 		lock (_emuThreadLock)
 		{
+			_wantEmuThreadLock = false;
 			CheckEmuThreadException();
 			SetToNullCore();
 		}
@@ -474,8 +489,10 @@ public sealed class EmuManager : IDisposable
 
 	public void SetSpeedFactor(int speedFactor)
 	{
+		_wantEmuThreadLock = true;
 		lock (_emuThreadLock)
 		{
+			_wantEmuThreadLock = false;
 			_speedFactor = speedFactor;
 			if (_speedFactor == 1)
 			{
