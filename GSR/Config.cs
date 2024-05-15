@@ -59,6 +59,7 @@ internal sealed class Config
 	public bool KeepAspectRatio { get; set; } = true;
 	public ScalingFilter OutputFilter { get; set; } = ScalingFilter.SharpBilinear;
 	public string RenderDriver { get; set; } = ImGuiWindow.DEFAULT_RENDER_DRIVER;
+	public bool AlwaysOnTop { get; set; }
 	public int WindowScale { get; set; } = 3;
 	public bool AllowManualResizing { get; set; }
 

@@ -662,6 +662,11 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetWindowPosition(SdlWindow, x, y);
 	}
 
+	public void SetAlwaysOnTop(bool alwaysOnTop)
+	{
+		SDL_SetWindowAlwaysOnTop(SdlWindow, alwaysOnTop ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
+	}
+
 	public void SetResizable(bool resizable)
 	{
 		SDL_SetWindowResizable(SdlWindow, resizable ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);

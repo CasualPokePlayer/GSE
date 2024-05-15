@@ -229,6 +229,7 @@ internal sealed class ImGuiModals
 			}
 		}
 
+		_mainWindow.SetAlwaysOnTop(_config.AlwaysOnTop);
 		_mainWindow.SetResizable(_config.AllowManualResizing);
 		UpdateWindowScale();
 
@@ -563,6 +564,13 @@ internal sealed class ImGuiModals
 			ImGui.Separator();
 
 #if !GSR_ANDROID
+			var windowsAlwaysOnTop = _config.AlwaysOnTop;
+			if (ImGui.Checkbox("Window Always On Top", ref windowsAlwaysOnTop))
+			{
+				_config.AlwaysOnTop = windowsAlwaysOnTop;
+				_mainWindow.SetAlwaysOnTop(windowsAlwaysOnTop);
+			}
+
 			var allowManualResizing = _config.AllowManualResizing;
 			if (ImGui.Checkbox("Allow Manual Resizing", ref allowManualResizing))
 			{
