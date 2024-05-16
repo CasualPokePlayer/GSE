@@ -25,14 +25,10 @@ public sealed class EmuManager : IDisposable
 	private const string GSR_STATE_PREVIEW_MARKER = "GSR STATE PREVIEW";
 
 	private readonly Thread _emuThread;
-	private readonly object _emuThreadLock = new();
 	private readonly object _emuCoreLock = new();
 
 	private volatile bool _disposing;
 	private volatile EmuThreadException _emuThreadException;
-
-	// hack due to wonky locking in NativeAOT
-	private volatile bool _wantEmuThreadLock;
 
 	private IEmuCore _emuCore;
 	private IEmuController _emuController;
@@ -65,15 +61,15 @@ public sealed class EmuManager : IDisposable
 	private long _throttleError;
 	private int _speedFactor = 1;
 
-	private void Throttle(uint cpuCycles)
+	private void Throttle(uint cpuCycles, int speedFactor, uint cpuFreq)
 	{
 		// same as samples / audioFreq * timerFreq, but avoids needing to use float math
 		// note that Stopwatch.Frequency is typically 10MHz on Windows, and always 1000MHz on non-Windows
 		// (ulong cast is needed here, due to the amount of cpu cycles a gba could produce)
-		var timeToThrottle = (long)((ulong)_timerFreq * cpuCycles / _emuCore.CpuFrequency);
-		if (_speedFactor != 1)
+		var timeToThrottle = (long)((ulong)_timerFreq * cpuCycles / cpuFreq);
+		if (speedFactor != 1)
 		{
-			timeToThrottle /= _speedFactor;
+			timeToThrottle /= speedFactor;
 		}
 
 		if (_throttleError >= timeToThrottle)
@@ -124,52 +120,59 @@ public sealed class EmuManager : IDisposable
 			// TODO: it's possible to raise this to 0.5ms using the undocumented NtSetTimerResolution function, consider using that?
 			_ = PInvoke.timeBeginPeriod(1);
 #endif
+			var wasPaused = false;
+			var lastSpeedFactor = 1;
 			while (!_disposing)
 			{
-				lock (_emuThreadLock)
+				bool completedFrame, needsThrottleReset;
+				ReadOnlySpan<short> samples;
+				uint cpuCycles, cpuFreq;
+				lock (_emuCoreLock)
 				{
-					bool completedFrame;
-					uint samples, cpuCycles;
-					lock (_emuCoreLock)
+					if (!_emuPaused || _doFrameStep)
 					{
-						if (!_emuPaused || _doFrameStep)
-						{
-							var controllerState = _emuController.GetState(_speedFactor == 1);
-							_emuCore.Advance(controllerState, out completedFrame, out samples, out cpuCycles);
-							_emuCycleCount += cpuCycles;
+						var controllerState = _emuController.GetState(_speedFactor == 1);
+						_emuCore.Advance(controllerState, out completedFrame, out var numSamples, out cpuCycles);
 
-							if (_doFrameStep)
-							{
-								_doFrameStep = false;
-								_frameStepDoneEvent.Set();
-							}
-						}
-						else
+						_emuCycleCount += cpuCycles;
+						samples = _emuCore.AudioBuffer[..(int)(numSamples * 2)];
+						cpuFreq = _emuCore.CpuFrequency;
+
+						if (_doFrameStep)
 						{
-							completedFrame = false;
-							samples = 0;
-							cpuCycles = _emuCore.CpuFrequency / 60;
+							_doFrameStep = false;
+							_frameStepDoneEvent.Set();
 						}
 					}
-
-					_audioManager.DispatchAudio(_emuCore.AudioBuffer[..(int)(samples * 2)]);
-					Throttle(cpuCycles);
-
-					if (completedFrame)
+					else
 					{
-						lock (_videoLock)
-						{
-							_emuCore.VideoBuffer.CopyTo(_lastVideoFrame);
-						}
+						completedFrame = false;
+						samples = [];
+						cpuCycles = 48000 / 60;
+						cpuFreq = 48000;
 					}
+
+					needsThrottleReset = wasPaused && !_emuPaused;
+					wasPaused = _emuPaused;
+					needsThrottleReset |= lastSpeedFactor != 1 && _speedFactor == 1;
+					lastSpeedFactor = _speedFactor;
 				}
 
-				if (_wantEmuThreadLock)
+				_audioManager.DispatchAudio(samples);
+
+				if (needsThrottleReset)
 				{
-					// if someone else is trying to lock the emu thread, we need to wait a bit after unlocking it
-					// as it seems (at least under NativeAOT) if it's re-acquired too quickly, other threads have a hard time acquiring it
-					// (perhaps this is a .NET bug, perhaps it isn't)
-					Thread.Yield();
+					ResetThrottleState();
+				}
+
+				Throttle(cpuCycles, lastSpeedFactor, cpuFreq);
+
+				if (completedFrame)
+				{
+					lock (_videoLock)
+					{
+						_emuCore.VideoBuffer.CopyTo(_lastVideoFrame);
+					}
 				}
 			}
 		}
@@ -295,49 +298,46 @@ public sealed class EmuManager : IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Loads a ROM. Must be called while paused!
+	/// CALLED BY GUI THREAD
+	/// </summary>
+	/// <param name="loadArgs">arguments for loading a ROM</param>
 	public void LoadRom(EmuLoadArgs loadArgs)
 	{
-		_wantEmuThreadLock = true;
-		lock (_emuThreadLock)
+		UnloadRom();
+		try
 		{
-			_wantEmuThreadLock = false;
-			UnloadRom();
-			try
-			{
-				_emuCore = EmuCoreFactory.CreateEmuCore(loadArgs);
-				_emuController = loadArgs.EmuController;
-				_emuCycleCount = 0;
+			_emuCore = EmuCoreFactory.CreateEmuCore(loadArgs);
+			_emuController = loadArgs.EmuController;
+			_emuCycleCount = 0;
 
-				for (MemExport i = 0; i < MemExport.END; i++)
-				{
-					_emuCore.GetMemoryExport(i, out var ptr, out var len);
-					export_helper_set_mem_export(i, ptr, len);
-				}
-
-				CurrentRomName = loadArgs.RomName;
-				CurrentSavePath = loadArgs.SaveFilePath;
-				CurrentStatePath = loadArgs.SaveStatePath;
-				CurrentGbPlatform = loadArgs.GbPlatform;
-				RomIsLoaded = true;
-				_lastVideoFrame = new uint[_emuCore.VideoBuffer.Length];
-				_lastVideoFrameCopy = new uint[_emuCore.VideoBuffer.Length];
-				_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
-				ResetThrottleState();
-			}
-			catch
+			for (MemExport i = 0; i < MemExport.END; i++)
 			{
-				SetToNullCore();
-				throw;
+				_emuCore.GetMemoryExport(i, out var ptr, out var len);
+				export_helper_set_mem_export(i, ptr, len);
 			}
+
+			CurrentRomName = loadArgs.RomName;
+			CurrentSavePath = loadArgs.SaveFilePath;
+			CurrentStatePath = loadArgs.SaveStatePath;
+			CurrentGbPlatform = loadArgs.GbPlatform;
+			RomIsLoaded = true;
+			_lastVideoFrame = new uint[_emuCore.VideoBuffer.Length];
+			_lastVideoFrameCopy = new uint[_emuCore.VideoBuffer.Length];
+			_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
+		}
+		catch
+		{
+			SetToNullCore();
+			throw;
 		}
 	}
 
 	public void UnloadRom()
 	{
-		_wantEmuThreadLock = true;
-		lock (_emuThreadLock)
+		lock (_emuCoreLock)
 		{
-			_wantEmuThreadLock = false;
 			CheckEmuThreadException();
 			SetToNullCore();
 		}
@@ -489,15 +489,12 @@ public sealed class EmuManager : IDisposable
 
 	public void SetSpeedFactor(int speedFactor)
 	{
-		_wantEmuThreadLock = true;
-		lock (_emuThreadLock)
+		lock (_emuCoreLock)
 		{
-			_wantEmuThreadLock = false;
 			_speedFactor = speedFactor;
 			if (_speedFactor == 1)
 			{
 				_audioManager.Reset();
-				ResetThrottleState();
 			}
 		}
 	}
