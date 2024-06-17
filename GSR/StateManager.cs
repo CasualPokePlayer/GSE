@@ -61,7 +61,7 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 	private void OnStateSlotChanged()
 	{
 		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
-		if (!config.HideStatePreviews)
+		if (!config.HideStatePreviews && !emuManager.RomIsLoaded)
 		{
 			LoadStatePreview();
 		}
@@ -86,6 +86,11 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 
 	public void SaveStateSlot(int slot)
 	{
+		if (!emuManager.RomIsLoaded)
+		{
+			return;
+		}
+
 		var statePath = CreateStatePath(slot);
 		osdManager.QueueMessage(emuManager.SaveState(statePath)
 			? $"State {GetStateSlot(slot)} saved"
@@ -104,6 +109,11 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 
 	public void LoadStateSlot(int slot)
 	{
+		if (!emuManager.RomIsLoaded)
+		{
+			return;
+		}
+
 		var statePath = CreateStatePath(slot);
 		osdManager.QueueMessage(emuManager.LoadState(statePath)
 			? $"State {GetStateSlot(slot)} loaded"
