@@ -71,7 +71,7 @@ internal sealed class MGBACore : IEmuCore
 			var saveDataLength = mgba_getsavedatalength(_opaque);
 			if (saveDataLength > 0)
 			{
-				using var sav = File.OpenWrite(_savPath);
+				using var sav = File.Create(_savPath);
 				mgba_savesavedata(_opaque, _savBuffer);
 				sav.Write(_savBuffer.AsSpan()[..saveDataLength]);
 			}

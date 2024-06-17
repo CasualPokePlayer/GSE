@@ -392,7 +392,7 @@ public sealed class EmuManager : IDisposable
 
 		try
 		{
-			using var fs = File.OpenWrite(statePath);
+			using var fs = File.Create(statePath);
 			fs.Write(stateBuf);
 
 			// state preview footer

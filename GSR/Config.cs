@@ -97,8 +97,7 @@ internal sealed class Config
 
 	public void SaveConfig(string configPath)
 	{
-		File.Delete(configPath);
-		using var configFile = File.OpenWrite(configPath);
+		using var configFile = File.Create(configPath);
 		JsonSerializer.Serialize(configFile, this, ConfigSerializerContext.Default.Config);
 	}
 

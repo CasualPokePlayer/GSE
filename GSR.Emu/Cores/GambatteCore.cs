@@ -172,7 +172,7 @@ internal sealed class GambatteCore : IEmuCore
 		{
 			if (_savBuffer is { Length: > 0 })
 			{
-				using var sav = File.OpenWrite(_savPath);
+				using var sav = File.Create(_savPath);
 				gambatte_savesavedata(_opaque, _savBuffer);
 				sav.Write(_savBuffer);
 			}
