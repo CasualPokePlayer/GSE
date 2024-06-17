@@ -17,6 +17,9 @@ $HOME/llvm.sh 18
 echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
 apt-get update
 
+gcc -print-multiarch
+gcc -dumpmachine
+
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
 	export EXTRA_CMAKE_ARGS="-DCMAKE_FIND_DEBUG_MODE=ON"
