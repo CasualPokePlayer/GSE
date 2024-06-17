@@ -19,7 +19,7 @@ apt-get update
 
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
-	export EXTRA_CMAKE_ARGS=""
+	export EXTRA_CMAKE_ARGS="-DCMAKE_FIND_DEBUG_MODE=ON"
 	# Install SDL2 dependencies
 	apt-get install -y libasound2-dev libpulse-dev libaudio-dev libjack-jackd2-dev libsamplerate0-dev \
 		libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
