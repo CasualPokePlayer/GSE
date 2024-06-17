@@ -6,7 +6,7 @@
 # but we lose out on some packages (and Debian 11 is probably old enough to cover practically every user?)
 
 # Install some base tools
-apt-get install -y wget lsb-release software-properties-common gpg cmake ninja-build pkg-config
+apt-get install -y wget lsb-release software-properties-common gpg ninja-build pkg-config
 
 # Install clang 18
 wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
@@ -17,8 +17,11 @@ $HOME/llvm.sh 18
 echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
 apt-get update
 
-gcc -print-multiarch
-gcc -dumpmachine
+# Normally cmake from standard bulleye packages is enough
+# However, a bug seems to have been recently introduced in this package causing build failures for linux-x64
+# The bug has cmake checks for x86_64-pc-linux-gnu paths instead of x86_64-linux-gnu paths
+# bullseye-backports has a newer cmake version which has this bug fixed
+apt-get install -y cmake/bullseye-backports
 
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
