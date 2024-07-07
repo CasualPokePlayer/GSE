@@ -55,8 +55,7 @@ internal static class OpenFileDialog
 			fileDialog->SetOptions(FILEOPENDIALOGOPTIONS.FOS_STRICTFILETYPES |
 			                       FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
 			                       FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
-			                       FILEOPENDIALOGOPTIONS.FOS_FILEMUSTEXIST |
-			                       FILEOPENDIALOGOPTIONS.FOS_NOREADONLYRETURN);
+			                       FILEOPENDIALOGOPTIONS.FOS_FILEMUSTEXIST);
 
 			if (PInvoke.SHCreateItemFromParsingName(baseDir ?? AppContext.BaseDirectory, null, in IShellItem.IID_Guid, out var ppv).Succeeded)
 			{
