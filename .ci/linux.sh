@@ -69,7 +69,7 @@ CMakeNinjaBuild() {
 		-DCMAKE_CXX_COMPILER=clang++-18 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
-		-DGSR_SHARED=OFF
+		-DGSE_SHARED=OFF
 	ninja
 	cd ..
 }
@@ -86,6 +86,6 @@ chmod +x $HOME/dotnet-install.sh
 $HOME/dotnet-install.sh --channel 8.0
 export PATH=$HOME/.dotnet:$PATH
 
-# Build GSR
+# Build GSE
 cd ..
 dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-18 -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18

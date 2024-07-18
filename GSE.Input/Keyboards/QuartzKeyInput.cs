@@ -1,0 +1,282 @@
+// Copyright (c) 2024 CasualPokePlayer
+// SPDX-License-Identifier: MPL-2.0
+
+using System.Collections.Frozen;
+using System.Collections.Generic;
+
+using static GSE.Input.Keyboards.QuartzImports;
+
+namespace GSE.Input.Keyboards;
+
+internal sealed class QuartzKeyInput : IKeyInput
+{
+	private static readonly FrozenDictionary<CGKeyCode, ScanCode> _keyCodeMap = new Dictionary<CGKeyCode, ScanCode>
+	{
+		[CGKeyCode.kVK_ANSI_A] = ScanCode.SC_A,
+		[CGKeyCode.kVK_ANSI_S] = ScanCode.SC_S,
+		[CGKeyCode.kVK_ANSI_D] = ScanCode.SC_D,
+		[CGKeyCode.kVK_ANSI_F] = ScanCode.SC_F,
+		[CGKeyCode.kVK_ANSI_H] = ScanCode.SC_H,
+		[CGKeyCode.kVK_ANSI_G] = ScanCode.SC_G,
+		[CGKeyCode.kVK_ANSI_Z] = ScanCode.SC_Z,
+		[CGKeyCode.kVK_ANSI_X] = ScanCode.SC_X,
+		[CGKeyCode.kVK_ANSI_C] = ScanCode.SC_C,
+		[CGKeyCode.kVK_ANSI_V] = ScanCode.SC_V,
+		[CGKeyCode.kVK_ANSI_B] = ScanCode.SC_B,
+		[CGKeyCode.kVK_ANSI_Q] = ScanCode.SC_Q,
+		[CGKeyCode.kVK_ANSI_W] = ScanCode.SC_W,
+		[CGKeyCode.kVK_ANSI_E] = ScanCode.SC_E,
+		[CGKeyCode.kVK_ANSI_R] = ScanCode.SC_R,
+		[CGKeyCode.kVK_ANSI_Y] = ScanCode.SC_Y,
+		[CGKeyCode.kVK_ANSI_T] = ScanCode.SC_T,
+		[CGKeyCode.kVK_ANSI_1] = ScanCode.SC_1,
+		[CGKeyCode.kVK_ANSI_2] = ScanCode.SC_2,
+		[CGKeyCode.kVK_ANSI_3] = ScanCode.SC_3,
+		[CGKeyCode.kVK_ANSI_4] = ScanCode.SC_4,
+		[CGKeyCode.kVK_ANSI_6] = ScanCode.SC_6,
+		[CGKeyCode.kVK_ANSI_5] = ScanCode.SC_5,
+		[CGKeyCode.kVK_ANSI_Equal] = ScanCode.SC_EQUALS,
+		[CGKeyCode.kVK_ANSI_9] = ScanCode.SC_9,
+		[CGKeyCode.kVK_ANSI_7] = ScanCode.SC_7,
+		[CGKeyCode.kVK_ANSI_Minus] = ScanCode.SC_MINUS,
+		[CGKeyCode.kVK_ANSI_8] = ScanCode.SC_8,
+		[CGKeyCode.kVK_ANSI_0] = ScanCode.SC_0,
+		[CGKeyCode.kVK_ANSI_RightBracket] = ScanCode.SC_RIGHTBRACKET,
+		[CGKeyCode.kVK_ANSI_O] = ScanCode.SC_O,
+		[CGKeyCode.kVK_ANSI_U] = ScanCode.SC_U,
+		[CGKeyCode.kVK_ANSI_LeftBracket] = ScanCode.SC_LEFTBRACKET,
+		[CGKeyCode.kVK_ANSI_I] = ScanCode.SC_I,
+		[CGKeyCode.kVK_ANSI_P] = ScanCode.SC_P,
+		[CGKeyCode.kVK_Return] = ScanCode.SC_ENTER,
+		[CGKeyCode.kVK_ANSI_L] = ScanCode.SC_L,
+		[CGKeyCode.kVK_ANSI_J] = ScanCode.SC_J,
+		[CGKeyCode.kVK_ANSI_Quote] = ScanCode.SC_APOSTROPHE,
+		[CGKeyCode.kVK_ANSI_K] = ScanCode.SC_K,
+		[CGKeyCode.kVK_ANSI_Semicolon] = ScanCode.SC_SEMICOLON,
+		[CGKeyCode.kVK_ANSI_Backslash] = ScanCode.SC_BACKSLASH,
+		[CGKeyCode.kVK_ANSI_Comma] = ScanCode.SC_COMMA,
+		[CGKeyCode.kVK_ANSI_Slash] = ScanCode.SC_SLASH,
+		[CGKeyCode.kVK_ANSI_N] = ScanCode.SC_N,
+		[CGKeyCode.kVK_ANSI_M] = ScanCode.SC_M,
+		[CGKeyCode.kVK_ANSI_Period] = ScanCode.SC_PERIOD,
+		[CGKeyCode.kVK_Tab] = ScanCode.SC_TAB,
+		[CGKeyCode.kVK_Space] = ScanCode.SC_SPACEBAR,
+		[CGKeyCode.kVK_ANSI_Grave] = ScanCode.SC_GRAVE,
+		[CGKeyCode.kVK_Delete] = ScanCode.SC_BACKSPACE,
+		[CGKeyCode.kVK_Escape] = ScanCode.SC_ESCAPE,
+		[CGKeyCode.kVK_RightCommand] = ScanCode.SC_RIGHTGUI,
+		[CGKeyCode.kVK_Command] = ScanCode.SC_LEFTGUI,
+		[CGKeyCode.kVK_Shift] = ScanCode.SC_LEFTSHIFT,
+		[CGKeyCode.kVK_CapsLock] = ScanCode.SC_CAPSLOCK,
+		[CGKeyCode.kVK_Option] = ScanCode.SC_LEFTALT,
+		[CGKeyCode.kVK_Control] = ScanCode.SC_LEFTCONTROL,
+		[CGKeyCode.kVK_RightShift] = ScanCode.SC_RIGHTSHIFT,
+		[CGKeyCode.kVK_RightOption] = ScanCode.SC_RIGHTALT,
+		[CGKeyCode.kVK_RightControl] = ScanCode.SC_RIGHTCONTROL,
+		// [CGKeyCode.kVK_Function] = ScanCode.SC_,
+		[CGKeyCode.kVK_F17] = ScanCode.SC_F17,
+		[CGKeyCode.kVK_ANSI_KeypadDecimal] = ScanCode.SC_DECIMAL,
+		[CGKeyCode.kVK_ANSI_KeypadMultiply] = ScanCode.SC_MULTIPLY,
+		[CGKeyCode.kVK_ANSI_KeypadPlus] = ScanCode.SC_ADD,
+		[CGKeyCode.kVK_ANSI_KeypadClear] = ScanCode.SC_NUMLOCK,
+		[CGKeyCode.kVK_VolumeUp] = ScanCode.SC_VOLUMEUP,
+		[CGKeyCode.kVK_VolumeDown] = ScanCode.SC_VOLUMEDOWN,
+		[CGKeyCode.kVK_Mute] = ScanCode.SC_MUTE,
+		[CGKeyCode.kVK_ANSI_KeypadDivide] = ScanCode.SC_DIVIDE,
+		[CGKeyCode.kVK_ANSI_KeypadEnter] = ScanCode.SC_NUMPADENTER,
+		[CGKeyCode.kVK_ANSI_KeypadMinus] = ScanCode.SC_SUBSTRACT,
+		[CGKeyCode.kVK_F18] = ScanCode.SC_F18,
+		[CGKeyCode.kVK_F19] = ScanCode.SC_F19,
+		[CGKeyCode.kVK_ANSI_KeypadEquals] = ScanCode.SC_NUMPADEQUALS,
+		[CGKeyCode.kVK_ANSI_Keypad0] = ScanCode.SC_NUMPAD0,
+		[CGKeyCode.kVK_ANSI_Keypad1] = ScanCode.SC_NUMPAD1,
+		[CGKeyCode.kVK_ANSI_Keypad2] = ScanCode.SC_NUMPAD2,
+		[CGKeyCode.kVK_ANSI_Keypad3] = ScanCode.SC_NUMPAD3,
+		[CGKeyCode.kVK_ANSI_Keypad4] = ScanCode.SC_NUMPAD4,
+		[CGKeyCode.kVK_ANSI_Keypad5] = ScanCode.SC_NUMPAD5,
+		[CGKeyCode.kVK_ANSI_Keypad6] = ScanCode.SC_NUMPAD6,
+		[CGKeyCode.kVK_ANSI_Keypad7] = ScanCode.SC_NUMPAD7,
+		[CGKeyCode.kVK_F20] = ScanCode.SC_F20,
+		[CGKeyCode.kVK_ANSI_Keypad8] = ScanCode.SC_NUMPAD8,
+		[CGKeyCode.kVK_ANSI_Keypad9] = ScanCode.SC_NUMPAD9,
+		[CGKeyCode.kVK_F5] = ScanCode.SC_F5,
+		[CGKeyCode.kVK_F6] = ScanCode.SC_F6,
+		[CGKeyCode.kVK_F7] = ScanCode.SC_F7,
+		[CGKeyCode.kVK_F3] = ScanCode.SC_F3,
+		[CGKeyCode.kVK_F8] = ScanCode.SC_F8,
+		[CGKeyCode.kVK_F9] = ScanCode.SC_F9,
+		[CGKeyCode.kVK_F11] = ScanCode.SC_F11,
+		[CGKeyCode.kVK_F13] = ScanCode.SC_F13,
+		[CGKeyCode.kVK_F16] = ScanCode.SC_F16,
+		[CGKeyCode.kVK_F14] = ScanCode.SC_F14,
+		[CGKeyCode.kVK_F10] = ScanCode.SC_F10,
+		[CGKeyCode.kVK_ContextMenu] = ScanCode.SC_APPS,
+		[CGKeyCode.kVK_F12] = ScanCode.SC_F12,
+		[CGKeyCode.kVK_F15] = ScanCode.SC_F15,
+		[CGKeyCode.kVK_Help] = ScanCode.SC_INSERT,
+		[CGKeyCode.kVK_Home] = ScanCode.SC_HOME,
+		[CGKeyCode.kVK_PageUp] = ScanCode.SC_PAGEUP,
+		[CGKeyCode.kVK_ForwardDelete] = ScanCode.SC_DELETE,
+		[CGKeyCode.kVK_F4] = ScanCode.SC_F4,
+		[CGKeyCode.kVK_End] = ScanCode.SC_END,
+		[CGKeyCode.kVK_F2] = ScanCode.SC_F2,
+		[CGKeyCode.kVK_PageDown] = ScanCode.SC_PAGEDOWN,
+		[CGKeyCode.kVK_F1] = ScanCode.SC_F1,
+		[CGKeyCode.kVK_LeftArrow] = ScanCode.SC_LEFT,
+		[CGKeyCode.kVK_RightArrow] = ScanCode.SC_RIGHT,
+		[CGKeyCode.kVK_DownArrow] = ScanCode.SC_DOWN,
+		[CGKeyCode.kVK_UpArrow] = ScanCode.SC_UP,
+	}.ToFrozenDictionary();
+
+	private readonly bool[] _lastKeyState = new bool[(int)CGKeyCode.kVK_MAX + 1];
+
+	public void Dispose()
+	{
+	}
+
+	public IEnumerable<KeyEvent> GetEvents()
+	{
+		var keyEvents = new List<KeyEvent>();
+		for (CGKeyCode keycode = 0; keycode <= CGKeyCode.kVK_MAX; keycode++)
+		{
+			var keystate = CGEventSourceKeyState(CGEventSourceStateID.kCGEventSourceStateHIDSystemState, keycode);
+			if (_lastKeyState[(int)keycode] != keystate)
+			{
+				if (_keyCodeMap.TryGetValue(keycode, out var scanCode))
+				{
+					keyEvents.Add(new(scanCode, IsPressed: keystate));
+				}
+
+				_lastKeyState[(int)keycode] = keystate;
+			}
+		}
+
+		return keyEvents;
+	}
+
+	/// <summary>
+	/// Maps scancodes to strings
+	/// Not ideal as these strings might not match the key characters on the user's keyboard
+	/// </summary>
+	private static readonly FrozenDictionary<ScanCode, string> _scanCodeStrMap = new Dictionary<ScanCode, string>
+	{
+		[ScanCode.SC_A] = "A",
+		[ScanCode.SC_S] = "S",
+		[ScanCode.SC_D] = "D",
+		[ScanCode.SC_F] = "F",
+		[ScanCode.SC_H] = "H",
+		[ScanCode.SC_G] = "G",
+		[ScanCode.SC_Z] = "Z",
+		[ScanCode.SC_X] = "X",
+		[ScanCode.SC_C] = "C",
+		[ScanCode.SC_V] = "V",
+		[ScanCode.SC_B] = "B",
+		[ScanCode.SC_Q] = "Q",
+		[ScanCode.SC_W] = "W",
+		[ScanCode.SC_E] = "E",
+		[ScanCode.SC_R] = "R",
+		[ScanCode.SC_Y] = "Y",
+		[ScanCode.SC_T] = "T",
+		[ScanCode.SC_1] = "1",
+		[ScanCode.SC_2] = "2",
+		[ScanCode.SC_3] = "3",
+		[ScanCode.SC_4] = "4",
+		[ScanCode.SC_6] = "6",
+		[ScanCode.SC_5] = "5",
+		[ScanCode.SC_EQUALS] = "Equals",
+		[ScanCode.SC_9] = "9",
+		[ScanCode.SC_7] = "7",
+		[ScanCode.SC_MINUS] = "Minus",
+		[ScanCode.SC_8] = "8",
+		[ScanCode.SC_0] = "0",
+		[ScanCode.SC_RIGHTBRACKET] = "Right Bracket",
+		[ScanCode.SC_O] = "O",
+		[ScanCode.SC_U] = "U",
+		[ScanCode.SC_LEFTBRACKET] = "Left Bracket",
+		[ScanCode.SC_I] = "I",
+		[ScanCode.SC_P] = "P",
+		[ScanCode.SC_ENTER] = "Enter",
+		[ScanCode.SC_L] = "L",
+		[ScanCode.SC_J] = "J",
+		[ScanCode.SC_APOSTROPHE] = "Quotes",
+		[ScanCode.SC_K] = "K",
+		[ScanCode.SC_SEMICOLON] = "Semicolon",
+		[ScanCode.SC_BACKSLASH] = "Pipe",
+		[ScanCode.SC_COMMA] = "Comma",
+		[ScanCode.SC_SLASH] = "Question",
+		[ScanCode.SC_N] = "N",
+		[ScanCode.SC_M] = "M",
+		[ScanCode.SC_PERIOD] = "Period",
+		[ScanCode.SC_TAB] = "Tab",
+		[ScanCode.SC_SPACEBAR] = "Spacebar",
+		[ScanCode.SC_GRAVE] = "Tilde",
+		[ScanCode.SC_BACKSPACE] = "Backspace",
+		[ScanCode.SC_ESCAPE] = "Escape",
+		[ScanCode.SC_RIGHTGUI] = "Right Command",
+		[ScanCode.SC_LEFTGUI] = "Left Command",
+		[ScanCode.SC_LEFTSHIFT] = "Left Shift",
+		[ScanCode.SC_CAPSLOCK] = "Caps Lock",
+		[ScanCode.SC_LEFTALT] = "Left Option",
+		[ScanCode.SC_LEFTCONTROL] = "Left Control",
+		[ScanCode.SC_RIGHTSHIFT] = "Right Shift",
+		[ScanCode.SC_RIGHTALT] = "Right Option",
+		[ScanCode.SC_RIGHTCONTROL] = "Right Control",
+		[ScanCode.SC_F17] = "F17",
+		[ScanCode.SC_DECIMAL] = "Decimal",
+		[ScanCode.SC_MULTIPLY] = "Multiply",
+		[ScanCode.SC_ADD] = "Add",
+		[ScanCode.SC_NUMLOCK] = "Num Lock",
+		[ScanCode.SC_VOLUMEUP] = "Volume Up",
+		[ScanCode.SC_VOLUMEDOWN] = "Volume Down",
+		[ScanCode.SC_MUTE] = "Mute",
+		[ScanCode.SC_DIVIDE] = "Divide",
+		[ScanCode.SC_NUMPADENTER] = "Numpad Enter",
+		[ScanCode.SC_SUBSTRACT] = "Subtract",
+		[ScanCode.SC_F18] = "F18",
+		[ScanCode.SC_F19] = "F19",
+		[ScanCode.SC_NUMPADEQUALS] = "Numpad Equals",
+		[ScanCode.SC_NUMPAD0] = "Numpad 0",
+		[ScanCode.SC_NUMPAD1] = "Numpad 1",
+		[ScanCode.SC_NUMPAD2] = "Numpad 2",
+		[ScanCode.SC_NUMPAD3] = "Numpad 3",
+		[ScanCode.SC_NUMPAD4] = "Numpad 4",
+		[ScanCode.SC_NUMPAD5] = "Numpad 5",
+		[ScanCode.SC_NUMPAD6] = "Numpad 6",
+		[ScanCode.SC_NUMPAD7] = "Numpad 7",
+		[ScanCode.SC_F20] = "F20",
+		[ScanCode.SC_NUMPAD8] = "Numpad 8",
+		[ScanCode.SC_NUMPAD9] = "Numpad 9",
+		[ScanCode.SC_F5] = "F5",
+		[ScanCode.SC_F6] = "F6",
+		[ScanCode.SC_F7] = "F7",
+		[ScanCode.SC_F3] = "F3",
+		[ScanCode.SC_F8] = "F8",
+		[ScanCode.SC_F9] = "F9",
+		[ScanCode.SC_F11] = "F11",
+		[ScanCode.SC_F13] = "F13",
+		[ScanCode.SC_F16] = "F16",
+		[ScanCode.SC_F14] = "F14",
+		[ScanCode.SC_F10] = "F10",
+		[ScanCode.SC_APPS] = "Context Menu",
+		[ScanCode.SC_F12] = "F12",
+		[ScanCode.SC_F15] = "F15",
+		[ScanCode.SC_INSERT] = "Insert",
+		[ScanCode.SC_HOME] = "Home",
+		[ScanCode.SC_PAGEUP] = "Page Up",
+		[ScanCode.SC_DELETE] = "Delete",
+		[ScanCode.SC_F4] = "F4",
+		[ScanCode.SC_END] = "End",
+		[ScanCode.SC_F2] = "F2",
+		[ScanCode.SC_PAGEDOWN] = "Page Down",
+		[ScanCode.SC_F1] = "F1",
+		[ScanCode.SC_LEFT] = "Left",
+		[ScanCode.SC_RIGHT] = "Right",
+		[ScanCode.SC_DOWN] = "Down",
+		[ScanCode.SC_UP] = "Up",
+	}.ToFrozenDictionary();
+
+	public string ConvertScanCodeToString(ScanCode key)
+	{
+		return _scanCodeStrMap.GetValueOrDefault(key);
+	}
+}

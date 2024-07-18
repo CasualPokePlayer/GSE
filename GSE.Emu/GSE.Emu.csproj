@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../GSECommon.props" />
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" PrivateAssets="all" />
+		<ProjectReference Include="$(ProjectDir)../GSE.Audio/GSE.Audio.csproj" />
+		<ProjectReference Include="$(ProjectDir)../GSE.Input/GSE.Input.csproj" />
+		<ProjectReference Condition="'$(GSE_ANDROID)' == 'true'" Include="$(ProjectDir)../GSE.Android/GSE.Android.csproj" />
+	</ItemGroup>
+</Project>

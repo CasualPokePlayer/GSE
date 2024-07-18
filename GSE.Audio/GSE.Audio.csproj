@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../GSECommon.props" />
+	<ItemGroup>
+		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
+	</ItemGroup>
+</Project>

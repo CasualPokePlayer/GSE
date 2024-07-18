@@ -1,0 +1,98 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>12.0</LangVersion>
+		<Platforms>x64;ARM64</Platforms>
+		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-bionic-x64;linux-bionic-arm64</RuntimeIdentifiers>
+		<AnalysisLevel>8</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<Features>strict</Features>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>disable</Nullable>
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>full</TrimMode>
+		<SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+		<ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<IsAotCompatible>true</IsAotCompatible>
+		<PublishAot>true</PublishAot>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+	<PropertyGroup>
+		<GSE_PUBLISH Condition="'$(_IsPublishing)' == 'true'">true</GSE_PUBLISH>
+		<IsWindowsHost>$([MSBuild]::IsOSPlatform('Windows'))</IsWindowsHost>
+		<IsOSXHost>$([MSBuild]::IsOSPlatform('OSX'))</IsOSXHost>
+		<IsLinuxHost>$([MSBuild]::IsOSPlatform('Linux'))</IsLinuxHost>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
+		<!-- Use RID to compute the OS if we're publishing -->
+		<GSE_WINDOWS>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('win-'))</GSE_WINDOWS>
+		<GSE_OSX>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx-'))</GSE_OSX>
+		<!-- .NET NativeAOT on Android uses linux-bionic-* rather than android-* RIDs -->
+		<GSE_ANDROID>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-bionic-'))</GSE_ANDROID>
+		<GSE_LINUX Condition="'$(GSE_ANDROID)' != 'true'">$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-'))</GSE_LINUX>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_PUBLISH)' != 'true'">
+		<!-- Make sure we compute the correct platform if we're not publishing (i.e. local build) -->
+		<GSE_WINDOWS>$(IsWindowsHost)</GSE_WINDOWS>
+		<GSE_OSX>$(IsOSXHost)</GSE_OSX>
+		<GSE_LINUX>$(IsLinuxHost)</GSE_LINUX>
+	</PropertyGroup>
+	<PropertyGroup>
+		<!-- Try to use RID to identify the target architecture -->
+		<GSE_X64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x64'))</GSE_X64>
+		<GSE_ARM64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm64'))</GSE_ARM64>
+		<!-- Use the selected platform otherwise -->
+		<GSE_X64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'x64'">true</GSE_X64>
+		<GSE_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'ARM64'">true</GSE_ARM64>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_X64)' == 'true' Or '$(GSE_ARM64)' == 'true'">
+		<PlatformTarget Condition="'$(GSE_X64)' == 'true'">x64</PlatformTarget>
+		<PlatformTarget Condition="'$(GSE_ARM64)' == 'true'">ARM64</PlatformTarget>
+		<DefineConstants>$(DefineConstants);GSE_64BIT</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
+		<DebugSymbols>False</DebugSymbols>
+		<DebugType>None</DebugType>
+		<DefineConstants>$(DefineConstants);GSE_PUBLISH</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_WINDOWS)' == 'true'">
+		<GSE_LIB_PREFIX></GSE_LIB_PREFIX>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' == 'true'">.lib</GSE_LIB_EXT>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.dll</GSE_LIB_EXT>
+		<GSE_RID Condition="'$(GSE_X64)' == 'true'">win-x64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">win-arm64</GSE_RID>
+		<!-- We support as far back as Windows 7 SP1 -->
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<SupportedOSPlatformVersion>6.1.7601</SupportedOSPlatformVersion>
+		<DefineConstants>$(DefineConstants);GSE_WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_OSX)' == 'true'">
+		<GSE_LIB_PREFIX>lib</GSE_LIB_PREFIX>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' == 'true'">.a</GSE_LIB_EXT>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.dylib</GSE_LIB_EXT>
+		<GSE_RID Condition="'$(GSE_X64)' == 'true'">osx-x64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">osx-arm64</GSE_RID>
+		<DefineConstants>$(DefineConstants);GSE_OSX</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_LINUX)' == 'true'">
+		<GSE_LIB_PREFIX>lib</GSE_LIB_PREFIX>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' == 'true'">.a</GSE_LIB_EXT>
+		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.so</GSE_LIB_EXT>
+		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-x64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-arm64</GSE_RID>
+		<DefineConstants>$(DefineConstants);GSE_LINUX</DefineConstants>
+	</PropertyGroup>
+	<!-- We must be publishing for Android -->
+	<PropertyGroup Condition="'$(GSE_ANDROID)' == 'true' And '$(GSE_PUBLISH)' == 'true'">
+		<GSE_LIB_PREFIX>lib</GSE_LIB_PREFIX>
+		<GSE_LIB_EXT>.so</GSE_LIB_EXT>
+		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-bionic-x64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-bionic-arm64</GSE_RID>
+		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
+	</PropertyGroup>
+	<!-- https://github.com/dotnet/runtime/issues/92272 -->
+	<ItemGroup Condition="'$(GSE_ANDROID)' == 'true'">
+		<LinkerArg Include="-Wl,--undefined-version" />
+	</ItemGroup>
+</Project>

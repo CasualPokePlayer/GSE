@@ -6,7 +6,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # .NET 8 macOS requires at least 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-project(SDL2-GSR C CXX)
+project(SDL2-GSE C CXX)
 
 if(WIN32)
 	# libusb handling does some magic which requires at least cmake 3.18
@@ -15,13 +15,13 @@ if(WIN32)
 	endif()
 endif()
 
-option(GSR_SHARED "Build GSR lib as shared library" ON)
+option(GSE_SHARED "Build GSE lib as shared library" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
 include(FindRID)
 
-if(GSR_SHARED)
+if(GSE_SHARED)
 	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:OFF,ON>)
 else()
@@ -52,7 +52,7 @@ set(SDL2_DISABLE_UNINSTALL ON)
 
 # We want to statically link to the VC runtimes if we're building as a static library
 # Otherwise, dynamically link
-if(GSR_SHARED)
+if(GSE_SHARED)
 	set(SDL_FORCE_STATIC_VCRT OFF)
 else()
 	set(SDL_FORCE_STATIC_VCRT ON)
@@ -81,17 +81,17 @@ if(WIN32)
 	set(HAVE_LIBUSB ON)
 endif()
 
-# Mark this as a GSR build
-set(SDL_VENDOR_INFO "GSR" CACHE STRING "" FORCE)
+# Mark this as a GSE build
+set(SDL_VENDOR_INFO "GSE" CACHE STRING "" FORCE)
 
-if(GSR_SHARED)
+if(GSE_SHARED)
 	set(SDL_SHARED ON)
 	set(SDL_STATIC OFF)
-	set(GSR_SDL_TARGET SDL2)
+	set(GSE_SDL_TARGET SDL2)
 else()
 	set(SDL_SHARED OFF)
 	set(SDL_STATIC ON)
-	set(GSR_SDL_TARGET SDL2-static)
+	set(GSE_SDL_TARGET SDL2-static)
 endif()
 
 set(SDL_TEST OFF)
@@ -118,7 +118,7 @@ if(WIN32)
 	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
 		set_source_files_properties(
 			${LIBUSB_SOURCES}
-			TARGET_DIRECTORY ${GSR_SDL_TARGET}
+			TARGET_DIRECTORY ${GSE_SDL_TARGET}
 			PROPERTIES
 			COMPILE_OPTIONS -w
 		)
@@ -126,28 +126,28 @@ if(WIN32)
 
 	set_source_files_properties(
 		${LIBUSB_SOURCES}
-		TARGET_DIRECTORY ${GSR_SDL_TARGET}
+		TARGET_DIRECTORY ${GSE_SDL_TARGET}
 		PROPERTIES
 		INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/libusb/msvc
 	)
 
-	target_include_directories(${GSR_SDL_TARGET} PRIVATE libusb/libusb)
-	target_sources(${GSR_SDL_TARGET} PRIVATE ${LIBUSB_SOURCES})
+	target_include_directories(${GSE_SDL_TARGET} PRIVATE libusb/libusb)
+	target_sources(${GSE_SDL_TARGET} PRIVATE ${LIBUSB_SOURCES})
 endif()
 
 # ensure we have SDL2.dll / SDL2.lib / libSDL2.dylib / libSDL2.so / libSDL2.a
-set_target_properties(${GSR_SDL_TARGET} PROPERTIES
+set_target_properties(${GSE_SDL_TARGET} PROPERTIES
 	NO_SONAME ON
 	OUTPUT_NAME "SDL2"
 )
 
 # Copy output to our runtime folders
 # This requires a bit of magic (add_custom_command is not allowed for targets made with add_subdirectory)
-add_custom_target(SDL2-GSR ALL)
-add_dependencies(SDL2-GSR ${GSR_SDL_TARGET})
+add_custom_target(SDL2-GSE ALL)
+add_dependencies(SDL2-GSE ${GSE_SDL_TARGET})
 add_custom_command(
-	TARGET SDL2-GSR
+	TARGET SDL2-GSE
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND}
-	ARGS -E copy $<TARGET_FILE:${GSR_SDL_TARGET}> ${CMAKE_SOURCE_DIR}/../runtimes/${GSR_RID}/
+	ARGS -E copy $<TARGET_FILE:${GSE_SDL_TARGET}> ${CMAKE_SOURCE_DIR}/../runtimes/${GSE_RID}/
 )

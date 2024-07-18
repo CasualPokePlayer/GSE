@@ -15,7 +15,7 @@ call:CMakeNinjaBuild gambatte
 call:CMakeNinjaBuild mgba
 call:CMakeNinjaBuild export_helper
 
-:: Build GSR
+:: Build GSE
 cd ..
 dotnet publish -r %TARGET_RID%
 GOTO:EOF
@@ -30,7 +30,7 @@ cmake ..\..\externals\%~1 ^
 	-DCMAKE_CXX_COMPILER=clang-cl ^
 	%EXTRA_CMAKE_ARGS% ^
 	-G Ninja ^
-	-DGSR_SHARED=OFF
+	-DGSE_SHARED=OFF
 ninja
 cd ..
 GOTO:EOF

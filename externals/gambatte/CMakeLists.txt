@@ -14,7 +14,7 @@ endif()
 # .NET 8 macOS requires at least 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-project(gambatte-gsr CXX)
+project(gambatte-gse CXX)
 
 if(MSVC)
 	if(POLICY CMP0117)
@@ -23,7 +23,7 @@ if(MSVC)
 	endif()
 endif()
 
-option(GSR_SHARED "Build GSR lib as shared library" ON)
+option(GSE_SHARED "Build GSE lib as shared library" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
@@ -101,7 +101,7 @@ set(GAMBATTE_SOURCES
 	${GAMBATTE_SOURCE_DIR}/video/sprite_mapper.cpp
 )
 
-if(GSR_SHARED)
+if(GSE_SHARED)
 	add_library(gambatte SHARED ${GAMBATTE_SOURCES})
 	set_target_properties(gambatte PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	set_target_properties(gambatte PROPERTIES INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:OFF,ON>)
@@ -134,7 +134,7 @@ if(MSVC)
 	target_compile_options(gambatte PRIVATE /GR-)
 else()
 	target_compile_options(gambatte PRIVATE -fno-exceptions -fno-rtti)
-	if(GSR_SHARED)
+	if(GSE_SHARED)
 		target_link_options(gambatte PRIVATE $<$<CONFIG:RELEASE>:-s>)
 	endif()
 	target_compile_options(gambatte PRIVATE $<$<CONFIG:DEBUG>:-ggdb>)
@@ -145,5 +145,5 @@ add_custom_command(
 	TARGET gambatte
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND}
-	ARGS -E copy $<TARGET_FILE:gambatte> ${CMAKE_SOURCE_DIR}/../runtimes/${GSR_RID}/
+	ARGS -E copy $<TARGET_FILE:gambatte> ${CMAKE_SOURCE_DIR}/../runtimes/${GSE_RID}/
 )

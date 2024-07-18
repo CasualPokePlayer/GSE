@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="../GSRCommon.props" />
-	<ItemGroup>
-		<ProjectReference Include="$(ProjectDir)../GSR.Input/GSR.Input.csproj" />
-		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
-	</ItemGroup>
-</Project>

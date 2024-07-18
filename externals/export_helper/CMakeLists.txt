@@ -13,7 +13,7 @@ endif()
 # .NET 8 macOS requires at least 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-project(gsr_export_helper C)
+project(gse_export_helper C)
 
 if(MSVC)
 	if(POLICY CMP0091)
@@ -23,7 +23,7 @@ if(MSVC)
 	endif()
 endif()
 
-option(GSR_SHARED "Build GSR lib as shared library" ON)
+option(GSE_SHARED "Build GSE lib as shared library" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
@@ -33,9 +33,9 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-if(GSR_SHARED)
+if(GSE_SHARED)
 	add_library(export_helper SHARED export_helper.c)
-	target_compile_definitions(export_helper PRIVATE GSR_SHARED)
+	target_compile_definitions(export_helper PRIVATE GSE_SHARED)
 	set_target_properties(export_helper PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	set_target_properties(export_helper PROPERTIES INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:OFF,ON>)
 else()
@@ -51,5 +51,5 @@ add_custom_command(
 	TARGET export_helper
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND}
-	ARGS -E copy $<TARGET_FILE:export_helper> ${CMAKE_SOURCE_DIR}/../runtimes/${GSR_RID}/
+	ARGS -E copy $<TARGET_FILE:export_helper> ${CMAKE_SOURCE_DIR}/../runtimes/${GSE_RID}/
 )

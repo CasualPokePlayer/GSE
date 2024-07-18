@@ -25,10 +25,10 @@ If applicable, add screenshots or a video to help explain your problem.
 
 **User setup:**
  - OS: [e.g. Windows 10, macOS 11, Debian 12, etc]
- - GSR Version [e.g. v1.2.3]
+ - GSE Version [e.g. v1.2.3]
 
 **Crash Log/Config File**
-If applicable, upload the gsr_crash.txt file. If possible, also upload the gsr_config.json file.
+If applicable, upload the gse_crash.txt file. If possible, also upload the gse_config.json file.
 
 **Additional context**
 Add any other context about the problem here.

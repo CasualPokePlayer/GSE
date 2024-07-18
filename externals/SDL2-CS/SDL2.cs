@@ -26,7 +26,7 @@
  */
 #endregion
 
-// Many modifications have been done on this file, to better support the GSR's use cases
+// Many modifications have been done on this file, to better support the GSE's use cases
 // Modifications Copyright (c) 2024 CasualPokePlayer
 
 #region Using Statements

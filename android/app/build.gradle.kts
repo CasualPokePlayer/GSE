@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace = "org.psr.gsr"
+    namespace = "org.psr.gse"
     compileSdk = 34
 	ndkVersion = "26.2.11394342" // current NDK LTS
 
     defaultConfig {
-        applicationId = "org.psr.gsr"
+        applicationId = "org.psr.gsr" // kept as .gsr rather than .gse for backwards compatibility
         minSdk = 21
         targetSdk = 34
 
@@ -32,13 +32,13 @@ android {
             if (project.hasProperty("keystore")) {
                 signingConfig = signingConfigs.getByName("release")
                 if (getIsNightlyVersion()) {
-                    resValue("string", "app_name", "GSR Nightly")
+                    resValue("string", "app_name", "GSE Nightly")
                     applicationIdSuffix = ".nightly"
                     versionNameSuffix = "-nightly"
                 }
             } else {
                 // this path would be taken by PRs
-                resValue("string", "app_name", "GSR Canary")
+                resValue("string", "app_name", "GSE Canary")
                 applicationIdSuffix = ".canary"
                 versionNameSuffix = "-canary"
                 signingConfig = signingConfigs.getByName("debug")
@@ -49,7 +49,7 @@ android {
         }
 
         debug {
-           resValue("string", "app_name", "GSR Debug")
+           resValue("string", "app_name", "GSE Debug")
            applicationIdSuffix = ".debug"
            versionNameSuffix = "-debug"
            signingConfig = signingConfigs.getByName("debug")

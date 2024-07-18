@@ -4,39 +4,39 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef GSR_SHARED
+#ifdef GSE_SHARED
 	#ifdef _WIN32
-		#define GSR_EXPORT __declspec(dllexport)
+		#define GSE_EXPORT __declspec(dllexport)
 	#else
-		#define GSR_EXPORT __attribute__((visibility("default")))
+		#define GSE_EXPORT __attribute__((visibility("default")))
 	#endif
 #else
-	#define GSR_EXPORT
+	#define GSE_EXPORT
 #endif
 
 #ifdef _WIN32
-	#define GSR_MEM_EXPORT __declspec(dllexport)
+	#define GSE_MEM_EXPORT __declspec(dllexport)
 #else
-	#define GSR_MEM_EXPORT __attribute__((visibility("default"))) __attribute__((used))
+	#define GSE_MEM_EXPORT __attribute__((visibility("default"))) __attribute__((used))
 #endif
 
-GSR_MEM_EXPORT void* GSR_GB_WRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GB_WRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GB_WRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GB_WRAM_LEN = 0;
 
-GSR_MEM_EXPORT void* GSR_GB_SRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GB_SRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GB_SRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GB_SRAM_LEN = 0;
 
-GSR_MEM_EXPORT void* GSR_GB_HRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GB_HRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GB_HRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GB_HRAM_LEN = 0;
 
-GSR_MEM_EXPORT void* GSR_GBA_IWRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GBA_IWRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GBA_IWRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GBA_IWRAM_LEN = 0;
 
-GSR_MEM_EXPORT void* GSR_GBA_EWRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GBA_EWRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GBA_EWRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GBA_EWRAM_LEN = 0;
 
-GSR_MEM_EXPORT void* GSR_GBA_SRAM_PTR = NULL;
-GSR_MEM_EXPORT size_t GSR_GBA_SRAM_LEN = 0;
+GSE_MEM_EXPORT void* GSE_GBA_SRAM_PTR = NULL;
+GSE_MEM_EXPORT size_t GSE_GBA_SRAM_LEN = 0;
 
 enum MemExportType
 {
@@ -48,12 +48,12 @@ enum MemExportType
 	GBA_SRAM,
 };
 
-GSR_EXPORT void export_helper_set_mem_export(enum MemExportType which, void* ptr, size_t len)
+GSE_EXPORT void export_helper_set_mem_export(enum MemExportType which, void* ptr, size_t len)
 {
 	#define MEM_EXPORT_CASE(MEM_EXPORT_TYPE) \
 		case MEM_EXPORT_TYPE: \
-			GSR_##MEM_EXPORT_TYPE##_PTR = ptr; \
-			GSR_##MEM_EXPORT_TYPE##_LEN = len; \
+			GSE_##MEM_EXPORT_TYPE##_PTR = ptr; \
+			GSE_##MEM_EXPORT_TYPE##_LEN = len; \
 			break;
 
 	switch (which)

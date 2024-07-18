@@ -17,7 +17,7 @@ CMakeNinjaBuild() {
 		-DANDROID_PLATFORM=android-21 \
 		-DANDROID_STL=c++_shared \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DGSR_SHARED=ON \
+		-DGSE_SHARED=ON \
 		-G Ninja
 	ninja
 	cd ..
@@ -30,7 +30,7 @@ CMakeNinjaBuild() {
 		-DANDROID_PLATFORM=android-21 \
 		-DANDROID_STL=c++_shared \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DGSR_SHARED=ON \
+		-DGSE_SHARED=ON \
 		-G Ninja
 	ninja
 	cd ..

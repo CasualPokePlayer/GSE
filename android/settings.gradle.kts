@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GSR"
+rootProject.name = "GSE"
 include(":app")

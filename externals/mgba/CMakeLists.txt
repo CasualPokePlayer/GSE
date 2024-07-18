@@ -21,7 +21,7 @@ endif()
 # .NET 8 macOS requires at least 10.15
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
-project(mgba-gsr C)
+project(mgba-gse C)
 
 if(MSVC)
 	if(POLICY CMP0091)
@@ -31,7 +31,7 @@ if(MSVC)
 	endif()
 endif()
 
-option(GSR_SHARED "Build GSR lib as shared library" ON)
+option(GSE_SHARED "Build GSE lib as shared library" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
@@ -60,31 +60,31 @@ endif()
 
 target_compile_definitions(mgba-static PUBLIC MINIMAL_CORE=2 COLOR_16_BIT DISABLE_THREADING MGBA_STANDALONE)
 
-if(GSR_SHARED)
-	add_library(mgba-gsr SHARED gsr_glue.c)
-	target_compile_definitions(mgba-gsr PRIVATE GSR_SHARED)
-	target_link_libraries(mgba-gsr PRIVATE mgba-static)
-	set_target_properties(mgba-gsr mgba-static PROPERTIES POSITION_INDEPENDENT_CODE ON)
-	set_target_properties(mgba-gsr mgba-static PROPERTIES INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:OFF,ON>)
-	set(GSR_TARGET mgba-gsr)
+if(GSE_SHARED)
+	add_library(mgba-gse SHARED gse_glue.c)
+	target_compile_definitions(mgba-gse PRIVATE GSE_SHARED)
+	target_link_libraries(mgba-gse PRIVATE mgba-static)
+	set_target_properties(mgba-gse mgba-static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	set_target_properties(mgba-gse mgba-static PROPERTIES INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:OFF,ON>)
+	set(GSE_TARGET mgba-gse)
 else()
-	target_sources(mgba-static PRIVATE ${CMAKE_SOURCE_DIR}/gsr_glue.c)
+	target_sources(mgba-static PRIVATE ${CMAKE_SOURCE_DIR}/gse_glue.c)
 	set_target_properties(mgba-static PROPERTIES INTERPROCEDURAL_OPTIMIZATION OFF)
 	if(MSVC)
 		set_target_properties(mgba-static PROPERTIES MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 	endif()
 	# Fake target needs to be created here as add_custom_command is not allowed for targets made with add_subdirectory
-	add_custom_target(mgba-gsr ALL)
-	add_dependencies(mgba-gsr mgba-static)
-	set(GSR_TARGET mgba-static)
+	add_custom_target(mgba-gse ALL)
+	add_dependencies(mgba-gse mgba-static)
+	set(GSE_TARGET mgba-static)
 endif()
 
-set_target_properties(${GSR_TARGET} PROPERTIES OUTPUT_NAME "mgba")
+set_target_properties(${GSE_TARGET} PROPERTIES OUTPUT_NAME "mgba")
 
 # Copy output to our runtime folders
 add_custom_command(
-	TARGET mgba-gsr
+	TARGET mgba-gse
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND}
-	ARGS -E copy $<TARGET_FILE:${GSR_TARGET}> ${CMAKE_SOURCE_DIR}/../runtimes/${GSR_RID}/
+	ARGS -E copy $<TARGET_FILE:${GSE_TARGET}> ${CMAKE_SOURCE_DIR}/../runtimes/${GSE_RID}/
 )

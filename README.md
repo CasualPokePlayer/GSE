@@ -1,8 +1,8 @@
-# GSR
+# GSE
 
-GSR is a Game Boy, Game Boy Color, and Game Boy Advance emulator written in C#. It is intended first and foremost to speedrunners, with various features placed in making it optimal for speedrunning use.
+GSE (Game Boy Speedrun Emulator) is a Game Boy, Game Boy Color, and Game Boy Advance emulator written in C#. It is intended first and foremost to speedrunners, with various features placed in making it optimal for speedrunning use.
 
-This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSR uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSR is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses the [mGBA](https://github.com/mgba-emu/mgba) emulation core.
+This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSE uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSE is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses the [mGBA](https://github.com/mgba-emu/mgba) emulation core.
 
 ---
 ## Features
@@ -55,14 +55,14 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * Volume can be configured within the emulator
 * Volume uses logarithmic scaling, not linear scaling (more in line with how humans perceive loudness)
 
-[^1]: TASes are created with the [BizHawk](https://github.com/TASEmulators/BizHawk) project, which shares the same Game Boy / Game Boy Color emulation core. GSR itself does not have TAS creation capabilities.
+[^1]: TASes are created with the [BizHawk](https://github.com/TASEmulators/BizHawk) project, which shares the same Game Boy / Game Boy Color emulation core. GSE itself does not have TAS creation capabilities.
 [^2]: As of now, Game Boy Advance emulation should not be assumed to be completely accurate to console for speedrunning timing purposes. Individual speedrunning communities should decide how to treat emulation for their boards. This situation is subject to change.
-[^3]: Linux users might not get an automatically scaled GUI, due to X11 not providing reliable DPI info. GUI scaling can be overriden by the GSR_SCALE environment variable.
+[^3]: Linux users might not get an automatically scaled GUI, due to X11 not providing reliable DPI info. GUI scaling can be overriden by the GSE_SCALE environment variable.
 
 ---
 ## User Requirements
 
-GSR currently requires one of the following operating systems:
+GSE currently requires one of the following operating systems:
 * Windows 7 SP1+
 * macOS 10.15+
 * Linux (glibc 2.31+ / libstdc++ 3.4.28+)
@@ -77,7 +77,7 @@ On Linux, both X11 and Wayland are supported (although X11 will be preferred if 
 ---
 ## Building from source
 
-> Below is a relatively quick overview of building GSR, for the whole sh'bang, you'll want to read the [contributing guidelines](https://github.com/CasualPokePlayer/GSR/blob/master/CONTRIBUTING.md).
+> Below is a relatively quick overview of building GSE, for the whole sh'bang, you'll want to read the [contributing guidelines](https://github.com/CasualPokePlayer/GSE/blob/master/CONTRIBUTING.md).
 
 [git](https://git-scm.com/download) should be used to clone the repository. Many submodules are present (with some having submodules within themselves), so ensure that they are all checked out (e.g. `git submodule update --init --recursive`)
 
