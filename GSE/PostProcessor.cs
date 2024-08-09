@@ -25,10 +25,10 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 {
 	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _nnScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _blScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+	private readonly SDLTexture _firstScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _secondScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
 	private (int Width, int Height) _lastEmuTextureDimensions;
@@ -145,17 +145,21 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		var emuTextureDimensionsChanged = curEmuTextureDimensions != _lastEmuTextureDimensions;
 		_lastEmuTextureDimensions = curEmuTextureDimensions;
 
-		var dstTex = config.OutputFilter == ScalingFilter.Bilinear ? _blScaledTexture : _nnScaledTexture;
-		var dstRect = new SDL_Rect { x = 0, y = 0, w = finalWidth, h = finalHeight };
+		var dstTex = _firstScaledTexture;
+		// if we're doing pure bilinear filtering, we need to do a 1:1 nearest neighbor copy without scaling
+		// after which we can do a scaled copy with bilinear
+		var dstWidth = config.OutputFilter == ScalingFilter.Bilinear ? srcRect.w : finalWidth;
+		var dstHeight = config.OutputFilter == ScalingFilter.Bilinear ? srcRect.h : finalHeight;
+		var dstRect = new SDL_Rect { x = 0, y = 0, w = dstWidth, h = dstHeight };
 		CalculateScaledRect(in srcRect, ref dstRect, config.OutputFilter == ScalingFilter.SharpBilinear);
 
 		// if we end up re-creating the dst texture, we should do a clear before doing anything with it
-		var needsClear = dstTex.Width != finalWidth || dstTex.Height != finalHeight;
-		dstTex.SetVideoDimensions(finalWidth, finalHeight);
+		var needsClear = dstTex.Width != dstWidth || dstTex.Height != dstHeight;
+		dstTex.SetVideoDimensions(dstWidth, dstHeight);
 
 		RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
 
-		if (config.OutputFilter == ScalingFilter.SharpBilinear)
+		if (config.OutputFilter != ScalingFilter.NearestNeighbor)
 		{
 			srcTex = dstTex;
 			srcRect = dstRect;
@@ -168,7 +172,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 			    srcRect.w != dstRect.w ||
 			    srcRect.h != dstRect.h)
 			{
-				dstTex = _blScaledTexture;
+				dstTex = _secondScaledTexture;
 				needsClear = dstTex.Width != finalWidth || dstTex.Height != finalHeight;
 				dstTex.SetVideoDimensions(finalWidth, finalHeight);
 				RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
@@ -181,7 +185,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 	public void Dispose()
 	{
 		_emuTexture.Dispose();
-		_nnScaledTexture.Dispose();
-		_blScaledTexture.Dispose();
+		_firstScaledTexture.Dispose();
+		_secondScaledTexture.Dispose();
 	}
 }
