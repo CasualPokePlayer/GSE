@@ -4,6 +4,7 @@
 using System;
 using System.IO.Hashing;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 
 using ImGuiNET;
@@ -19,17 +20,21 @@ namespace GSE.Gui;
 /// </summary>
 internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRenderer sdlRenderer)
 {
+	// we want an OSD message to stay for around 3 seconds
+	private static readonly long _osdMessageTime = 3 * Stopwatch.Frequency;
+
 	private readonly ConcurrentQueue<string> _osdMessages = new();
 	private string _currentOsdMessage;
-	private int _currentOsdMessageCountdown;
+	private long _osdMessageEndTime;
 	private string _currentRomHash;
 	private bool _isPsrRom;
 
 	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
 		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
-	private int _statePreviewCountdown;
+	private long _statePreviewEndTime;
 	private int _statePreviewSlot;
-	public bool StatePreviewActive => _statePreviewCountdown > 0;
+
+	public bool StatePreviewActive { get; private set; }
 
 	private string RomInfoPrefix()
 	{
@@ -66,14 +71,14 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 		if (_osdMessages.TryDequeue(out var newMessage))
 		{
 			_currentOsdMessage = newMessage;
-			_currentOsdMessageCountdown = 180; // around 3 seconds
+			_osdMessageEndTime = Stopwatch.GetTimestamp() + _osdMessageTime;
 			return _currentOsdMessage;
 		}
 
 		if (_currentOsdMessage != null)
 		{
-			_currentOsdMessageCountdown--;
-			if (_currentOsdMessageCountdown == 0)
+			var timeRemaining = _osdMessageEndTime - Stopwatch.GetTimestamp();
+			if (timeRemaining <= 0)
 			{
 				_currentOsdMessage = null;
 			}
@@ -133,13 +138,14 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 	public void SetStatePreview(EmuVideoBuffer emuVideoBuffer, int slot)
 	{
 		_statePreview.SetEmuVideoBuffer(emuVideoBuffer);
-		_statePreviewCountdown = 180; // roughly 3 seconds
+		_statePreviewEndTime = Stopwatch.GetTimestamp() + _osdMessageTime;
 		_statePreviewSlot = slot;
+		StatePreviewActive = true;
 	}
 
 	public void ClearStatePreview()
 	{
-		_statePreviewCountdown = 0;
+		StatePreviewActive = false;
 	}
 
 	public void RunStatePreviewOverlay()
@@ -177,7 +183,12 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 			ImGui.PopStyleVar(3);
 
 			ImGui.End();
-			_statePreviewCountdown--;
+
+			var timeRemaining = _statePreviewEndTime - Stopwatch.GetTimestamp();
+			if (timeRemaining <= 0)
+			{
+				StatePreviewActive = false;
+			}
 		}
 	}
 }
