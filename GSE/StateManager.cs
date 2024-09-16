@@ -61,7 +61,7 @@ internal sealed class StateManager(Config config, EmuManager emuManager, OSDMana
 	private void OnStateSlotChanged()
 	{
 		osdManager.QueueMessage($"Current state slot set to {GetStateSlot(config.SaveStateSlot)}");
-		if (!config.HideStatePreviews && !emuManager.RomIsLoaded)
+		if (!config.HideStatePreviews && emuManager.RomIsLoaded)
 		{
 			LoadStatePreview();
 		}
