@@ -33,7 +33,7 @@ cd ../externals/android
 # Install dotnet8 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
 chmod +x $HOME/dotnet-install.sh
-$HOME/dotnet-install.sh --channel 8.0
+$HOME/dotnet-install.sh --channel 9.0
 export PATH=$HOME/.dotnet:$PATH
 
 # Set path to find NDK's clang (needed to workaround .NET bug)
