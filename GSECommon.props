@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<!-- Don't use C# 13, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
 		<Platforms>x64;ARM64;x86</Platforms>
@@ -91,6 +91,7 @@
 		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.so</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-arm64</GSE_RID>
+		<TargetFramework>net9.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_LINUX</DefineConstants>
 	</PropertyGroup>
 	<!-- We must be publishing for Android -->
@@ -99,6 +100,7 @@
 		<GSE_LIB_EXT>.so</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-bionic-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-bionic-arm64</GSE_RID>
+		<TargetFramework>net9.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
 	</PropertyGroup>
 	<!-- https://github.com/dotnet/runtime/issues/92272 -->
