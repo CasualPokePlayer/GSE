@@ -1,5 +1,9 @@
 <Project>
 	<PropertyGroup>
+		<!-- We want to use .NET 9 in general due to added platform supported (x86 on Windows, ARM on Linux/Android) -->
+		<!-- However, we still use .NET 8 on macOS, due to the effective minimum version being bumped from 10.15 to 12 -->
+		<!-- However, to do these, we need to define .NET 8 as the default, so restore on macOS doesn't try to use .NET 9 -->
+		<!-- Since restore will not end up hitting the GSE_OSX condition, so it will just use this default -->
 		<TargetFramework>net8.0</TargetFramework>
 		<!-- Don't use C# 13, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
