@@ -57,26 +57,26 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	apt-get install -y zlib1g-dev:arm64
 elif [ $TARGET_RID = "linux-arm" ]; then
 	# Install arm cross compiling setup
-	apt-get install -y gcc-arm-linux-gnueabi g++-arm-linux-gnueabi dpkg-dev
+	apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf dpkg-dev
 	# Setup pkg-config for cross compiling
-	ln -s /usr/bin/arm-linux-gnueabi-pkg-config /usr/share/pkg-config-crosswrapper
-	chmod +x /usr/bin/arm-linux-gnueabi-pkg-config
-	export PKG_CONFIG=arm-linux-gnueabi-pkg-config
+	ln -s /usr/bin/arm-linux-gnueabihf-pkg-config /usr/share/pkg-config-crosswrapper
+	chmod +x /usr/bin/arm-linux-gnueabihf-pkg-config
+	export PKG_CONFIG=arm-linux-gnueabihf-pkg-config
 	# cmake cross compiler flags
-	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_FLAGS=--target=arm-linux-gnueabi -DCMAKE_CXX_FLAGS=--target=arm-linux-gnueabi"
+	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_FLAGS=--target=arm-linux-gnueabihf -DCMAKE_CXX_FLAGS=--target=arm-linux-gnueabihf"
 	# Enable ARM packages
-	dpkg --add-architecture armel
+	dpkg --add-architecture armhf
 	apt-get update
 	# Install SDL2 dependencies
-	apt-get install -y libasound2-dev:armel libpulse-dev:armel libaudio-dev:armel libjack-jackd2-dev:armel libsamplerate0-dev:armel \
-		libx11-dev:armel libxext-dev:armel libxrandr-dev:armel libxcursor-dev:armel libxfixes-dev:armel libxi-dev:armel \
-		libxss-dev:armel libwayland-dev:armel libxkbcommon-dev:armel libdrm-dev:armel libgbm-dev:armel libgl1-mesa-dev:armel \
-		libgles2-mesa-dev:armel libegl1-mesa-dev:armel libdbus-1-dev:armel libibus-1.0-dev:armel \
-		fcitx-libs-dev:armel libudev-dev:armel libusb-1.0-0-dev:armel
+	apt-get install -y libasound2-dev:armhf libpulse-dev:armhf libaudio-dev:armhf libjack-jackd2-dev:armhf libsamplerate0-dev:armhf \
+		libx11-dev:armhf libxext-dev:armhf libxrandr-dev:armhf libxcursor-dev:armhf libxfixes-dev:armhf libxi-dev:armhf \
+		libxss-dev:armhf libwayland-dev:armhf libxkbcommon-dev:armhf libdrm-dev:armhf libgbm-dev:armhf libgl1-mesa-dev:armhf \
+		libgles2-mesa-dev:armhf libegl1-mesa-dev:armhf libdbus-1-dev:armhf libibus-1.0-dev:armhf \
+		fcitx-libs-dev:armhf libudev-dev:armhf libusb-1.0-0-dev:armhf
 	# More SDL2 dependencies only under backports
-	apt-get install -y libdecor-0-dev:armel/bullseye-backports libpipewire-0.3-dev:armel/bullseye-backports
+	apt-get install -y libdecor-0-dev:armhf/bullseye-backports libpipewire-0.3-dev:armhf/bullseye-backports
 	# Install .NET AOT dependencies
-	apt-get install -y zlib1g-dev:armel
+	apt-get install -y zlib1g-dev:armhf
 else
 	echo "TARGET_RID must be linux-x64 or linux-arm64 or linux-arm (got $TARGET_RID)"
 	exit 1
@@ -110,4 +110,4 @@ export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker="clang-18 -v" -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker="clang-18" -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
