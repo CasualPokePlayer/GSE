@@ -50,13 +50,13 @@ jobs:
           rid: linux-arm64
         - name: linux-arm
           runner: ubuntu-latest
-          container: debian:11
+          container: debian:12
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm
         - name: android
           runner: ubuntu-latest
-          container: debian:12
+          container: debian:11
           shell: sh
           build_script: ./android.sh
           rid: android

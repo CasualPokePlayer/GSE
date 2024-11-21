@@ -11,8 +11,6 @@ wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
 chmod +x $HOME/llvm.sh
 $HOME/llvm.sh 18
 
-lsb_release -a
-
 if [ $TARGET_RID != "linux-arm" ]; then
 	# Enable backports packages
 	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
