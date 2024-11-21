@@ -55,8 +55,30 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	apt-get install -y libdecor-0-dev:arm64/bullseye-backports libpipewire-0.3-dev:arm64/bullseye-backports
 	# Install .NET AOT dependencies
 	apt-get install -y zlib1g-dev:arm64
+elif [ $TARGET_RID = "linux-arm" ]; then
+	# Install arm cross compiling setup
+	apt-get install -y gcc-arm-linux-gnueabi g++-arm-linux-gnueabi dpkg-dev
+	# Setup pkg-config for cross compiling
+	ln -s /usr/bin/arm-linux-gnueabi-pkg-config /usr/share/pkg-config-crosswrapper
+	chmod +x /usr/bin/arm-linux-gnueabi-pkg-config
+	export PKG_CONFIG=arm-linux-gnueabi-pkg-config
+	# cmake cross compiler flags
+	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_FLAGS=--target=arm-linux-gnueabi -DCMAKE_CXX_FLAGS=--target=arm-linux-gnueabi"
+	# Enable ARM packages
+	dpkg --add-architecture armel
+	apt-get update
+	# Install SDL2 dependencies
+	apt-get install -y libasound2-dev:armel libpulse-dev:armel libaudio-dev:armel libjack-jackd2-dev:armel libsamplerate0-dev:armel \
+		libx11-dev:armel libxext-dev:armel libxrandr-dev:armel libxcursor-dev:armel libxfixes-dev:armel libxi-dev:armel \
+		libxss-dev:armel libwayland-dev:armel libxkbcommon-dev:armel libdrm-dev:armel libgbm-dev:armel libgl1-mesa-dev:armel \
+		libgles2-mesa-dev:armel libegl1-mesa-dev:armel libdbus-1-dev:armel libibus-1.0-dev:armel \
+		fcitx-libs-dev:armel libudev-dev:armel libusb-1.0-0-dev:armel
+	# More SDL2 dependencies only under backports
+	apt-get install -y libdecor-0-dev:armel/bullseye-backports libpipewire-0.3-dev:armel/bullseye-backports
+	# Install .NET AOT dependencies
+	apt-get install -y zlib1g-dev:armel
 else
-	echo "TARGET_RID must be linux-x64 or linux-arm64 (got $TARGET_RID)"
+	echo "TARGET_RID must be linux-x64 or linux-arm64 or linux-arm (got $TARGET_RID)"
 	exit 1
 fi
 
