@@ -123,6 +123,7 @@
 	<PropertyGroup Condition="'$(GSE_ANDROID)' == 'true'">
 		<NDK_SYSROOT_TRIPLE Condition="$(GSE_ARM64) == 'true'">aarch64-linux-android</NDK_SYSROOT_TRIPLE>
 		<NDK_SYSROOT_TRIPLE Condition="$(GSE_X64) == 'true'">x86_64-linux-android</NDK_SYSROOT_TRIPLE>
+		<NDK_SYSROOT_TRIPLE Condition="$(GSE_ARM) == 'true'">armv7a-linux-androideabi</NDK_SYSROOT_TRIPLE>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSE_ANDROID)' == 'true'">
 		<Content Include="$(SysRoot)/usr/lib/$(NDK_SYSROOT_TRIPLE)/libc++_shared.so">
@@ -135,6 +136,7 @@
 		<PropertyGroup>
 			<GSE_ANDROID_PROJECT_LIB_DIR Condition="$(GSE_ARM64) == 'true'">$(ProjectDir)../android/app/src/main/libs/arm64-v8a</GSE_ANDROID_PROJECT_LIB_DIR>
 			<GSE_ANDROID_PROJECT_LIB_DIR Condition="$(GSE_X64) == 'true'">$(ProjectDir)../android/app/src/main/libs/x86_64</GSE_ANDROID_PROJECT_LIB_DIR>
+			<GSE_ANDROID_PROJECT_LIB_DIR Condition="$(GSE_ARM) == 'true'">$(ProjectDir)../android/app/src/main/libs/armeabi-v7a</GSE_ANDROID_PROJECT_LIB_DIR>
 		</PropertyGroup>
 		<ItemGroup>
 			<GSE_PUBLISH_OUTPUT Include="$(PublishDir)**" />

@@ -8,7 +8,7 @@
 		<!-- Don't use C# 13, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
 		<Platforms>x64;ARM64;x86;ARM</Platforms>
-		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;win-x86;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-arm;linux-bionic-x64;linux-bionic-arm64</RuntimeIdentifiers>
+		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;win-x86;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-arm;linux-bionic-x64;linux-bionic-arm64;linux-bionic-arm</RuntimeIdentifiers>
 		<AnalysisLevel>8</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<Features>strict</Features>
@@ -108,6 +108,7 @@
 		<GSE_LIB_EXT>.so</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-bionic-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-bionic-arm64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM)' == 'true'">linux-bionic-arm</GSE_RID>
 		<TargetFramework>net9.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
 	</PropertyGroup>
