@@ -48,7 +48,7 @@
 		<GSE_X64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x64'))</GSE_X64>
 		<GSE_ARM64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm64'))</GSE_ARM64>
 		<GSE_X86>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x86'))</GSE_X86>
-		<GSE_ARM>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm'))</GSE_X86>
+		<GSE_ARM>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm'))</GSE_ARM>
 		<!-- Use the selected platform otherwise -->
 		<GSE_X64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'x64'">true</GSE_X64>
 		<GSE_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'ARM64'">true</GSE_ARM64>
