@@ -30,7 +30,7 @@ export PATH=$ANDROID_HOME/cmake/3.22.1/bin:$PATH
 cd ../externals/android
 ./build_all.sh
 
-# Install dotnet8 sdk
+# Install dotnet9 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
 chmod +x $HOME/dotnet-install.sh
 $HOME/dotnet-install.sh --channel 9.0
