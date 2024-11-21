@@ -11,6 +11,8 @@ wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
 chmod +x $HOME/llvm.sh
 $HOME/llvm.sh 18
 
+lsb_release -a
+
 if [ $TARGET_RID != "linux-arm" ]; then
 	# Enable backports packages
 	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
@@ -113,4 +115,4 @@ export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker="clang-18" -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-18 -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
