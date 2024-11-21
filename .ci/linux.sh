@@ -110,4 +110,4 @@ export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-18 -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker="clang-18 -v" -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
