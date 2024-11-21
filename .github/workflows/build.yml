@@ -25,6 +25,12 @@ jobs:
           build_script: .\windows.bat
           rid: win-arm64
           msvc_arch: x64_arm64
+        - name: windows-x86
+          runner: windows-latest
+          shell: cmd
+          build_script: .\windows.bat
+          rid: win-x86
+          msvc_arch: x64_x86
         - name: macos-universal
           runner: macos-14
           shell: sh
