@@ -123,7 +123,7 @@
 	<PropertyGroup Condition="'$(GSE_ANDROID)' == 'true'">
 		<NDK_SYSROOT_TRIPLE Condition="$(GSE_ARM64) == 'true'">aarch64-linux-android</NDK_SYSROOT_TRIPLE>
 		<NDK_SYSROOT_TRIPLE Condition="$(GSE_X64) == 'true'">x86_64-linux-android</NDK_SYSROOT_TRIPLE>
-		<NDK_SYSROOT_TRIPLE Condition="$(GSE_ARM) == 'true'">armv7a-linux-androideabi</NDK_SYSROOT_TRIPLE>
+		<NDK_SYSROOT_TRIPLE Condition="$(GSE_ARM) == 'true'">arm-linux-androideabi</NDK_SYSROOT_TRIPLE>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSE_ANDROID)' == 'true'">
 		<Content Include="$(SysRoot)/usr/lib/$(NDK_SYSROOT_TRIPLE)/libc++_shared.so">
