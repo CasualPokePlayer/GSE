@@ -1,5 +1,5 @@
 @:: Note: this script is expecting a VS Developer Command Prompt environment!
-
+ver
 if "%TARGET_RID%" == "win-x64" (
 	SET EXTRA_CMAKE_ARGS=
 ) else if "%TARGET_RID%" == "win-arm64" (
