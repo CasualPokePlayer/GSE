@@ -20,16 +20,16 @@ git submodule update --init --recursive
 Building GSE requires installing C/C++ and C# build tools.
 - Windows
 	- All neccessary build tools can be installed with [VS Community 2022](https://visualstudio.microsoft.com/vs/community) (or any other Visual Studio edition) with the "Desktop development with C++" and ".NET desktop development" workloads.
-	- It should be possible to manually install the [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/), [clang](https://releases.llvm.org/download.html), [CMake](https://cmake.org/download/), [ninja](https://github.com/ninja-build/ninja/releases), and the [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) in order to build GSE, but this is not recommended.
+	- It should be possible to manually install the [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/), [clang](https://releases.llvm.org/download.html), [CMake](https://cmake.org/download/), [ninja](https://github.com/ninja-build/ninja/releases), and the [dotnet9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) in order to build GSE, but this is not recommended.
 - macOS
 	- An XCode install covers C/C++ compilers and will install the macOS SDK.
 	- CMake and ninja should be installed (`brew install cmake ninja`).
-	- The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) should be installed.
+	- The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (not dotnet9!) should be installed.
 	- The macOS dotnet workload must also be installed (`dotnet workload install macos`).
 - Linux
 	- Install gcc/g++ or clang/clang++ with your package manager (syntax varies, should be easy to look up).
 	- ninja should be installed (should be provided by package manager, typically as `ninja-build`).
-	- The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) is typically provided in package managers, and could be manually installed.
+	- The [dotnet9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) is typically provided in package managers, and could be manually installed.
 
 Helper scripts are included in externals/ which will build all C/C++ libraries (build_all_dev.bat for Windows, build_all_dev.sh for macOS/Linux). If you want to do something custom, standard CMake build commands should work.
 

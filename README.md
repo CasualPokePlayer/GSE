@@ -70,7 +70,11 @@ GSE currently requires one of the following operating systems:
 
 Both x64 and ARM64 machines are supported. On macOS, a "universal" binary is distributed, which works on both x64 and ARM64 machines.
 
-x86 and ARM32 are not currently supported. This is a limitation on NativeAOT compilation, which this project uses. In the future, this limitation may go away and thus supporting these architectures may be possible in the future.
+x86 (32-bit) is supported for Windows only. This is generally only used if you have a 32-bit Windows install.
+
+ARM (32-bit) is supported for Linux and Android devices. This targets the ARMv7 "hard-float" ABI. For the Linux version specifically, glibc 2.35+ is required.
+
+More platforms may be supported in the future (for now, support is limited to what .NET NativeAOT supports).
 
 On Linux, both X11 and Wayland are supported (although X11 will be preferred if available). Linux file dialogs rely on either libdbus with the [Portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.FileChooser.html) D-Bus API, or GTK3/GTK2. If neither are present, file dialogs will not work, although the application will still launch fine. In practice, every Linux distro should provide at least one of these options.
 
@@ -83,7 +87,7 @@ On Linux, both X11 and Wayland are supported (although X11 will be preferred if 
 
 Before the C# side can be built, various C/C++ libraries must be built. CMake is used for building all C/C++ libraries. Helper scripts are provided to build all C/C++ libraries (build_all_dev.bat for Windows, build_all_dev.sh for macOS/Linux).
 
-The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) is required to build the C# side.
+The [dotnet9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) (or [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for macOS) is required to build the C# side.
 
 Windows developers can use [VS Community 2022](https://visualstudio.microsoft.com/vs/community).
 Windows, macOS, and Linux developers can all use Rider, VS Code, or `dotnet` directly from the command-line.

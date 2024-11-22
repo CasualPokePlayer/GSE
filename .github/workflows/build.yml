@@ -50,7 +50,7 @@ jobs:
           rid: linux-arm64
         - name: linux-arm
           runner: ubuntu-latest
-          container: debian:12
+          container: ubuntu:22.04
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm
