@@ -1,9 +1,14 @@
 <Project>
 	<PropertyGroup>
+		<!-- We want to use .NET 9 in general due to added platform supported (x86 on Windows, ARM on Linux/Android) -->
+		<!-- However, we still use .NET 8 on macOS, due to the effective minimum version being bumped from 10.15 to 12 -->
+		<!-- However, to do this, we need to define .NET 8 as the default, so restore on macOS doesn't try to use .NET 9 -->
+		<!-- Since restore will not end up hitting the GSE_OSX condition, it will just use the TargetFramework specified here -->
 		<TargetFramework>net8.0</TargetFramework>
+		<!-- Don't use C# 13, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
-		<Platforms>x64;ARM64</Platforms>
-		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-bionic-x64;linux-bionic-arm64</RuntimeIdentifiers>
+		<Platforms>x64;ARM64;x86;ARM</Platforms>
+		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;win-x86;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-arm;linux-bionic-x64;linux-bionic-arm64;linux-bionic-arm</RuntimeIdentifiers>
 		<AnalysisLevel>8</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<Features>strict</Features>
@@ -42,14 +47,23 @@
 		<!-- Try to use RID to identify the target architecture -->
 		<GSE_X64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x64'))</GSE_X64>
 		<GSE_ARM64>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm64'))</GSE_ARM64>
+		<GSE_X86>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-x86'))</GSE_X86>
+		<GSE_ARM>$(RuntimeIdentifier.ToLowerInvariant().EndsWith('-arm'))</GSE_ARM>
 		<!-- Use the selected platform otherwise -->
 		<GSE_X64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'x64'">true</GSE_X64>
 		<GSE_ARM64 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'ARM64'">true</GSE_ARM64>
+		<GSE_X86 Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'x86'">true</GSE_X86>
+		<GSE_ARM Condition="'$(RuntimeIdentifier)' == '' And '$(Platform)' == 'ARM'">true</GSE_ARM>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_X64)' == 'true' Or '$(GSE_ARM64)' == 'true'">
 		<PlatformTarget Condition="'$(GSE_X64)' == 'true'">x64</PlatformTarget>
 		<PlatformTarget Condition="'$(GSE_ARM64)' == 'true'">ARM64</PlatformTarget>
 		<DefineConstants>$(DefineConstants);GSE_64BIT</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GSE_X86)' == 'true' Or '$(GSE_ARM)' == 'true'">
+		<PlatformTarget Condition="'$(GSE_X86)' == 'true'">x86</PlatformTarget>
+		<PlatformTarget Condition="'$(GSE_ARM)' == 'true'">ARM</PlatformTarget>
+		<DefineConstants>$(DefineConstants);GSE_32BIT</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
 		<DebugSymbols>False</DebugSymbols>
@@ -62,8 +76,9 @@
 		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.dll</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">win-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">win-arm64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_X86)' == 'true'">win-x86</GSE_RID>
 		<!-- We support as far back as Windows 7 SP1 -->
-		<TargetFramework>net8.0-windows</TargetFramework>
+		<TargetFramework>net9.0-windows</TargetFramework>
 		<SupportedOSPlatformVersion>6.1.7601</SupportedOSPlatformVersion>
 		<DefineConstants>$(DefineConstants);GSE_WINDOWS</DefineConstants>
 	</PropertyGroup>
@@ -73,6 +88,8 @@
 		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.dylib</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">osx-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">osx-arm64</GSE_RID>
+		<!-- We hold back on .NET 9 for macOS, as it bumps the minimum macOS version from 10.15 to 12 -->
+		<TargetFramework>net8.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_OSX</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_LINUX)' == 'true'">
@@ -81,6 +98,8 @@
 		<GSE_LIB_EXT Condition="'$(GSE_PUBLISH)' != 'true'">.so</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-arm64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM)' == 'true'">linux-arm</GSE_RID>
+		<TargetFramework>net9.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_LINUX</DefineConstants>
 	</PropertyGroup>
 	<!-- We must be publishing for Android -->
@@ -89,6 +108,8 @@
 		<GSE_LIB_EXT>.so</GSE_LIB_EXT>
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-bionic-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-bionic-arm64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM)' == 'true'">linux-bionic-arm</GSE_RID>
+		<TargetFramework>net9.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
 	</PropertyGroup>
 	<!-- https://github.com/dotnet/runtime/issues/92272 -->

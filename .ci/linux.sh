@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # This script expects to be running on Debian 11 under root
+# (Except for 32-bit ARM, which must be built on Ubuntu 22.04)
 
 # Install some base tools
 apt-get install -y wget lsb-release software-properties-common gpg ninja-build pkg-config
@@ -10,15 +11,17 @@ wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
 chmod +x $HOME/llvm.sh
 $HOME/llvm.sh 18
 
-# Enable backports packages
-echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
-apt-get update
+if [ $TARGET_RID != "linux-arm" ]; then
+	# Enable backports packages
+	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
+	apt-get update
 
-# Normally cmake from standard bulleye packages is enough
-# However, a bug seems to have been recently introduced in this package causing build failures for linux-x64
-# The bug has cmake checks for x86_64-pc-linux-gnu paths instead of x86_64-linux-gnu paths
-# bullseye-backports has a newer cmake version which has this bug fixed
-apt-get install -y cmake/bullseye-backports
+	# Normally cmake from standard bulleye packages is enough
+	# However, a bug seems to have been recently introduced in this package causing build failures for linux-x64
+	# The bug has cmake checks for x86_64-pc-linux-gnu paths instead of x86_64-linux-gnu paths
+	# bullseye-backports has a newer cmake version which has this bug fixed
+	apt-get install -y cmake/bullseye-backports
+fi
 
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
@@ -37,7 +40,7 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	# Install aarch64 cross compiling setup
 	apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu dpkg-dev
 	# Setup pkg-config for cross compiling
-	ln -s /usr/bin/aarch64-linux-gnu-pkg-config /usr/share/pkg-config-crosswrapper
+	ln -s /usr/share/pkg-config-crosswrapper /usr/bin/aarch64-linux-gnu-pkg-config
 	chmod +x /usr/bin/aarch64-linux-gnu-pkg-config
 	export PKG_CONFIG=aarch64-linux-gnu-pkg-config
 	# cmake cross compiler flags
@@ -55,8 +58,34 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	apt-get install -y libdecor-0-dev:arm64/bullseye-backports libpipewire-0.3-dev:arm64/bullseye-backports
 	# Install .NET AOT dependencies
 	apt-get install -y zlib1g-dev:arm64
+elif [ $TARGET_RID = "linux-arm" ]; then
+	# Install cmake (done here as we aren't using bullseye backports)
+	apt-get install -y cmake
+	# Install arm cross compiling setup
+	apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf dpkg-dev
+	# Setup pkg-config for cross compiling
+	ln -s /usr/share/pkg-config-crosswrapper /usr/bin/arm-linux-gnueabihf-pkg-config
+	chmod +x /usr/bin/arm-linux-gnueabihf-pkg-config
+	export PKG_CONFIG=arm-linux-gnueabihf-pkg-config
+	# cmake cross compiler flags
+	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_FLAGS=--target=arm-linux-gnueabihf -DCMAKE_CXX_FLAGS=--target=arm-linux-gnueabihf"
+	# Enable ARM packages
+	echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main universe" | tee /etc/apt/sources.list.d/armhf.list
+	echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main universe" | tee -a /etc/apt/sources.list.d/armhf.list
+	echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main universe" | tee -a /etc/apt/sources.list.d/armhf.list
+	sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
+	dpkg --add-architecture armhf
+	apt-get update
+	# Install SDL2 dependencies
+	apt-get install -y libasound2-dev:armhf libpulse-dev:armhf libaudio-dev:armhf libjack-jackd2-dev:armhf libsamplerate0-dev:armhf \
+		libx11-dev:armhf libxext-dev:armhf libxrandr-dev:armhf libxcursor-dev:armhf libxfixes-dev:armhf libxi-dev:armhf \
+		libxss-dev:armhf libwayland-dev:armhf libxkbcommon-dev:armhf libdrm-dev:armhf libgbm-dev:armhf libgl1-mesa-dev:armhf \
+		libgles2-mesa-dev:armhf libegl1-mesa-dev:armhf libdbus-1-dev:armhf libibus-1.0-dev:armhf \
+		fcitx-libs-dev:armhf libudev-dev:armhf libusb-1.0-0-dev:armhf libdecor-0-dev:armhf libpipewire-0.3-dev:armhf
+	# Install .NET AOT dependencies
+	apt-get install -y zlib1g-dev:armhf
 else
-	echo "TARGET_RID must be linux-x64 or linux-arm64 (got $TARGET_RID)"
+	echo "TARGET_RID must be linux-x64 or linux-arm64 or linux-arm (got $TARGET_RID)"
 	exit 1
 fi
 
@@ -80,10 +109,10 @@ CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
 CMakeNinjaBuild export_helper
 
-# Install dotnet8 sdk
+# Install dotnet9 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
 chmod +x $HOME/dotnet-install.sh
-$HOME/dotnet-install.sh --channel 8.0
+$HOME/dotnet-install.sh --channel 9.0
 export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE

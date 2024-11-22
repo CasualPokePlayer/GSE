@@ -4,6 +4,8 @@ if "%TARGET_RID%" == "win-x64" (
 	SET EXTRA_CMAKE_ARGS=
 ) else if "%TARGET_RID%" == "win-arm64" (
 	SET EXTRA_CMAKE_ARGS=-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_C_FLAGS=--target=arm64-pc-windows-msvc -DCMAKE_CXX_FLAGS=--target=arm64-pc-windows-msvc
+) else if "%TARGET_RID%" == "win-x86" (
+	SET EXTRA_CMAKE_ARGS=-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSTEM_PROCESSOR=X86 -DCMAKE_C_FLAGS=--target=i686-pc-windows-msvc -DCMAKE_CXX_FLAGS=--target=i686-pc-windows-msvc
 ) else (
 	echo "Invalid TARGET_RID (got %TARGET_RID%)"
 	EXIT /b 1

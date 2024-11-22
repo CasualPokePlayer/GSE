@@ -30,10 +30,10 @@ export PATH=$ANDROID_HOME/cmake/3.22.1/bin:$PATH
 cd ../externals/android
 ./build_all.sh
 
-# Install dotnet8 sdk
+# Install dotnet9 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
 chmod +x $HOME/dotnet-install.sh
-$HOME/dotnet-install.sh --channel 8.0
+$HOME/dotnet-install.sh --channel 9.0
 export PATH=$HOME/.dotnet:$PATH
 
 # Set path to find NDK's clang (needed to workaround .NET bug)
@@ -43,9 +43,10 @@ export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
 cd ../..
 dotnet publish -r linux-bionic-arm64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 dotnet publish -r linux-bionic-x64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
+dotnet publish -r linux-bionic-arm -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 
 # Gradle won't understand if libraries being missing means the build should fail, so check against failure here
-if [ ! -f output/linux-bionic-arm64/publish/libGSE.so ] || [ ! -f output/linux-bionic-x64/publish/libGSE.so ]; then
+if [ ! -f output/linux-bionic-arm64/publish/libGSE.so ] || [ ! -f output/linux-bionic-x64/publish/libGSE.so ] || [ ! -f output/linux-bionic-arm/publish/libGSE.so ]; then
 	echo "dotnet publish failed, aborting"
 	exit 1
 fi

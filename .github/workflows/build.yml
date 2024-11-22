@@ -25,6 +25,12 @@ jobs:
           build_script: .\windows.bat
           rid: win-arm64
           msvc_arch: x64_arm64
+        - name: windows-x86
+          runner: windows-latest
+          shell: cmd
+          build_script: .\windows.bat
+          rid: win-x86
+          msvc_arch: x64_x86
         - name: macos-universal
           runner: macos-14
           shell: sh
@@ -42,6 +48,12 @@ jobs:
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
+        - name: linux-arm
+          runner: ubuntu-latest
+          container: ubuntu:22.04
+          shell: sh
+          build_script: ./linux.sh
+          rid: linux-arm
         - name: android
           runner: ubuntu-latest
           container: debian:11

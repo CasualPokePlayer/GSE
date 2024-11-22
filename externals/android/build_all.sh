@@ -7,33 +7,28 @@ if [ -z $ANDROID_NDK_ROOT ]; then
 	exit 1
 fi
 
+CMakeNinjaBuildAbi() {
+	mkdir build_$1_$2
+	cd build_$1_$2
+	cmake ../../$1 \
+		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+		-DANDROID_ABI=$3 \
+		-DANDROID_PLATFORM=android-21 \
+		-DANDROID_STL=c++_shared \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DGSE_SHARED=ON \
+		-G Ninja
+	ninja
+	cd ..
+}
+
 CMakeNinjaBuild() {
 	# Build as ARM64
-	mkdir build_$1_arm64
-	cd build_$1_arm64
-	cmake ../../$1 \
-		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
-		-DANDROID_ABI=arm64-v8a \
-		-DANDROID_PLATFORM=android-21 \
-		-DANDROID_STL=c++_shared \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DGSE_SHARED=ON \
-		-G Ninja
-	ninja
-	cd ..
+	CMakeNinjaBuildAbi $1 arm64 arm64-v8a
 	# Build as x64
-	mkdir build_$1_x64
-	cd build_$1_x64
-	cmake ../../$1 \
-		-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
-		-DANDROID_ABI=x86_64 \
-		-DANDROID_PLATFORM=android-21 \
-		-DANDROID_STL=c++_shared \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DGSE_SHARED=ON \
-		-G Ninja
-	ninja
-	cd ..
+	CMakeNinjaBuildAbi $1 x64 x86_64
+	# Build as ARM
+	CMakeNinjaBuildAbi $1 arm armeabi-v7a
 }
 
 CMakeNinjaBuild cimgui
