@@ -40,7 +40,7 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	# Install aarch64 cross compiling setup
 	apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu dpkg-dev
 	# Setup pkg-config for cross compiling
-	ln -s /usr/bin/aarch64-linux-gnu-pkg-config /usr/share/pkg-config-crosswrapper
+	ln -s /usr/share/pkg-config-crosswrapper /usr/bin/aarch64-linux-gnu-pkg-config
 	chmod +x /usr/bin/aarch64-linux-gnu-pkg-config
 	export PKG_CONFIG=aarch64-linux-gnu-pkg-config
 	# cmake cross compiler flags
@@ -64,7 +64,7 @@ elif [ $TARGET_RID = "linux-arm" ]; then
 	# Install arm cross compiling setup
 	apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf dpkg-dev
 	# Setup pkg-config for cross compiling
-	ln -s /usr/bin/arm-linux-gnueabihf-pkg-config /usr/share/pkg-config-crosswrapper
+	ln -s /usr/share/pkg-config-crosswrapper /usr/bin/arm-linux-gnueabihf-pkg-config
 	chmod +x /usr/bin/arm-linux-gnueabihf-pkg-config
 	export PKG_CONFIG=arm-linux-gnueabihf-pkg-config
 	# cmake cross compiler flags
