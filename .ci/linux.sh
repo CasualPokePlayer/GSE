@@ -70,7 +70,7 @@ elif [ $TARGET_RID = "linux-arm" ]; then
 	# cmake cross compiler flags
 	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_FLAGS=--target=arm-linux-gnueabihf -DCMAKE_CXX_FLAGS=--target=arm-linux-gnueabihf"
 	# Enable ARM packages
-	echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted" | tee /etc/apt/sources.list.d/armhf.list
+	echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted universe" | tee /etc/apt/sources.list.d/armhf.list
 	sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
 	dpkg --add-architecture armhf
 	apt-get update
