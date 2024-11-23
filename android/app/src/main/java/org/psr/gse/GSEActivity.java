@@ -232,7 +232,7 @@ public class GSEActivity extends SDLActivity
 				{
 					var intent = new Intent(Intent.ACTION_VIEW);
 					intent.addCategory(Intent.CATEGORY_DEFAULT);
-					intent.setData(DocumentsContract.buildRootUri("$packageName.user", DocumentProvider.ROOT_ID));
+					intent.setData(DocumentsContract.buildRootUri(String.format("%s.user", mSingleton.getPackageName()), DocumentProvider.ROOT_ID));
 					intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 					mSingleton.startActivity(intent);
 					return;
@@ -246,7 +246,7 @@ public class GSEActivity extends SDLActivity
 				{
 					var intent = new Intent("android.provider.action.BROWSE");
 					intent.addCategory(Intent.CATEGORY_DEFAULT);
-					intent.setData(DocumentsContract.buildRootUri("$packageName.user", DocumentProvider.ROOT_ID));
+					intent.setData(DocumentsContract.buildRootUri(String.format("%s.user", mSingleton.getPackageName()), DocumentProvider.ROOT_ID));
 					intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 					mSingleton.startActivity(intent);
 					return;
@@ -275,7 +275,6 @@ public class GSEActivity extends SDLActivity
 					intent.setClassName("com.android.documentsui", "com.android.documentsui.files.FilesActivity");
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					mSingleton.startActivity(intent);
-					return;
 				}
 				catch (Exception ex)
 				{
