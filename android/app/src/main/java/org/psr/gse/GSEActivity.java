@@ -217,4 +217,74 @@ public class GSEActivity extends SDLActivity
 		var random = new SecureRandom();
 		return random.nextInt(toExclusive);
 	}
+
+	// Called by C# side via JNI
+	public static void OpenFileManager()
+	{
+		try
+		{
+			mSingleton.runOnUiThread(() ->
+			{
+				// apparently this needs to be tried against multiple methods of opening the file manager
+				// reference https://github.com/dolphin-emu/dolphin/blob/401d6e70f644afd4418a93778148d53f90954d75/Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/activities/UserDataActivity.kt#L115-L153
+
+				try
+				{
+					var intent = new Intent(Intent.ACTION_VIEW);
+					intent.addCategory(Intent.CATEGORY_DEFAULT);
+					intent.setData(DocumentsContract.buildRootUri(String.format("%s.user", mSingleton.getPackageName()), DocumentProvider.ROOT_ID));
+					intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+					mSingleton.startActivity(intent);
+					return;
+				}
+				catch (Exception ex)
+				{
+					System.err.println(ex.getMessage());
+				}
+
+				try
+				{
+					var intent = new Intent("android.provider.action.BROWSE");
+					intent.addCategory(Intent.CATEGORY_DEFAULT);
+					intent.setData(DocumentsContract.buildRootUri(String.format("%s.user", mSingleton.getPackageName()), DocumentProvider.ROOT_ID));
+					intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+					mSingleton.startActivity(intent);
+					return;
+				}
+				catch (Exception ex)
+				{
+					System.err.println(ex.getMessage());
+				}
+
+				try
+				{
+					var intent = new Intent(Intent.ACTION_MAIN);
+					intent.setClassName("com.google.android.documentsui", "com.android.documentsui.files.FilesActivity");
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					mSingleton.startActivity(intent);
+					return;
+				}
+				catch (Exception ex)
+				{
+					System.err.println(ex.getMessage());
+				}
+
+				try
+				{
+					var intent = new Intent(Intent.ACTION_MAIN);
+					intent.setClassName("com.android.documentsui", "com.android.documentsui.files.FilesActivity");
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					mSingleton.startActivity(intent);
+				}
+				catch (Exception ex)
+				{
+					System.err.println(ex.getMessage());
+				}
+			});
+		}
+		catch (Exception ex)
+		{
+			System.err.println(ex.getMessage());
+		}
+	}
 }
