@@ -14,6 +14,9 @@ using ImGuiNET;
 
 using static SDL2.SDL;
 
+#if GSE_ANDROID
+using GSE.Android;
+#endif
 using GSE.Audio;
 using GSE.Emu;
 using GSE.Input;
@@ -429,6 +432,29 @@ internal sealed class ImGuiModals
 			(_config.SavePathLocation, _config.SavePathCustom) = AddPathLocationButton("Save", _config.SavePathLocation, _config.SavePathCustom, _mainWindow);
 			(_config.StatePathLocation, _config.StatePathCustom) = AddPathLocationButton("State", _config.StatePathLocation, _config.StatePathCustom, _mainWindow);
 #endif
+			ImGui.Separator();
+			ImGui.AlignTextToFramePadding();
+
+			if (ImGui.Button("Open User Folder"))
+			{
+#if GSE_ANDROID
+				AndroidFile.OpenFileManager();
+#else
+				var prefPath = PathResolver.GetPath(PathResolver.PathType.PrefPath, null, null, null);
+#if GSE_OSX
+				_ = SDL_OpenURL(new Uri(prefPath).LocalPath);
+#else
+				try
+				{
+					Process.Start(new ProcessStartInfo(prefPath) { UseShellExecute = true });
+				}
+				catch
+				{
+					// ignored
+				}
+#endif
+#endif
+			}
 
 			// TODO: Add menus for opening up the user path (needed on Android, nice to have on other platforms)
 			ImGui.EndPopup();

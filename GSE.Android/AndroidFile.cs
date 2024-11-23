@@ -20,12 +20,14 @@ public static class AndroidFile
 	private static JClass _gseActivityClassId;
 	private static JMethodID _requestDocumentMethodId;
 	private static JMethodID _openContentMethodId;
+	private static JMethodID _openFileManagerMethodId;
 
 	internal static void InitializeJNI(JNIEnvPtr env, JClass gseActivityClassId)
 	{
 		_gseActivityClassId = gseActivityClassId;
 		_requestDocumentMethodId = env.GetStaticMethodID(_gseActivityClassId, "RequestDocument"u8, "()V"u8);
 		_openContentMethodId = env.GetStaticMethodID(_gseActivityClassId, "OpenContent"u8, "(Ljava/lang/String;)I"u8);
+		_openFileManagerMethodId = env.GetStaticMethodID(_gseActivityClassId, "OpenFileManager"u8, "()V"u8);
 	}
 
 	private static readonly AutoResetEvent _documentRequestDone = new(false);
@@ -79,5 +81,12 @@ public static class AndroidFile
 		fs.CopyTo(ms);
 		ms.Seek(0, SeekOrigin.Begin);
 		return ms;
+	}
+
+	// ReSharper disable once UnusedMember.Global
+	public static void OpenFileManager()
+	{
+		var env = JNIEnvPtr.GetEnv();
+		env.CallStaticVoidMethodA(_gseActivityClassId, _openFileManagerMethodId, []);
 	}
 }
