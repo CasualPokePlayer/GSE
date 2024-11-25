@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="../GSECommon.props" />
+	<PropertyGroup Condition="'$(GSE_WINDOWS)' == 'true'">
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_OSX)' == 'true'">
 		<TargetFramework>net8.0-macos</TargetFramework>
 		<ApplicationId>org.psr.gse</ApplicationId>
