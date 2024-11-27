@@ -25,6 +25,8 @@ public sealed record EmuLoadArgs(
 	string RomName,
 	string SaveFilePath,
 	string SaveStatePath,
+	string InputLogPath,
+	string EmuVersion,
 	Action HardResetCallback,
 	GBPlatform GbPlatform,
 	bool ApplyColorCorrection,

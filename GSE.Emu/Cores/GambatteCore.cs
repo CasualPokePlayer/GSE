@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -29,6 +30,11 @@ internal sealed class GambatteCore : IEmuCore
 
 	private readonly byte[] _savBuffer;
 	private readonly string _savPath;
+
+	private readonly string _inputLogPath;
+	private readonly string _romName;
+	private readonly string _emuVersion;
+	private EmuInputLog _emuInputLog;
 
 	private enum ResetStage
 	{
@@ -157,6 +163,11 @@ internal sealed class GambatteCore : IEmuCore
 			_savBuffer = savBuffer;
 			_savPath = savPath;
 
+			_inputLogPath = loadArgs.InputLogPath;
+			_romName = loadArgs.RomName;
+			_emuVersion = loadArgs.EmuVersion;
+			RestartInputLog([]);
+
 			_resetCallback = loadArgs.HardResetCallback;
 		}
 		catch
@@ -164,6 +175,75 @@ internal sealed class GambatteCore : IEmuCore
 			Dispose();
 			throw;
 		}	
+	}
+
+	private void RestartInputLog(ReadOnlySpan<byte> state)
+	{
+		// kind of a hack to enforce movie determinism without an explicit initial time setting...
+		var rtcDividers = 0UL;
+		if (state.IsEmpty)
+		{
+			// save buffer needs to be up to date to send to the input log
+			gambatte_savesavedata(_opaque, _savBuffer);
+			if ((_savBuffer.Length & 0x1FF) != 0)
+			{
+				// Gambatte's RTC footer begins with 8 bytes for base time, ignore this
+				var rtcDataLength = (_savBuffer.Length & 0x1FF) - 8;
+				var rtcData = _savBuffer.AsSpan()[(_savBuffer.Length - rtcDataLength)..];
+				switch (rtcData.Length)
+				{
+					// HuC3 RTC
+					case 0x100 + 4:
+					{
+						// first 4 bytes are RTC cycles (runs double divider rate)
+						rtcDividers = BinaryPrimitives.ReadUInt32BigEndian(rtcData[..4]) / 2;
+						var minutes = (ulong)((rtcData[4 + 0x10] & 0x0F) | ((rtcData[4 + 0x11] & 0x0F) << 4) | ((rtcData[4 + 0x12] & 0x0F) << 8));
+						var days = (ulong)((rtcData[4 + 0x13] & 0x0F) | ((rtcData[4 + 0x14] & 0x0F) << 4) | ((rtcData[4 + 0x15] & 0x0F) << 8));
+						rtcDividers += minutes * 60 * GB_DIVIDERS_PER_SECOND;
+						rtcDividers += days * 86400 * GB_DIVIDERS_PER_SECOND;
+						break;
+					}
+					// MBC3 RTC
+					case 14:
+					{
+						// RTC cycles (runs double divider rate)
+						rtcDividers = BinaryPrimitives.ReadUInt32BigEndian(rtcData.Slice(5, 4)) / 2;
+						// RTC seconds
+						rtcDividers += rtcData[4] * GB_DIVIDERS_PER_SECOND;
+						// RTC minutes
+						rtcDividers += rtcData[3] * 60UL * GB_DIVIDERS_PER_SECOND;
+						// RTC hours
+						rtcDividers += rtcData[2] * 3600UL * GB_DIVIDERS_PER_SECOND;
+						// RTC days
+						var days = rtcData[1] | ((ulong)(rtcData[0] & 1) << 8);
+						if ((rtcData[0] & 0x80) != 0)
+						{
+							// trigger RTC overflow
+							days += 512;
+						}
+
+						rtcDividers += days * 86400UL * GB_DIVIDERS_PER_SECOND;
+						break;
+					}
+					default:
+						throw new InvalidOperationException("Unknown RTC data length");
+				}
+
+				gambatte_settime(_opaque, rtcDividers);
+			}
+		}
+
+		_emuInputLog?.Dispose();
+		_emuInputLog = new(
+			basePath: _inputLogPath,
+			romName: _romName,
+			emuVersion: _emuVersion,
+			gbPlatform: _gbPlatform,
+			isGba: false,
+			disableGbaRtc: false,
+			gbRtcDividers: rtcDividers,
+			startsFromSaveState: !state.IsEmpty,
+			stateOrSaveFile: state.IsEmpty ? _savBuffer : state);
 	}
 
 	private void WriteSav()
@@ -192,6 +272,8 @@ internal sealed class GambatteCore : IEmuCore
 		{
 			_inputGetterUserData.Free();
 		}
+
+		_emuInputLog?.Dispose();
 	}
 
 	private void DoReset()
@@ -200,6 +282,7 @@ internal sealed class GambatteCore : IEmuCore
 		gambatte_reset(_opaque, (uint)_resetStall);
 		_resetStage = _resetStall == 0 ? ResetStage.None : ResetStage.Stall;
 		_resetCounter = _resetStall;
+		_emuInputLog.SubmitHardReset();
 	}
 
 	private void ResetStepPre(bool tryReset, ref uint samplesToRun)
@@ -300,6 +383,8 @@ internal sealed class GambatteCore : IEmuCore
 		var samplesToRun = 35112u;
 		ResetStepPre(tryReset, ref samplesToRun);
 
+		_emuInputLog.SubmitInput(samplesToRun, controllerState.GBInputState);
+
 		fixed (uint* videoBuffer = _videoBuffer)
 		{
 			var frameCompletedSample = gambatte_runfor(_opaque, videoBuffer + _gbVideoOffset, VideoWidth, _audioBuffer, ref samplesToRun);
@@ -327,6 +412,7 @@ internal sealed class GambatteCore : IEmuCore
 		{
 			// if we're large enough, we can send the buffer in directly
 			gambatte_loadsavedata(_opaque, sav);
+			RestartInputLog([]);
 			DoReset();
 			if (_resetStage == ResetStage.None)
 			{
@@ -357,6 +443,7 @@ internal sealed class GambatteCore : IEmuCore
 		}
 
 		gambatte_loadsavedata(_opaque, savBuffer);
+		RestartInputLog([]);
 		DoReset();
 		if (_resetStage == ResetStage.None)
 		{
@@ -375,7 +462,13 @@ internal sealed class GambatteCore : IEmuCore
 	public bool LoadState(ReadOnlySpan<byte> state)
 	{
 		// no loading a state while resetting!
-		return _resetStage == ResetStage.None && gambatte_loadstate(_opaque, state, state.Length);
+		var success = _resetStage == ResetStage.None && gambatte_loadstate(_opaque, state, state.Length);
+		if (success)
+		{
+			RestartInputLog(state);
+		}
+
+		return success;
 	}
 
 	public void GetMemoryExport(ExportHelper.MemExport which, out nint ptr, out nuint len)

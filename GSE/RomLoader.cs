@@ -131,6 +131,8 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 					RomName: romFile.UnderlyingFileName,
 					SaveFilePath: PathResolver.GetPath(config.SavePathLocation, "Save", romFile.Directory, config.SavePathCustom),
 					SaveStatePath: PathResolver.GetPath(config.StatePathLocation, "State", romFile.Directory, config.StatePathCustom),
+					InputLogPath: PathResolver.GetPath(PathResolver.PathType.PrefPath, "Input Log", null, null),
+					EmuVersion: GSEVersion.FullSemVer,
 					HardResetCallback: osdManager.OnHardReset,
 					GbPlatform: isGbaRom ? GBPlatform.GBA : config.GbPlatform,
 					ApplyColorCorrection: config.ApplyColorCorrection,

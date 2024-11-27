@@ -212,4 +212,15 @@ internal static partial class Gambatte
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
 	public static partial bool gambatte_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size);
+
+	/// <summary>
+	/// set time in dividers (2^21/sec)
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <param name="dividers">time in dividers</param>
+	[LibraryImport("gambatte")]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
+	public static partial void gambatte_settime(nint core, ulong dividers);
+
+	public const ulong GB_DIVIDERS_PER_SECOND = 1 << 21;
 }

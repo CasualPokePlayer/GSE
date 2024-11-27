@@ -20,6 +20,12 @@ internal sealed class MGBACore : IEmuCore
 	private byte[] _stateBuffer = [];
 	private bool _resetPressed;
 
+	private readonly string _inputLogPath;
+	private readonly string _romName;
+	private readonly string _emuVersion;
+	private readonly bool _disableGbaRtc;
+	private EmuInputLog _emuInputLog;
+
 	public MGBACore(EmuLoadArgs loadArgs)
 	{
 		_opaque = mgba_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc);
@@ -45,6 +51,12 @@ internal sealed class MGBACore : IEmuCore
 
 			_savPath = savPath;
 			_resetCallback = loadArgs.HardResetCallback;
+
+			_inputLogPath = loadArgs.InputLogPath;
+			_romName = loadArgs.RomName;
+			_emuVersion = loadArgs.EmuVersion;
+			_disableGbaRtc = loadArgs.DisableGbaRtc;
+			RestartInputLog([]);
 		}
 		catch
 		{
@@ -53,10 +65,32 @@ internal sealed class MGBACore : IEmuCore
 		}
 	}
 
+	private void RestartInputLog(ReadOnlySpan<byte> state)
+	{
+		var saveDataLength = mgba_getsavedatalength(_opaque);
+		if (state.IsEmpty && saveDataLength > 0)
+		{
+			mgba_savesavedata(_opaque, _savBuffer);
+		}
+
+		_emuInputLog?.Dispose();
+		_emuInputLog = new(
+			basePath: _inputLogPath,
+			romName: _romName,
+			emuVersion: _emuVersion,
+			gbPlatform: GBPlatform.GBA,
+			isGba: true,
+			disableGbaRtc: _disableGbaRtc,
+			gbRtcDividers: 0,
+			startsFromSaveState: !state.IsEmpty,
+			stateOrSaveFile: state.IsEmpty ? _savBuffer.AsSpan()[..saveDataLength] : state);
+	}
+
 	public void Dispose()
 	{
 		WriteSav();
 		mgba_destroy(_opaque);
+		_emuInputLog?.Dispose();
 	}
 
 	private void WriteSav()
@@ -87,6 +121,7 @@ internal sealed class MGBACore : IEmuCore
 		WriteSav();
 		mgba_reset(_opaque);
 		_resetCallback();
+		_emuInputLog.SubmitHardReset();
 	}
 
 	public void Advance(EmuControllerState controllerState, out bool completedFrame, out uint samples, out uint cpuCycles)
@@ -101,6 +136,7 @@ internal sealed class MGBACore : IEmuCore
 		}
 
 		mgba_advance(_opaque, (Buttons)controllerState.GBAInputState, _videoBuffer, _audioBuffer, out var samplesRan, out var cpuCyclesRan);
+		_emuInputLog.SubmitInput(cpuCyclesRan, controllerState.GBAInputState);
 		completedFrame = true;
 		samples = samplesRan;
 		cpuCycles = cpuCyclesRan;
@@ -118,6 +154,7 @@ internal sealed class MGBACore : IEmuCore
 		{
 			// if we're large enough, we can send the buffer in directly
 			mgba_loadsavedata(_opaque, sav);
+			RestartInputLog([]);
 			DoReset();
 			return true;
 		}
@@ -143,6 +180,7 @@ internal sealed class MGBACore : IEmuCore
 		}
 
 		mgba_loadsavedata(_opaque, savBuffer);
+		RestartInputLog([]);
 		DoReset();
 		return true;
 	}
@@ -165,7 +203,13 @@ internal sealed class MGBACore : IEmuCore
 
 	public bool LoadState(ReadOnlySpan<byte> state)
 	{
-		return mgba_loadstate(_opaque, state, state.Length);
+		var success = mgba_loadstate(_opaque, state, state.Length);
+		if (success)
+		{
+			RestartInputLog(state);
+		}
+
+		return success;
 	}
 
 	public void GetMemoryExport(ExportHelper.MemExport which, out nint ptr, out nuint len)
