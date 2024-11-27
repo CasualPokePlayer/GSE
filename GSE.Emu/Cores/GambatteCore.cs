@@ -424,7 +424,7 @@ internal sealed class GambatteCore : IEmuCore
 
 		var savBuffer = _savBuffer.AsSpan();
 		// make sure we don't trash RTC/etc state
-		var footerLength = savBuffer.Length & 0xFF;
+		var footerLength = savBuffer.Length & 0x1FF;
 		if (footerLength != 0)
 		{
 			// update the footer
