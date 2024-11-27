@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
+using System.Buffers.Binary;
+using System.Collections.Immutable;
 using System.IO;
+using System.IO.Compression;
 
 using static GSE.Emu.Cores.MGBA;
 
@@ -201,8 +204,89 @@ internal sealed class MGBACore : IEmuCore
 		return _stateBuffer.AsSpan()[..stateSize];
 	}
 
+	private static readonly ImmutableArray<byte> _pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
 	public bool LoadState(ReadOnlySpan<byte> state)
 	{
+		try
+		{
+			if (state[..8].SequenceEqual(_pngSignature.AsSpan()))
+			{
+				// upstream mGBA states might be in a PNG
+				// our mGBA doesn't have libpng
+				// so we need to manually extract the state out
+				state = state[8..];
+				byte[] mainState = null, extState = null;
+				// we only care about savedata extdata
+				const int EXTDATA_SAVEDATA = 2;
+				while (mainState == null || extState == null)
+				{
+					var chunkLength = BinaryPrimitives.ReadUInt32BigEndian(state[..4]);
+					var chunkType = state.Slice(4, 4);
+					if (mainState == null && chunkType.SequenceEqual("gbAs"u8))
+					{
+						using var compressedStateStream = new MemoryStream(
+							state.Slice(8, (int)chunkLength).ToArray(), writable: false);
+						using var ds = new ZLibStream(compressedStateStream, CompressionMode.Decompress);
+						using var ms = new MemoryStream();
+						ds.CopyTo(ms);
+						mainState = ms.ToArray();
+					}
+
+					if (extState == null && chunkType.SequenceEqual("gbAx"u8))
+					{
+						var extStateTag = BinaryPrimitives.ReadUInt32LittleEndian(state.Slice(8, 4));
+						if (extStateTag != EXTDATA_SAVEDATA)
+						{
+							continue;
+						}
+
+						using var compressedStateStream = new MemoryStream(
+							state.Slice(8 + 4 + 4, (int)chunkLength - 4 - 4).ToArray(), writable: false);
+						using var ds = new ZLibStream(compressedStateStream, CompressionMode.Decompress);
+						using var ms = new MemoryStream();
+						ds.CopyTo(ms);
+						extState = ms.ToArray();
+					}
+
+					if (chunkType.SequenceEqual("IEND"u8))
+					{
+						break;
+					}
+
+					// the chunk length does not include the chunk length itself, chunk type, nor crc32
+					state = state[(8 + (int)chunkLength + 4)..];
+				}
+
+				if (mainState == null)
+				{
+					throw new("Failed to find savestate in PNG");
+				}
+
+				// terminating ext state header
+				Span<byte> extNoneStateHeader = stackalloc byte[4 + 4 + 8];
+				extNoneStateHeader.Clear();
+
+				if (extState == null)
+				{
+					state = (byte[])[..mainState, ..extNoneStateHeader];
+				}
+				else
+				{
+					Span<byte> extStateHeader = stackalloc byte[4 + 4 + 8];
+					BinaryPrimitives.WriteInt32LittleEndian(extStateHeader[..4], EXTDATA_SAVEDATA);
+					BinaryPrimitives.WriteInt32LittleEndian(extStateHeader.Slice(4, 4), extState.Length);
+					BinaryPrimitives.WriteInt64LittleEndian(extStateHeader.Slice(4 + 4, 8), mainState.Length + extStateHeader.Length);
+					state = (byte[])[..mainState, ..extStateHeader, ..extState, ..extNoneStateHeader];
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Console.Error.WriteLine(e);
+			return false;
+		}
+
 		var success = mgba_loadstate(_opaque, state, state.Length);
 		if (success)
 		{
