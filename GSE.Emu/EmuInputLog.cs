@@ -170,8 +170,6 @@ internal sealed class EmuInputLog : IDisposable
 	private readonly Thread _movieThread;
 	private volatile bool _disposing;
 
-	private bool _disposed;
-
 	public EmuInputLog(
 		string basePath,
 		string romName,
@@ -301,6 +299,5 @@ internal sealed class EmuInputLog : IDisposable
 		_inputWriter?.Dispose();
 		_inputStream?.Dispose();
 		_gm2File?.Dispose();
-		_disposed = true;
 	}
 }
