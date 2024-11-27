@@ -254,6 +254,7 @@ internal sealed class EmuInputLog : IDisposable
 		catch
 		{
 			Dispose();
+			throw;
 		}
 	}
 
@@ -280,33 +281,18 @@ internal sealed class EmuInputLog : IDisposable
 
 	public void SubmitInput(uint cpuCyclesRan, EmuButtons emuButtons)
 	{
-		if (_disposed)
-		{
-			return;
-		}
-
 		_inputQueue.Enqueue(new(cpuCyclesRan, emuButtons));
 		_inputReadyEvent.Set();
 	}
 
 	public void SubmitHardReset()
 	{
-		if (_disposed)
-		{
-			return;
-		}
-
 		_inputQueue.Enqueue(new(0, EmuButtons.HardReset));
 		_inputReadyEvent.Set();
 	}
 
 	public void Dispose()
 	{
-		if (_disposed)
-		{
-			return;
-		}
-
 		_disposing = true;
 		_inputReadyEvent?.Set();
 		_movieThread?.Join();
