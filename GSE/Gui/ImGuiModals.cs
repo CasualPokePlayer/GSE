@@ -456,7 +456,6 @@ internal sealed class ImGuiModals
 #endif
 			}
 
-			// TODO: Add menus for opening up the user path (needed on Android, nice to have on other platforms)
 			ImGui.EndPopup();
 		}
 
