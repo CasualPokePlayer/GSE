@@ -17,12 +17,8 @@
 
 static void set_common_properties(NSSavePanel* dialog, const char* title, const char* base_dir, const char** file_types, uint32_t num_file_types)
 {
-	NSString* title_string = [NSString stringWithUTF8String:title];
-	[dialog setTitle:title_string];
-
-	NSString* base_dir_string = [NSString stringWithUTF8String:base_dir];
-	NSURL* base_dir_url = [NSURL fileURLWithPath:base_dir_string isDirectory:YES];
-	[dialog setDirectoryURL:base_dir_url];
+	[dialog setTitle:[NSString stringWithUTF8String:title]];
+	[dialog setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:base_dir] isDirectory:YES]];
 
 	if (file_types)
 	{
@@ -32,11 +28,11 @@ static void set_common_properties(NSSavePanel* dialog, const char* title, const 
 		{
 			if (@available(macOS 11.0, *))
 			{
-				[types addObject:[UTType typeWithFilenameExtension:[NSString stringWithFormat:@"%s", file_types[0]]]];
+				[types addObject:[UTType typeWithFilenameExtension:[NSString stringWithUTF8String:file_types[0]]]];
 			}
 			else
 			{
-				[types addObject:[NSString stringWithFormat:@"%s", file_types[0]]];
+				[types addObject:[NSString stringWithUTF8String:file_types[0]]];
 			}
 		}
 
@@ -88,9 +84,7 @@ GSE_EXPORT char* cocoa_helper_show_save_file_dialog(void* main_window, const cha
 
 		NSSavePanel* dialog = [NSSavePanel savePanel];
 		[dialog setAllowsOtherFileTypes:NO];
-
-		NSString* filename_string = [NSString stringWithUTF8String:filename];
-		[dialog setNameFieldStringValue:filename_string];
+		[dialog setNameFieldStringValue:[NSString stringWithUTF8String:filename]];
 
 		set_common_properties(dialog, title, base_dir, &ext, 1);
 
