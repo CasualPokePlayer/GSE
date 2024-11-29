@@ -94,8 +94,7 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_OSX)' == 'true'">
 		<!-- Set minimum version here -->
-		<LinkerArg Condition="(GSE_X64) == 'true'" Include="-mmacosx-version-min=10.15" />
-		<LinkerArg Condition="(GSE_ARM64) == 'true'" Include="-mmacosx-version-min=11.0" />
+		<LinkerArg Include="-mmacosx-version-min=10.15" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
 		<!-- We need link the standard C++ library for publishing, as we statically link C++ components -->
