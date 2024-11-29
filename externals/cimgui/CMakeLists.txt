@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15...3.20 FATAL_ERROR)
 
 # .NET 8 macOS requires at least 10.15
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "")
 
 project(cimgui-gse CXX)
 

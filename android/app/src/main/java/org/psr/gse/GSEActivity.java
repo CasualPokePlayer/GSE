@@ -27,7 +27,7 @@ public class GSEActivity extends SDLActivity
 	protected String[] getLibraries()
 	{
 		// SDL2 must be the first object, and GSE must be the last object
-		return new String[] { "SDL2", "cimgui", "export_helper", "gambatte", "mgba", "GSE" };
+		return new String[] { "SDL2", "cimgui", "gambatte", "mgba", "native_helper", "GSE" };
 	}
 
 	@Override

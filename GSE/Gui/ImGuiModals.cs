@@ -442,7 +442,7 @@ internal sealed class ImGuiModals
 #else
 				var prefPath = PathResolver.GetPath(PathResolver.PathType.PrefPath, null, null, null);
 #if GSE_OSX
-				_ = SDL_OpenURL(new Uri(prefPath).LocalPath);
+				_ = SDL_OpenURL(new Uri(prefPath).AbsoluteUri);
 #else
 				try
 				{

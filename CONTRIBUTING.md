@@ -25,7 +25,6 @@ Building GSE requires installing C/C++ and C# build tools.
 	- An XCode install covers C/C++ compilers and will install the macOS SDK.
 	- CMake and ninja should be installed (`brew install cmake ninja`).
 	- The [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (not dotnet9!) should be installed.
-	- The macOS dotnet workload must also be installed (`dotnet workload install macos`).
 - Linux
 	- Install gcc/g++ or clang/clang++ with your package manager (syntax varies, should be easy to look up).
 	- ninja should be installed (should be provided by package manager, typically as `ninja-build`).

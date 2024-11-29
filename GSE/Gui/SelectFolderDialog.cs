@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
-#if GSE_WINDOWS
+#if GSE_WINDOWS || GSE_OSX
 using System.Runtime.InteropServices;
 #endif
 
@@ -13,7 +13,7 @@ using Windows.Win32.UI.Shell;
 #endif
 
 #if GSE_OSX
-using AppKit;
+using static GSE.Gui.CocoaHelper;
 #endif
 
 namespace GSE.Gui;
@@ -96,26 +96,17 @@ internal static class SelectFolderDialog
 #if GSE_OSX
 	public static string ShowDialog(string description, string baseDir, ImGuiWindow mainWindow)
 	{
-		_ = mainWindow;
-		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
+		var path = cocoa_helper_show_select_folder_dialog(
+			mainWindow: mainWindow.SdlSysWMInfo.info.cocoa.window,
+			title: $"Select {description} Folder",
+			baseDir: baseDir ?? AppContext.BaseDirectory);
 		try
 		{
-			using var dialog = NSOpenPanel.OpenPanel;
-			dialog.AllowsMultipleSelection = false;
-			dialog.CanChooseDirectories = true;
-			dialog.CanCreateDirectories = true;
-			dialog.CanChooseFiles = false;
-			dialog.Title = $"Select {description} Folder";
-			dialog.DirectoryUrl = new(baseDir ?? AppContext.BaseDirectory);
-			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
-		}
-		catch
-		{
-			return null;
+			return Marshal.PtrToStringUTF8(path);
 		}
 		finally
 		{
-			keyWindow.MakeKeyAndOrderFront(null);
+			cocoa_helper_free_path(path);
 		}
 	}
 #endif

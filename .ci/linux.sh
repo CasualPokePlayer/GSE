@@ -107,7 +107,7 @@ CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL2
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
-CMakeNinjaBuild export_helper
+CMakeNinjaBuild native_helper
 
 # Install dotnet9 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
