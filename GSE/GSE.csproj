@@ -75,6 +75,7 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_OSX)' == 'true'">
 		<!-- More SDL linking madness -->
+		<NativeLibrary Include="iconv" />
 		<NativeFramework Include="CoreVideo" />
 		<NativeFramework Include="Cocoa" />
 		<NativeFramework Include="IOKit" />
@@ -90,7 +91,6 @@
 		<LinkerArg Include="-Wl,-weak_framework,CoreHaptics" />
 		<!-- Needed for Cocoa helper -->
 		<LinkerArg Include="-Wl,-weak_framework,UniformTypeIdentifiers" />
-		<LinkerArg Include="-v" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
 		<!-- We need link the standard C++ library for publishing, as we statically link C++ components -->
