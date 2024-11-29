@@ -88,8 +88,10 @@
 		<LinkerArg Include="-Wl,-weak_framework,Metal" />
 		<LinkerArg Include="-Wl,-weak_framework,QuartzCore" />
 		<LinkerArg Include="-Wl,-weak_framework,CoreHaptics" />
+		<!-- Needed for Cocoa helper -->
+		<LinkerArg Include="-Wl,-weak_framework,UniformTypeIdentifiers" />
 	</ItemGroup>
-	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true' And ('$(GSE_LINUX)' == 'true' Or '$(GSE_ANDROID)' == 'true')">
+	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true' And ('$(GSE_OSX)' == 'true' Or'$(GSE_LINUX)' == 'true' Or '$(GSE_ANDROID)' == 'true')">
 		<!-- For some platforms, we need to dynamically link the standard C++ library -->
 		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
 	</PropertyGroup>
