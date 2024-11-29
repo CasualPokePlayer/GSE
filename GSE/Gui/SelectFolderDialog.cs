@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
-#if GSE_WINDOWS
+#if GSE_WINDOWS || GSE_OSX
 using System.Runtime.InteropServices;
 #endif
 

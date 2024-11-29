@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-#if GSE_WINDOWS
+#if GSE_WINDOWS || GSE_OSX
 using System.Runtime.InteropServices;
 #endif
 #if GSE_OSX || GSE_LINUX

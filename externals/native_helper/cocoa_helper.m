@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <Availability.h>
 #include <AppKit/AppKit.h>
@@ -19,9 +20,9 @@ static void set_common_properties(NSSavePanel* dialog, const char* title, const 
 	NSString* title_string = [NSString stringWithUTF8String:title];
 	[dialog setTitle:title_string];
 
-	NSString* base_dir_string = [NSString stringWithUTF8String:baseDir];
+	NSString* base_dir_string = [NSString stringWithUTF8String:base_dir];
 	NSURL* base_dir_url = [NSURL fileURLWithPath:base_dir_string isDirectory:YES];
-	[dialog setDirectoryUrl:base_dir_url];
+	[dialog setdirectoryURL:base_dir_url];
 
 	if (file_types)
 	{
