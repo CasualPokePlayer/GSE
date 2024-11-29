@@ -11,7 +11,7 @@ if(POLICY CMP0092)
 endif()
 
 # .NET 8 macOS requires at least 10.15
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15.0" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "")
 
 project(gse_native_helper C)
 
