@@ -90,9 +90,10 @@
 		<LinkerArg Include="-Wl,-weak_framework,CoreHaptics" />
 		<!-- Needed for Cocoa helper -->
 		<LinkerArg Include="-Wl,-weak_framework,UniformTypeIdentifiers" />
+		<LinkerArg Include="-v" />
 	</ItemGroup>
-	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true' And ('$(GSE_OSX)' == 'true' Or'$(GSE_LINUX)' == 'true' Or '$(GSE_ANDROID)' == 'true')">
-		<!-- For some platforms, we need to dynamically link the standard C++ library -->
+	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
+		<!-- We need link the standard C++ library for publishing, as we statically link C++ components -->
 		<LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' != 'true' Or '$(GSE_ANDROID)' == 'true'">
