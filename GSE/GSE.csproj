@@ -93,7 +93,7 @@
 		<LinkerArg Include="-Wl,-weak_framework,UniformTypeIdentifiers" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_OSX)' == 'true'">
-		<!-- Set minimum version here -->
+		<!-- .NET 8 is bugged and doesn't properly set minimum version for NativeAOT -->
 		<LinkerArg Include="-mmacosx-version-min=10.15" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
