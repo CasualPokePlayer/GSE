@@ -22,7 +22,7 @@ static void set_common_properties(NSSavePanel* dialog, const char* title, const 
 
 	NSString* base_dir_string = [NSString stringWithUTF8String:base_dir];
 	NSURL* base_dir_url = [NSURL fileURLWithPath:base_dir_string isDirectory:YES];
-	[dialog setdirectoryURL:base_dir_url];
+	[dialog setDirectoryURL:base_dir_url];
 
 	if (file_types)
 	{
