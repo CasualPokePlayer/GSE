@@ -49,8 +49,7 @@ static void set_common_properties(NSSavePanel* dialog, const char* title, const 
 
 static char* alloc_path(NSSavePanel* dialog)
 {
-	const NSURL* url = [dialog URL];
-	const char* path = [[url path] UTF8String];
+	const char* path = [[[dialog URL] path] UTF8String];
 	return strdup(path);
 }
 
