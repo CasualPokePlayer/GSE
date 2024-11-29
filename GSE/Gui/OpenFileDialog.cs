@@ -17,13 +17,12 @@ using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 #endif
 
-#if GSE_OSX
-using AppKit;
-using UniformTypeIdentifiers;
-#endif
-
 #if GSE_ANDROID
 using GSE.Android;
+#endif
+
+#if GSE_OSX
+using static GSE.Gui.CocoaHelper;
 #endif
 
 namespace GSE.Gui;
@@ -115,36 +114,20 @@ internal static class OpenFileDialog
 #if GSE_OSX
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
-		_ = mainWindow;
-		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
+		var fileTypesArray = fileTypes.Select(ft => ft[1..]).ToArray();
+		var path = cocoa_helper_show_open_file_dialog(
+			mainWindow: mainWindow.SdlSysWMInfo.info.cocoa.window,
+			title: $"Open {description}",
+			baseDir: baseDir ?? AppContext.BaseDirectory,
+			fileTypes: fileTypesArray,
+			numFileTypes: fileTypesArray.Length);
 		try
 		{
-			using var dialog = NSOpenPanel.OpenPanel;
-			dialog.AllowsMultipleSelection = false;
-			dialog.CanChooseDirectories = false;
-			dialog.CanChooseFiles = true;
-			dialog.AllowsOtherFileTypes = false;
-			dialog.Title = $"Open {description}";
-			dialog.DirectoryUrl = new(baseDir ?? AppContext.BaseDirectory);
-			// the older API is deprecated on macOS 12
-			// still need to support it however if we want to support macOS 10.15
-			if (OperatingSystem.IsMacOSVersionAtLeast(11))
-			{
-				dialog.AllowedContentTypes = fileTypes.Select(ft => UTType.CreateFromExtension(ft[1..])).ToArray();
-			}
-			else
-			{
-				dialog.AllowedFileTypes = fileTypes.Select(ft => ft[1..]).ToArray();
-			}
-			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
-		}
-		catch
-		{
-			return null;
+			return Marshal.PtrToStringUTF8(path);
 		}
 		finally
 		{
-			keyWindow.MakeKeyAndOrderFront(null);
+			cocoa_helper_free_path(path);
 		}
 	}
 #endif

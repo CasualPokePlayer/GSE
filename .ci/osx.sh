@@ -42,31 +42,30 @@ CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL2
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
-CMakeNinjaBuild export_helper
+CMakeNinjaBuild native_helper
 
 # Build GSE
 cd ..
-dotnet workload install macos
 dotnet publish -r osx-x64
 dotnet publish -r osx-arm64
 
 # Abort if the build failed for whatever reason
-if [ ! -f output/osx-x64/GSE.app/Contents/MacOS/GSE ] || [ ! -f output/osx-arm64//GSE.app/Contents/MacOS/GSE ]; then
+if [ ! -f output/osx-x64/publish/GSE ] || [ ! -f output/osx-arm64/publish/GSE ]; then
 	echo "dotnet publish failed, aborting"
 	exit 1
 fi
 
-# Merge the binaries together
+# Create .app bundle structure
 mkdir output/$TARGET_RID
-cp -a output/osx-x64/GSE.app output/$TARGET_RID
-lipo output/osx-x64/GSE.app/Contents/MacOS/GSE output/osx-arm64/GSE.app/Contents/MacOS/GSE -create -output output/$TARGET_RID/GSE.app/Contents/MacOS/GSE
+mkdir output/$TARGET_RID/GSE.app
+mkdir output/$TARGET_RID/GSE.app/Contents
+mkdir output/$TARGET_RID/GSE.app/Contents/MacOS
 
-# Also have to do this with all the dylibs bundled by dotnet
-cd output/osx-x64
-for dylib in GSE.app/Contents/MonoBundle/libSystem.*.dylib; do
-	lipo $dylib ../osx-arm64/$dylib -create -output ../$TARGET_RID/$dylib
-done
-cd ../..
+# Merge the binaries together
+lipo output/osx-x64/publish/GSE output/osx-arm64/publish/GSE -create -output output/$TARGET_RID/GSE.app/Contents/MacOS/GSE
+
+# Add in Info.plist
+cp GSE/Info.plist output/$TARGET_RID/GSE.app/Contents
 
 # Resign the binary
 codesign -s - --deep --force output/$TARGET_RID/GSE.app

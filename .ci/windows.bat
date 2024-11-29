@@ -15,7 +15,7 @@ call:CMakeNinjaBuild cimgui
 call:CMakeNinjaBuild SDL2
 call:CMakeNinjaBuild gambatte
 call:CMakeNinjaBuild mgba
-call:CMakeNinjaBuild export_helper
+call:CMakeNinjaBuild native_helper
 
 :: Build GSE
 cd ..

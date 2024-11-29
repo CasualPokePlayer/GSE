@@ -19,7 +19,7 @@ internal static partial class ExportHelper
 		END,
 	}
 
-	[LibraryImport("export_helper")]
+	[LibraryImport("native_helper")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	public static partial void export_helper_set_mem_export(MemExport which, nint ptr, nuint len);
 }

@@ -14,8 +14,7 @@ using Windows.Win32.UI.Shell.Common;
 #endif
 
 #if GSE_OSX
-using AppKit;
-using UniformTypeIdentifiers;
+using static GSE.Gui.CocoaHelper;
 #endif
 
 namespace GSE.Gui;
@@ -111,34 +110,19 @@ internal static class SaveFileDialog
 #if GSE_OSX
 	public static string ShowDialog(string description, string baseDir, string filename, string ext, ImGuiWindow mainWindow)
 	{
-		_ = mainWindow;
-		using var keyWindow = NSApplication.SharedApplication.KeyWindow;
+		var path = cocoa_helper_show_save_file_dialog(
+			mainWindow: mainWindow.SdlSysWMInfo.info.cocoa.window,
+			title: $"Save {description}",
+			baseDir: baseDir ?? AppContext.BaseDirectory,
+			filename: filename,
+			ext: ext[1..]);
 		try
 		{
-			using var dialog = NSSavePanel.SavePanel;
-			dialog.AllowsOtherFileTypes = false;
-			dialog.Title = $"Save {description}";
-			dialog.DirectoryUrl = new(baseDir);
-			dialog.NameFieldStringValue = filename;
-			// the older API is deprecated on macOS 12
-			// still need to support it however if we want to support macOS 10.15
-			if (OperatingSystem.IsMacOSVersionAtLeast(11))
-			{
-				dialog.AllowedContentTypes = [ UTType.CreateFromExtension(ext[1..]) ];
-			}
-			else
-			{
-				dialog.AllowedFileTypes = [ ext[1..] ];
-			}
-			return (NSModalResponse)dialog.RunModal() == NSModalResponse.OK ? dialog.Url.Path : null;
-		}
-		catch
-		{
-			return null;
+			return Marshal.PtrToStringUTF8(path);
 		}
 		finally
 		{
-			keyWindow.MakeKeyAndOrderFront(null);
+			cocoa_helper_free_path(path);
 		}
 	}
 #endif

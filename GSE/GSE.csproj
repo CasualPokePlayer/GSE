@@ -3,12 +3,6 @@
 	<PropertyGroup Condition="'$(GSE_WINDOWS)' == 'true'">
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(GSE_OSX)' == 'true'">
-		<TargetFramework>net8.0-macos</TargetFramework>
-		<ApplicationId>org.psr.gse</ApplicationId>
-		<SupportedOSPlatformVersion>10.15</SupportedOSPlatformVersion>
-		<CreatePackage>false</CreatePackage>
-	</PropertyGroup>
 	<!-- Automatically set sysroot for Android if we got ANDROID_NDK_ROOT defined -->
 	<!-- Note that this doesn't work for CppCompilerAndLinker, due to the checks for PATH not liking a full path -->
 	<PropertyGroup Condition="'$(GSE_ANDROID)' == 'true' And '$(ANDROID_NDK_ROOT)' != ''">
@@ -58,19 +52,19 @@
 		<SDL2_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)SDL2$(GSE_LIB_EXT)</SDL2_PATH>
 		<GAMBATTE_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)gambatte$(GSE_LIB_EXT)</GAMBATTE_PATH>
 		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)mgba$(GSE_LIB_EXT)</MGBA_PATH>
-		<EXPORT_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)export_helper$(GSE_LIB_EXT)</EXPORT_HELPER_PATH>
+		<NATIVE_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)native_helper$(GSE_LIB_EXT)</NATIVE_HELPER_PATH>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_ANDROID)' != 'true'">
 		<DirectPInvoke Include="cimgui" />
 		<DirectPInvoke Include="SDL2" />
 		<DirectPInvoke Include="gambatte" />
 		<DirectPInvoke Include="mgba" />
-		<DirectPInvoke Include="export_helper" />
+		<DirectPInvoke Include="native_helper" />
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
 		<NativeLibrary Include="$(SDL2_PATH)" />
 		<NativeLibrary Include="$(GAMBATTE_PATH)" />
 		<NativeLibrary Include="$(MGBA_PATH)" />
-		<NativeLibrary Include="$(EXPORT_HELPER_PATH)" />
+		<NativeLibrary Include="$(NATIVE_HELPER_PATH)" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_WINDOWS)' == 'true'">
 		<!-- These are needed by SDL -->
@@ -90,11 +84,10 @@
 		<NativeFramework Include="AudioToolbox" />
 		<NativeFramework Include="AVFoundation" />
 		<NativeFramework Include="Foundation" />
-		<!-- https://github.com/dotnet/runtime/issues/97414 -->
-		<ExtraLinkerArg Include="-weak_framework,GameController" />
-		<ExtraLinkerArg Include="-weak_framework,Metal" />
-		<ExtraLinkerArg Include="-weak_framework,QuartzCore" />
-		<ExtraLinkerArg Include="-weak_framework,CoreHaptics" />
+		<LinkerArg Include="-Wl,-weak_framework,GameController" />
+		<LinkerArg Include="-Wl,-weak_framework,Metal" />
+		<LinkerArg Include="-Wl,-weak_framework,QuartzCore" />
+		<LinkerArg Include="-Wl,-weak_framework,CoreHaptics" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true' And ('$(GSE_LINUX)' == 'true' Or '$(GSE_ANDROID)' == 'true')">
 		<!-- For some platforms, we need to dynamically link the standard C++ library -->
@@ -117,7 +110,7 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>
-		<Content Include="$(EXPORT_HELPER_PATH)">
+		<Content Include="$(NATIVE_HELPER_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>

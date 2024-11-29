@@ -35,4 +35,4 @@ CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL2
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
-CMakeNinjaBuild export_helper
+CMakeNinjaBuild native_helper
