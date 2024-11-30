@@ -36,6 +36,7 @@ internal static class Licensing
 		new("SameBoy", "https://github.com/LIJI32/SameBoy", "Lior Halphon", EXPAT),
 		new("blip_buf", "https://github.com/CasualPokePlayer/GSE/blob/master/GSE.Audio/BlipBuffer.cs", "CasualPokePlayer & Shay Green & EkeEke", LGPL21LATER),
 		new("SharpCompress", "https://github.com/adamhathcock/sharpcompress", "Adam Hathcock", MIT),
+		new("ZstdSharp", "https://github.com/oleg-st/ZstdSharp", "Oleg Stepanischev", MIT),
 		new("CsWin32", "https://github.com/microsoft/CsWin32", "Microsoft Corporation", MIT),
 		new("GitInfo", "https://github.com/devlooped/GitInfo", "Daniel Cazzulino and Contributors", MIT),
 		new(".NET Runtime", "https://github.com/dotnet/runtime", ".NET Foundation and Contributors", MIT),

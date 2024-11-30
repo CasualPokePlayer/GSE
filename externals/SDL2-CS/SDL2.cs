@@ -3147,7 +3147,7 @@ namespace SDL2
 		/* renderer refers to an SDL_Renderer*, texture to an SDL_Texture* */
 		[LibraryImport(nativeLibName)]
 		[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-		public static partial int SDL_RenderCopyEx(
+		public static partial int SDL_RenderCopyExF(
 			IntPtr renderer,
 			IntPtr texture,
 			ref SDL_Rect srcrect,
@@ -3164,7 +3164,7 @@ namespace SDL2
 		 */
 		[LibraryImport(nativeLibName)]
 		[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-		public static partial int SDL_RenderCopyEx(
+		public static partial int SDL_RenderCopyExF(
 			IntPtr renderer,
 			IntPtr texture,
 			IntPtr srcrect,

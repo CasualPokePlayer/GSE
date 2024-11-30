@@ -18,5 +18,5 @@ internal static class GSEVersion
 	                                 (ThisAssembly.Git.SemVer.Patch != "0" ? $".{ThisAssembly.Git.SemVer.Patch}" : "") +
 	                                 $"{ThisAssembly.Git.SemVer.DashLabel}" +
 	                                 $"{(ThisAssembly.Git.IsDirty ? "-dirty" : "")}" +
-	                                 $"{(ThisAssembly.Git.Branch == "master" || ThisAssembly.Git.Tag != "" ? "" : $"/{ThisAssembly.Git.Branch}")}";
+	                                 $"{(ThisAssembly.Git.Branch == "master" || ThisAssembly.Git.BaseTag == ThisAssembly.Git.Tag ? "" : $"/{ThisAssembly.Git.Branch}")}";
 }
