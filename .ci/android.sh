@@ -23,8 +23,8 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-3
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.2.12479018"
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.31.0"
 
-export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/26.2.11394342"
-export PATH=$ANDROID_HOME/cmake/3.22.1/bin:$PATH
+export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
+export PATH=$ANDROID_HOME/cmake/3.31.0/bin:$PATH
 
 # Build all externals
 cd ../externals/android
