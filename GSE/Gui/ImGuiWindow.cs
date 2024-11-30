@@ -229,7 +229,7 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
-	private static unsafe void SetPlatformImeData(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+	private static unsafe void PlatformSetImeData(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 	{
 		if (data->WantVisible != 0)
 		{
@@ -522,7 +522,7 @@ internal sealed class ImGuiWindow : IDisposable
 				io.ClipboardUserData = io.BackendPlatformUserData;
 				io.GetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint>)&GetClipboardText;
 				io.SetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint, void>)&SetClipboardText;
-				io.SetPlatformImeDataFn = (nint)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&SetPlatformImeData;
+				io.PlatformSetImeDataFn = (nint)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&PlatformSetImeData;
 			}
 
 			_dpiScale = GetDpiScale();

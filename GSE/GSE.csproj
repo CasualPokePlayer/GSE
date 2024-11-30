@@ -23,7 +23,7 @@
 		<TargetName>libGSE</TargetName>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="ImGui.NET" Version="1.90.1.1" ExcludeAssets="native" />
+		<PackageReference Include="ImGui.NET" Version="1.91.0.1" ExcludeAssets="native" />
 		<PackageReference Include="SharpCompress" Version="0.38.0" />
 		<PackageReference Include="System.IO.Hashing" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.106" PrivateAssets="all" />
