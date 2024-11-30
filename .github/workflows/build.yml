@@ -34,8 +34,8 @@ jobs:
         - name: macos-universal
           runner: macos-14
           shell: sh
-          build_script: ./osx.sh
-          rid: osx
+          build_script: ./macos.sh
+          rid: macos-universal
         - name: linux-x64
           runner: ubuntu-latest
           container: debian:11
@@ -73,7 +73,7 @@ jobs:
       with:
         arch: ${{ matrix.platform.msvc_arch }}
     - name: Setup Xcode environment
-      if: matrix.platform.rid == 'osx'
+      if: matrix.platform.rid == 'macos-universal'
       uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: latest-stable
