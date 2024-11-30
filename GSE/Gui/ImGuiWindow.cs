@@ -616,13 +616,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public void ToggleFullscreen()
 	{
-#if GSE_ANDROID
-		const SDL_WindowFlags fullscreenFlag = SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
-#else
-		const SDL_WindowFlags fullscreenFlag = SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
-#endif
 		// TODO: how should failure be handled?
-		if (SDL_SetWindowFullscreen(SdlWindow, _isFullscreen ? 0 : (uint)fullscreenFlag) != 0)
+		if (SDL_SetWindowFullscreen(SdlWindow, _isFullscreen ? 0 : (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 		{
 			return;
 		}
