@@ -52,6 +52,7 @@
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:preferMinimalPostProcessing="true"
             android:exported="true"
+            android:immersive="true"
             android:screenOrientation="userLandscape"
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
