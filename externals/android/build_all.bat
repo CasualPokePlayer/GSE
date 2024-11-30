@@ -29,6 +29,7 @@ cmake ..\..\%~1 ^
 	-DANDROID_ABI=%~3 ^
 	-DANDROID_PLATFORM=android-21 ^
 	-DANDROID_STL=c++_shared ^
+	-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON ^
 	-DCMAKE_BUILD_TYPE=Release ^
 	-DGSE_SHARED=ON ^
 	-G Ninja

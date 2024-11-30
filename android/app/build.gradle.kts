@@ -4,13 +4,13 @@ plugins {
 
 android {
     namespace = "org.psr.gse"
-    compileSdk = 34
-	ndkVersion = "26.2.11394342" // current NDK LTS
+    compileSdk = 35
+    ndkVersion = "27.2.12479018" // current NDK LTS
 
     defaultConfig {
         applicationId = "org.psr.gsr" // kept as .gsr rather than .gse for backwards compatibility
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 35
 
         versionName = getGitVersion()
         versionCode = getBuildVersionCode()

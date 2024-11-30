@@ -19,9 +19,9 @@ mv $HOME/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 
 # Install Android SDK and NDK
 yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34"
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.2.11394342"
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.22.1"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.2.12479018"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.31.0"
 
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/26.2.11394342"
 export PATH=$ANDROID_HOME/cmake/3.22.1/bin:$PATH
