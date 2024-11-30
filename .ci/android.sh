@@ -21,10 +21,10 @@ mv $HOME/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35"
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.2.12479018"
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.31.0"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.30.5"
 
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
-export PATH=$ANDROID_HOME/cmake/3.31.0/bin:$PATH
+export PATH=$ANDROID_HOME/cmake/3.30.5/bin:$PATH
 
 # Build all externals
 cd ../externals/android
