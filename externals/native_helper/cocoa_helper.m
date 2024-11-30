@@ -28,11 +28,11 @@ static void set_common_properties(NSSavePanel* dialog, const char* title, const 
 		{
 			if (@available(macOS 11.0, *))
 			{
-				[types addObject:[UTType typeWithFilenameExtension:[NSString stringWithUTF8String:file_types[0]]]];
+				[types addObject:[UTType typeWithFilenameExtension:[NSString stringWithUTF8String:file_types[i]]]];
 			}
 			else
 			{
-				[types addObject:[NSString stringWithUTF8String:file_types[0]]];
+				[types addObject:[NSString stringWithUTF8String:file_types[i]]];
 			}
 		}
 
