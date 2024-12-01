@@ -10,14 +10,17 @@ SetWindowLongPtrW
 SetWindowLongW
 HWND_MESSAGE
 
+GetCurrentProcess
+IsWow64Process
+
 PeekMessageW
 TranslateMessage
 DispatchMessageW
 DefWindowProcW
-DefRawInputProc
 WM_INPUT
 
 GetRawInputData
+GetRawInputBuffer
 RegisterRawInputDevices
 HID_USAGE_PAGE_GENERIC
 HID_USAGE_GENERIC_KEYBOARD

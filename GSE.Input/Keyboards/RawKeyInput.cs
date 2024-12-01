@@ -21,9 +21,13 @@ namespace GSE.Input.Keyboards;
 internal sealed class RawKeyInput : IKeyInput
 {
 	private readonly HWND _rawInputWindow;
-	private readonly List<KeyEvent> KeyEvents = [];
+	private readonly List<KeyEvent> _keyEvents = [];
 
 	private GCHandle _windowUserData;
+
+	private unsafe void* RawInputBuffer;
+	private uint RawInputBufferSize;
+	private readonly uint RawInputBufferDataOffset;
 
 	private static readonly Lazy<ushort> _rawInputWindowAtom = new(() =>
 	{
@@ -74,36 +78,84 @@ internal sealed class RawKeyInput : IKeyInput
 		}
 
 		// don't think size should ever be this big, but just in case
+		// also, make sure to align the buffer to a pointer boundary
 		var buffer = size > 1024
-			? new byte[size]
-			: stackalloc byte[(int)size];
+			? new nuint[(size + sizeof(nuint) - 1) / sizeof(nuint)]
+			: stackalloc nuint[(int)(size + sizeof(nuint) - 1) / sizeof(nuint)];
+		var rawKeyInput = (RawKeyInput)GCHandle.FromIntPtr(ud).Target!;
 
-		fixed (byte* p = buffer)
+		fixed (nuint* p = buffer)
 		{
 			var input = (RAWINPUT*)p;
-
 			if (PInvoke.GetRawInputData(new(lParam.Value), RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, input,
 					&size, (uint)sizeof(RAWINPUTHEADER)) == unchecked((uint)-1))
 			{
 				return PInvoke.DefWindowProc(hWnd, uMsg, wParam, lParam);
 			}
 
-			if (input->header.dwType == (uint)RID_DEVICE_INFO_TYPE.RIM_TYPEKEYBOARD &&
-				(input->data.keyboard.Flags & ~(PInvoke.RI_KEY_E0 | PInvoke.RI_KEY_BREAK)) == 0)
+			if (input->header.dwType == (uint)RID_DEVICE_INFO_TYPE.RIM_TYPEKEYBOARD)
 			{
-				var scanCode = (ScanCode)(input->data.keyboard.MakeCode | ((input->data.keyboard.Flags & PInvoke.RI_KEY_E0) != 0 ? 0x80 : 0));
+				rawKeyInput.AddKeyInput(&input->data.keyboard);
+			}
+		}
 
-				// This is actually just the Pause key
-				if (scanCode == ScanCode.SC_NUMLOCK && input->data.keyboard.VKey == 0xFF)
-				{
-					scanCode = ScanCode.SC_PAUSE;
-				}
-
-				var rawKeyInput = (RawKeyInput)GCHandle.FromIntPtr(ud).Target!;
-				rawKeyInput.KeyEvents.Add(new(scanCode, (input->data.keyboard.Flags & PInvoke.RI_KEY_BREAK) == PInvoke.RI_KEY_MAKE));
+		while (true)
+		{
+			var rawInputBuffer = (RAWINPUT*)rawKeyInput.RawInputBuffer;
+			size = rawKeyInput.RawInputBufferSize;
+			var count = PInvoke.GetRawInputBuffer(rawInputBuffer, &size, (uint)sizeof(RAWINPUTHEADER));
+			if (count == 0)
+			{
+				break;
 			}
 
-			return PInvoke.DefRawInputProc(&input, 0, (uint)sizeof(RAWINPUTHEADER));
+			if (count == unchecked((uint)-1))
+			{
+				// From testing, it appears this never actually occurs in practice
+				// As GetRawInputBuffer will succeed as long as the buffer has room for at least 1 packet
+				// As such, initial size is made very large to hopefully accommodate all packets at once
+				const int ERROR_INSUFFICIENT_BUFFER = 0x7A;
+				if (Marshal.GetLastPInvokeError() == ERROR_INSUFFICIENT_BUFFER)
+				{
+					rawKeyInput.RawInputBufferSize *= 2;
+					rawKeyInput.RawInputBuffer = NativeMemory.Realloc(rawKeyInput.RawInputBuffer, rawKeyInput.RawInputBufferSize);
+					continue;
+				}
+
+				break;
+			}
+
+			for (var i = 0u; i < count; i++)
+			{
+				if (rawInputBuffer->header.dwType == (uint)RID_DEVICE_INFO_TYPE.RIM_TYPEKEYBOARD)
+				{
+					var keyboard = (RAWKEYBOARD*)((byte*)&rawInputBuffer->data.keyboard + rawKeyInput.RawInputBufferDataOffset);
+					rawKeyInput.AddKeyInput(keyboard);
+				}
+
+				var packetSize = rawInputBuffer->header.dwSize;
+				var rawInputBufferUnaligned = (nuint)rawInputBuffer + packetSize;
+				var pointerAlignment = (nuint)sizeof(nuint) - 1;
+				rawInputBuffer = (RAWINPUT*)((rawInputBufferUnaligned + pointerAlignment) & ~pointerAlignment);
+			}
+		}
+
+		return new(0);
+	}
+
+	private unsafe void AddKeyInput(RAWKEYBOARD* keyboard)
+	{
+		if ((keyboard->Flags & ~(PInvoke.RI_KEY_E0 | PInvoke.RI_KEY_BREAK)) == 0)
+		{
+			var scanCode = (ScanCode)(keyboard->MakeCode | ((keyboard->Flags & PInvoke.RI_KEY_E0) != 0 ? 0x80 : 0));
+
+			// This is actually just the Pause key
+			if (scanCode == ScanCode.SC_NUMLOCK && keyboard->VKey == 0xFF)
+			{
+				scanCode = ScanCode.SC_PAUSE;
+			}
+
+			_keyEvents.Add(new(scanCode, (keyboard->Flags & PInvoke.RI_KEY_BREAK) == PInvoke.RI_KEY_MAKE));
 		}
 	}
 
@@ -156,6 +208,20 @@ internal sealed class RawKeyInput : IKeyInput
 				{
 					throw new Win32Exception("Failed to set window userdata");
 				}
+#if GSE_32BIT
+				var currentProccess = PInvoke.GetCurrentProcess();
+				BOOL isWow64;
+				if (!PInvoke.IsWow64Process(currentProccess, &isWow64))
+				{
+					throw new Win32Exception("Failed to query WOW64 status");
+				}
+
+				RawInputBufferDataOffset = isWow64 ? 8u : 0;
+#else
+				RawInputBufferDataOffset = 0;
+#endif
+				RawInputBufferSize = (uint)(sizeof(RAWINPUT) + RawInputBufferDataOffset) * 16;
+				RawInputBuffer = NativeMemory.Alloc(RawInputBufferSize);
 			}
 			catch
 			{
@@ -178,13 +244,15 @@ internal sealed class RawKeyInput : IKeyInput
 		{
 			_windowUserData.Free();
 		}
+
+		NativeMemory.Free(RawInputBuffer);
 	}
 
 	public IEnumerable<KeyEvent> GetEvents()
 	{
-		var ret = new KeyEvent[KeyEvents.Count];
-		KeyEvents.CopyTo(ret.AsSpan());
-		KeyEvents.Clear();
+		var ret = new KeyEvent[_keyEvents.Count];
+		_keyEvents.CopyTo(ret.AsSpan());
+		_keyEvents.Clear();
 		return ret;
 	}
 
