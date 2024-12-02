@@ -86,8 +86,8 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 
 		if (integerScaleOnly)
 		{
-			var scaleW = Math.Max(dstWidth / srcWidth, 1);
-			var scaleH = Math.Max(dstHeight / srcHeight, 1);
+			var scaleW = Math.Max((int)Math.Round(dstWidth / (double)srcWidth, MidpointRounding.AwayFromZero), 1);
+			var scaleH = Math.Max((int)Math.Round(dstHeight / (double)srcHeight, MidpointRounding.AwayFromZero), 1);
 			if (config.KeepAspectRatio)
 			{
 				var scale = Math.Min(scaleW, scaleH);
@@ -95,6 +95,8 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 				scaleH = scale;
 			}
 
+			// this can make the dstRect "grow"
+			// but that's fine here, as the intermediate texture will grow accordingly
 			dstWidth = srcWidth * scaleW;
 			dstHeight = srcHeight * scaleH;
 
