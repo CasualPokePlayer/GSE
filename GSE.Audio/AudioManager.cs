@@ -39,6 +39,7 @@ public sealed class AudioManager : IDisposable
 
 	private int _inputAudioFrequency;
 	private int _outputAudioFrequency;
+	private int _outputAudioSampleBatchSize; // in stereo samples
 
 	private BlipBuffer _resampler;
 	private int _lastL, _lastR;
@@ -145,6 +146,7 @@ public sealed class AudioManager : IDisposable
 
 		_sdlAudioDeviceId = deviceId;
 		AudioDeviceName = deviceName ?? DEFAULT_AUDIO_DEVICE;
+		_outputAudioSampleBatchSize = obtainedAudioSpec.samples;
 		_outputAudioFrequency = obtainedAudioSpec.freq;
 		SDL_PauseAudioDevice(_sdlAudioDeviceId, pause_on: 0);
 	}
@@ -272,9 +274,10 @@ public sealed class AudioManager : IDisposable
 			if (!isFastForwarding)
 			{
 				var bufferUsed = OutputAudioBuffer.BufferUsed();
-				// if we have > latency + 20 ms of the buffer used, we're likely out of sync, and thus need an audio buffer reset
-				// we have quite some tolerance here, latency should normally be balanced out
-				var toleratedBufferUsage = (_latencyMs + 20) * _outputAudioFrequency * 2 / 1000;
+				// if we have > latency + 2.5 sample batches of the buffer used, we're likely out of sync, and thus need an audio buffer reset
+				// we have quite some tolerance here, latency should normally be balanced out by eventual audio callbacks
+				// 2.5 sample batches is chosen to avoid hopefully overzealous buffer resets
+				var toleratedBufferUsage = _latencyMs * _outputAudioFrequency * 2 / 1000 + _outputAudioSampleBatchSize * 5;
 				if (bufferUsed > toleratedBufferUsage)
 				{
 					Reset();
