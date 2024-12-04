@@ -18,7 +18,7 @@ public sealed class AudioManager : IDisposable
 {
 	public const string DEFAULT_AUDIO_DEVICE = "[Default Audio Device]";
 	public const int MINIMUM_LATENCY_MS = 0;
-	public const int MAXIMUM_LATENCY_MS = 100;
+	public const int MAXIMUM_LATENCY_MS = 128;
 
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
 
