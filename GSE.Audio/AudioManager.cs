@@ -265,10 +265,22 @@ public sealed class AudioManager : IDisposable
 	/// <summary>
 	/// NOTE: CALLED ON EMU THREAD
 	/// </summary>
-	public void DispatchAudio(ReadOnlySpan<short> samples)
+	public void DispatchAudio(ReadOnlySpan<short> samples, bool isFastForwarding)
 	{
 		lock (_resamplerLock)
 		{
+			if (!isFastForwarding)
+			{
+				var bufferUsed = OutputAudioBuffer.BufferUsed();
+				// if we have > latency + 20 ms of the buffer used, we're likely out of sync, and thus need an audio buffer reset
+				// we have quite some tolerance here, latency should normally be balanced out
+				var toleratedBufferUsage = (_latencyMs + 20) * _outputAudioFrequency * 2 / 1000;
+				if (bufferUsed > toleratedBufferUsage)
+				{
+					Reset();
+				}
+			}
+
 			uint resamplerTime = 0;
 			for (var i = 0; i < samples.Length; i += 2)
 			{

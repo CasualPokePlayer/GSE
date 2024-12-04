@@ -160,7 +160,7 @@ public sealed class EmuManager : IDisposable
 					lastSpeedFactor = _speedFactor;
 				}
 
-				_audioManager.DispatchAudio(samples);
+				_audioManager.DispatchAudio(samples, isFastForwarding: lastSpeedFactor != 1);
 
 				if (needsThrottleReset)
 				{
