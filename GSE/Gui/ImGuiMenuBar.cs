@@ -49,6 +49,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				if (ImGui.MenuItem("Close ROM", emuManager.RomIsLoaded))
 				{
 					emuManager.UnloadRom();
+					osdManager.OnRomUnloaded();
 				}
 #if !GSE_ANDROID
 				ImGui.Separator();

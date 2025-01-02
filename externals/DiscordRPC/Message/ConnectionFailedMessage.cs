@@ -1,0 +1,17 @@
+﻿namespace DiscordRPC.Message;
+
+/// <summary>
+/// Failed to establish any connection with discord. Discord is potentially not running?
+/// </summary>
+public sealed class ConnectionFailedMessage : BaseMessage
+{
+	/// <summary>
+	/// The type of message received from discord
+	/// </summary>
+	public override MessageType Type => MessageType.ConnectionFailed;
+
+	/// <summary>
+	/// The pipe we failed to connect too.
+	/// </summary>
+	public int FailedPipe { get; internal set; }
+}

@@ -32,6 +32,7 @@
 		<ProjectReference Include="$(ProjectDir)../GSE.Audio/GSE.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Emu/GSE.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Input/GSE.Input.csproj" />
+		<ProjectReference Condition="'$(GSE_ANDROID)' != 'true'" Include="$(ProjectDir)../externals/DiscordRPC/DiscordRPC.csproj" />
 		<ProjectReference Condition="'$(GSE_ANDROID)' == 'true'" Include="$(ProjectDir)../GSE.Android/GSE.Android.csproj" />
 	</ItemGroup>
 	<PropertyGroup>

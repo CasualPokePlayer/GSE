@@ -806,6 +806,15 @@ internal sealed class ImGuiModals
 			}
 #endif
 
+#if !GSE_ANDROID
+			var enableDiscordRichPresence = _config.EnableDiscordRichPresence;
+			if (ImGui.Checkbox("Enable Discord Rich Presence", ref enableDiscordRichPresence))
+			{
+				_config.EnableDiscordRichPresence = enableDiscordRichPresence;
+				_osdManager.ResetDiscordRichPresence();
+			}
+#endif
+
 			ImGui.EndPopup();
 		}
 

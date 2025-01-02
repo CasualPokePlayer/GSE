@@ -7,6 +7,9 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 
+#if !GSE_ANDROID
+using DiscordRPC;
+#endif
 using ImGuiNET;
 
 using static SDL2.SDL;
@@ -18,10 +21,16 @@ namespace GSE.Gui;
 /// <summary>
 /// Manages the OSD. Can be done on a status bar or a transparent overlay
 /// </summary>
-internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRenderer sdlRenderer)
+internal sealed class OSDManager : IDisposable
 {
 	// we want an OSD message to stay for around 3 seconds
 	private static readonly long _osdMessageTime = 3 * Stopwatch.Frequency;
+
+	private readonly Config _config;
+	private readonly EmuManager _emuManager;
+#if !GSE_ANDROID
+	private readonly DiscordRpcClient _discordRpc;
+#endif
 
 	private readonly ConcurrentQueue<string> _osdMessages = new();
 	private string _currentOsdMessage;
@@ -29,16 +38,77 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 	private string _currentRomHash;
 	private bool _isPsrRom;
 
-	private readonly SDLTexture _statePreview = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+	private string _lastRomName;
+	private DateTime _discordTimestampStart;
+
+	private readonly SDLTexture _statePreview;
 	private long _statePreviewEndTime;
 	private int _statePreviewSlot;
 
 	public bool StatePreviewActive { get; private set; }
 
+	public OSDManager(Config config, EmuManager emuManager, SDLRenderer sdlRenderer)
+	{
+		_config = config;
+		_emuManager = emuManager;
+		_statePreview = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
+			SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+#if !GSE_ANDROID
+		try
+		{
+			_discordRpc = new("1323613302793699329");
+			_discordRpc.Initialize();
+			ResetDiscordRichPresence();
+		}
+		catch
+		{
+			Dispose();
+			throw;
+		}
+#endif
+	}
+
+	public void Dispose()
+	{
+#if !GSE_ANDROID
+		_discordRpc?.Dispose();
+#endif
+	}
+
+#if !GSE_ANDROID
+	private void UpdateDiscordRichPresence(string romName)
+	{
+		_lastRomName = romName;
+		if (!_config.EnableDiscordRichPresence)
+		{
+			return;
+		}
+
+		var richPresence = new RichPresence
+		{
+			Details = romName ?? "No Game Loaded",
+			Timestamps = new(_discordTimestampStart),
+		};
+		_discordRpc.SetPresence(richPresence);
+	}
+
+	public void ResetDiscordRichPresence()
+	{
+		if (_config.EnableDiscordRichPresence)
+		{
+			_discordTimestampStart = DateTime.UtcNow;
+			UpdateDiscordRichPresence(_lastRomName);
+		}
+		else
+		{
+			_discordRpc.SetPresence(null);
+		}
+	}
+#endif
+
 	private string RomInfoPrefix()
 	{
-		return $"{(_isPsrRom ? "<PSR> | " : string.Empty)}{emuManager.CurrentGbPlatform} | {_currentRomHash}";
+		return $"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_emuManager.CurrentGbPlatform} | {_currentRomHash}";
 	}
 
 	public void OnRomLoaded(string romName, ReadOnlySpan<byte> romData)
@@ -47,6 +117,9 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 		var sha256 = Convert.ToHexString(GSEHash.HashDataSHA256(romData));
 		_isPsrRom = PSRData.GoodRoms.Contains(sha256);
 		_osdMessages.Enqueue($"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_currentRomHash} | Loaded {romName}");
+#if !GSE_ANDROID
+		UpdateDiscordRichPresence(romName);
+#endif
 	}
 
 	public void OnRomUnloaded()
@@ -54,6 +127,9 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 		_currentRomHash = null;
 		_isPsrRom = false;
 		_osdMessages.Enqueue("Unloaded ROM");
+#if !GSE_ANDROID
+		UpdateDiscordRichPresence(null);
+#endif
 	}
 
 	public void OnHardReset()
@@ -103,10 +179,10 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 				else
 				{
 					// normal status if no OSD message was displayed
-					if (emuManager.RomIsLoaded)
+					if (_emuManager.RomIsLoaded)
 					{
 						ImGui.TextUnformatted($"v{GSEVersion.FullSemVer} | {RomInfoPrefix()}");
-						var cycleCountStr = $"{emuManager.GetCycleCount()}";
+						var cycleCountStr = $"{_emuManager.GetCycleCount()}";
 						ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(cycleCountStr).X - ImGui.GetTextLineHeight());
 						ImGui.TextUnformatted(cycleCountStr);
 					}
@@ -163,7 +239,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 
 			// we want the preview width to be decently wide
 			// but we also want the height to cover a percentage of the screen
-			var previewHeight = (float)Math.Round((bottomSide - topSide) * config.StatePreviewScale / 100.0f);
+			var previewHeight = (float)Math.Round((bottomSide - topSide) * _config.StatePreviewScale / 100.0f);
 			var previewWidth = (float)Math.Round(previewHeight * _statePreview.Width / _statePreview.Height);
 
 			// the X pos should shift left according to the state slot
@@ -177,7 +253,7 @@ internal sealed class OSDManager(Config config, EmuManager emuManager, SDLRender
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 			if (ImGui.Begin("State Preview", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
 			{
-				var opacity = config.StatePreviewOpacity / 100.0f;
+				var opacity = _config.StatePreviewOpacity / 100.0f;
 				ImGui.Image(_statePreview.TextureId, new(previewWidth, previewHeight), new(0, 0), new(1, 1), new(1, 1, 1, opacity));
 			}
 			ImGui.PopStyleVar(3);

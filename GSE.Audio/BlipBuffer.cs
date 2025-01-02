@@ -1,4 +1,4 @@
-// Copyright (c) 2024 CasualPokePlayer & Shay Green & EkeEke
+// Copyright (c) 2024 Shay Green & EkeEke & CasualPokePlayer
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 using System;

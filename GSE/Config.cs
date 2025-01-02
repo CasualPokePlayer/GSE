@@ -29,6 +29,7 @@ internal sealed class Config
 	public bool HideSgbBorder { get; set; }
 	public bool DarkMode { get; set; } = true;
 	public bool DisableWin11RoundCorners { get; set; }
+	public bool EnableDiscordRichPresence { get; set; }
 
 	public bool HideStatusBar { get; set; }
 	public bool HideStatePreviews { get; set; }

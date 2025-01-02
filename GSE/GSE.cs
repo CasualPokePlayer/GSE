@@ -117,7 +117,7 @@ internal sealed class GSE : IDisposable
 	/// <summary>
 	/// OSD manager, may be a status bar or an overlay
 	/// </summary>
-	private readonly OSDManager _osdManager;	
+	private readonly OSDManager _osdManager;
 
 	/// <summary>
 	/// The GB controller, used for GB games
@@ -220,6 +220,7 @@ internal sealed class GSE : IDisposable
 		AndroidInput.InputManager = null;
 #endif
 		_postProcessor?.Dispose();
+		_osdManager?.Dispose();
 		_emuManager?.Dispose();
 		_audioManager?.Dispose();
 		_inputManager?.Dispose();
