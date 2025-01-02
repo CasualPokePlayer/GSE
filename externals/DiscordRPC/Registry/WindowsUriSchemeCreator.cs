@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Versioning;
 
 using Win32Registry = Microsoft.Win32.Registry;
 
@@ -6,11 +7,12 @@ using DiscordRPC.Logging;
 
 namespace DiscordRPC.Registry;
 
+[SupportedOSPlatform("windows")]
 internal class WindowsUriSchemeCreator(ILogger logger) : IUriSchemeCreator
 {
 	public bool RegisterUriScheme(UriSchemeRegister register)
 	{
-		if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+		if (!OperatingSystem.IsWindows())
 		{
 			throw new PlatformNotSupportedException("URI schemes can only be registered on Windows");
 		}

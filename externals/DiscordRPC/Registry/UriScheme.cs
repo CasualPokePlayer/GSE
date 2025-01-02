@@ -39,32 +39,28 @@ internal class UriSchemeRegister(
 		// Get the creator
 		IUriSchemeCreator creator;
 		// ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-		switch (Environment.OSVersion.Platform)
+		if (OperatingSystem.IsWindows())
 		{
-			case PlatformID.Win32Windows:
-			case PlatformID.Win32S:
-			case PlatformID.Win32NT:
-			case PlatformID.WinCE:
-				logger.Trace("Creating Windows Scheme Creator");
-				creator = new WindowsUriSchemeCreator(logger);
-				break;
-
-			case PlatformID.Unix:
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					logger.Trace("Creating MacOSX Scheme Creator");
-					creator = new MacUriSchemeCreator(logger);
-				}
-				else
-				{
-					logger.Trace("Creating Unix Scheme Creator");
-					creator = new UnixUriSchemeCreator(logger);
-				}
-				break;
-
-			default:
-				logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
-				throw new PlatformNotSupportedException("Platform does not support registration.");
+			logger.Trace("Creating Windows Scheme Creator");
+			creator = new WindowsUriSchemeCreator(logger);
+		}
+		else if (Environment.OSVersion.Platform == PlatformID.Unix)
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				logger.Trace("Creating MacOSX Scheme Creator");
+				creator = new MacUriSchemeCreator(logger);
+			}
+			else
+			{
+				logger.Trace("Creating Unix Scheme Creator");
+				creator = new UnixUriSchemeCreator(logger);
+			}
+		}
+		else
+		{
+			logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
+			throw new PlatformNotSupportedException("Platform does not support registration.");
 		}
 
 		// Regiser the app

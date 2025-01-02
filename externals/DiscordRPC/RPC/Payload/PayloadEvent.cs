@@ -19,7 +19,7 @@ internal sealed class EventPayload : BasePayload
 	/// <summary>
 	/// The type of event the server sent
 	/// </summary>
-	[JsonPropertyName("evt"), JsonConverter(typeof(JsonStringEnumConverter<ServerEvent>))]
+	[JsonPropertyName("evt"), JsonConverter(typeof(JsonStringSnakeCaseEnumConverter<ServerEvent>))]
 	public ServerEvent? Event { get; set; }
 
 	/// <summary>
