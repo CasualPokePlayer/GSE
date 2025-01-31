@@ -4,6 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace DiscordRPC.Helper;
 
-public class JsonStringSnakeCaseEnumConverter<TEnum>()
+internal sealed class JsonStringSnakeCaseEnumConverter<TEnum>()
 	: JsonStringEnumConverter<TEnum>(namingPolicy: JsonNamingPolicy.SnakeCaseUpper, allowIntegerValues: true)
 	where TEnum : struct, Enum;

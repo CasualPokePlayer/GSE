@@ -38,7 +38,7 @@ internal sealed class BackoffDelay(int min, int max)
 		// Increment the failures
 		_fails++;
 
-		double diff = (Maximum - Minimum) / 100f;
+		var diff = (Maximum - Minimum) / 100.0;
 		_current = (int)Math.Floor(diff * _fails) + Minimum;
 
 		return Math.Min(Math.Max(_current, Minimum), Maximum);

@@ -7,7 +7,7 @@ namespace DiscordRPC.Helper;
 /// <summary>
 /// Collectin of helpful string extensions
 /// </summary>
-public static class StringTools
+internal static class StringTools
 {
 	/// <summary>
 	/// Will return null if the string is whitespace, otherwise it will return the string. 
@@ -41,7 +41,7 @@ public static class StringTools
 	{
 		return encoding.GetByteCount(str) <= bytes;
 	}
-		
+
 	/// <summary>
 	/// Converts the string into UpperCamelCase (Pascal Case).
 	/// </summary>

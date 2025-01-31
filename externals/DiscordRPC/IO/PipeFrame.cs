@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -172,9 +172,9 @@ public struct PipeFrame : IEquatable<PipeFrame>
 			return false;
 		}
 
-		value = MemoryMarshal.Read<uint>(bytes);
+		value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
 		return true;
-	}   
+	}
 
 	/// <summary>
 	/// Writes the frame into the target frame as one big byte block.
@@ -182,17 +182,17 @@ public struct PipeFrame : IEquatable<PipeFrame>
 	/// <param name="stream"></param>
 	public readonly void WriteStream(Stream stream)
 	{
-		var fullBlockSize = sizeof(uint) + sizeof(uint) + Data.Length;
-		var fullBlock = ArrayPool<byte>.Shared.Rent(fullBlockSize);
+		var fullBlockSize = sizeof(uint) + sizeof(uint) + Length;
+		var fullBlock = ArrayPool<byte>.Shared.Rent((int)fullBlockSize);
 		try
 		{
 			// Get all the bytes
-			MemoryMarshal.Write(fullBlock, (uint)Opcode);
-			MemoryMarshal.Write(fullBlock.AsSpan(4), Length);
+			BinaryPrimitives.WriteUInt32LittleEndian(fullBlock, (uint)Opcode);
+			BinaryPrimitives.WriteUInt32LittleEndian(fullBlock.AsSpan(4), Length);
 			Data.CopyTo(fullBlock.AsSpan(8));
 
 			// Write it to the stream
-			stream.Write(fullBlock, 0, fullBlockSize);
+			stream.Write(fullBlock, 0, (int)fullBlockSize);
 		}
 		finally
 		{
