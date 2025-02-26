@@ -100,9 +100,13 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 			dstWidth = srcWidth * scaleW;
 			dstHeight = srcHeight * scaleH;
 
-			// center the dest rect
-			dstRect.x += (dstRect.w - dstWidth) / 2;
-			dstRect.y += (dstRect.h - dstHeight) / 2;
+			// center the dest rect (if the texture isn't growing)
+			// this is more only done to potentially avoid a second pass
+			if (dstWidth <= dstRect.w && dstHeight <= dstRect.h)
+			{
+				dstRect.x += (dstRect.w - dstWidth) / 2;
+				dstRect.y += (dstRect.h - dstHeight) / 2;
+			}
 		}
 		else if (config.KeepAspectRatio)
 		{
@@ -154,6 +158,13 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		var dstHeight = config.OutputFilter == ScalingFilter.Bilinear ? srcRect.h : finalHeight;
 		var dstRect = new SDL_Rect { x = 0, y = 0, w = dstWidth, h = dstHeight };
 		CalculateScaledRect(in srcRect, ref dstRect, config.OutputFilter == ScalingFilter.SharpBilinear);
+
+		// sharp bilinear can make the texture grow
+		if (dstWidth < dstRect.w || dstHeight < dstRect.h)
+		{
+			dstWidth = dstRect.w;
+			dstHeight = dstRect.h;
+		}
 
 		// if we end up re-creating the dst texture, we should do a clear before doing anything with it
 		var needsClear = dstTex.Width != dstWidth || dstTex.Height != dstHeight;

@@ -360,11 +360,18 @@ internal sealed class GSE : IDisposable
 
 			_mainWindow.NewFrame();
 
-			_imGuiMenuBar.RunMenuBar();
 			// position of the emu window is below the menu bar
 			var barHeight = ImGui.GetFrameHeight();
-
+			var menuBarHeight = 0.0f;
 			var statusBarHeight = 0.0f;
+
+			var hideMenuBar = _config.HideMenuBarOnUnpause && _emuManager.EmuAcceptingInputs && _config.HotkeyBindings.PauseButtonBindings.Count != 0;
+			if (!hideMenuBar)
+			{
+				_imGuiMenuBar.RunMenuBar();
+				menuBarHeight = barHeight;
+			}
+
 			if (!_config.HideStatusBar)
 			{
 				_osdManager.RunStatusBar();
@@ -372,8 +379,8 @@ internal sealed class GSE : IDisposable
 			}
 
 			var vp = ImGui.GetMainViewport();
-			ImGui.SetNextWindowPos(vp.Pos + new Vector2(0, barHeight));
-			ImGui.SetNextWindowSize(vp.Size - new Vector2(0, barHeight + statusBarHeight));
+			ImGui.SetNextWindowPos(vp.Pos + new Vector2(0, menuBarHeight));
+			ImGui.SetNextWindowSize(vp.Size - new Vector2(0, menuBarHeight + statusBarHeight));
 
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);

@@ -226,7 +226,7 @@ internal sealed class ImGuiModals
 
 		for (var i = 0; i < _renderDriverConfigStrings.Length; i++)
 		{
-			if (_renderDriverConfigStrings[i] == config.RenderDriver)
+			if (_renderDriverConfigStrings[i] == _config.RenderDriver)
 			{
 				_renderDriverIndex = i;
 			}
@@ -234,7 +234,7 @@ internal sealed class ImGuiModals
 
 		_mainWindow.SetAlwaysOnTop(_config.AlwaysOnTop);
 		_mainWindow.SetResizable(_config.AllowManualResizing);
-		UpdateWindowScale();
+		_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 
 		EnumerateAudioDevices();
 	}
@@ -308,12 +308,6 @@ internal sealed class ImGuiModals
 		_mainWindow.SuppressEscape = false;
 	}
 
-	private void UpdateWindowScale()
-	{
-		var (emuWidth, emuHeight) = _emuManager.GetVideoDimensions(_config.HideSgbBorder);
-		_mainWindow.SetWindowSize(emuWidth, emuHeight, _config.WindowScale, _config.HideStatusBar ? 1 : 2);
-	}
-
 	private static bool InputsOverlap(InputBinding b1, InputBinding b2)
 	{
 		return b1.MainInputLabel == b2.MainInputLabel
@@ -359,6 +353,11 @@ internal sealed class ImGuiModals
 		CheckModalNeedsOpen(OSD_SETTINGS, ref OpenOsdModal, ref _osdModalOpened);
 		CheckModalNeedsOpen(MISC_SETTINGS, ref OpenMiscModal, ref _miscModalOpened);
 		CheckModalNeedsOpen(ABOUT, ref OpenAboutModal, ref _aboutModalOpened);
+
+		if (_didPause && _config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+		{
+			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+		}
 
 		var center = ImGui.GetMainViewport().GetCenter();
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
@@ -603,7 +602,7 @@ internal sealed class ImGuiModals
 				_mainWindow.SetResizable(allowManualResizing);
 				if (!allowManualResizing)
 				{
-					UpdateWindowScale();
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 				}
 			}
 
@@ -619,7 +618,7 @@ internal sealed class ImGuiModals
 			if (!_config.AllowManualResizing && maxWindowScale < _config.WindowScale)
 			{
 				_config.WindowScale = maxWindowScale;
-				UpdateWindowScale();
+				_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 			}
 
 			// note that Combo items are 0 indexed, while window scale is 1 indexed
@@ -627,7 +626,7 @@ internal sealed class ImGuiModals
 			if (ImGui.Combo("Window Scale", ref windowScale, _windowScalingOptions, maxWindowScale))
 			{
 				_config.WindowScale = windowScale + 1;
-				UpdateWindowScale();
+				_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 			}
 #endif
 
@@ -716,7 +715,17 @@ internal sealed class ImGuiModals
 				_config.HideStatusBar = hideStatusBar;
 				if (!_config.AllowManualResizing)
 				{
-					UpdateWindowScale();
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+				}
+			}
+
+			var hideMenuBarOnUnpause = _config.HideMenuBarOnUnpause;
+			if (ImGui.Checkbox("Hide Menu Bar On Unpause", ref hideMenuBarOnUnpause))
+			{
+				_config.HideMenuBarOnUnpause = hideMenuBarOnUnpause;
+				if (!_config.AllowManualResizing)
+				{
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 				}
 			}
 
@@ -783,7 +792,7 @@ internal sealed class ImGuiModals
 				_config.HideSgbBorder = hideSgbBorder;
 				if (!_config.AllowManualResizing)
 				{
-					UpdateWindowScale();
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 				}
 			}
 
@@ -883,5 +892,12 @@ internal sealed class ImGuiModals
 		CheckModalWasClosed(osdOpen, ref _osdModalOpened);
 		CheckModalWasClosed(miscOpen, ref _miscModalOpened);
 		CheckModalWasClosed(aboutOpen, ref _aboutModalOpened);
+
+		if (_didPause && _config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+		{
+			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+		}
+
+		_didPause = false;
 	}
 }

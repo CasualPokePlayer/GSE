@@ -10,11 +10,11 @@ namespace GSE.Emu;
 /// <param name="emuManager">Emu manager to pause/unpause</param>
 public readonly ref struct EmuPause(EmuManager emuManager)
 {
-	private readonly bool _didPause = emuManager.Pause();
+	public readonly bool DidPause = emuManager.Pause();
 
 	public void Dispose()
 	{
-		if (_didPause)
+		if (DidPause)
 		{
 			emuManager.Unpause();
 		}

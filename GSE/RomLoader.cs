@@ -92,84 +92,90 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 	public void LoadRomFile(string path)
 	{
 		// we might end up opening up a message box, so pause the emulator while we load up a ROM
-		using (new EmuPause(emuManager))
+		using var emuPause = new EmuPause(emuManager);
+		try
 		{
-			try
+			var romFile = new GSEFile(path, _romExtensions);
+			var isGbaRom = romFile.UnderlyingExtension.Equals(".gba", StringComparison.OrdinalIgnoreCase);
+			var biosFile = ObtainBiosFile(isGbaRom);
+			if (biosFile == null)
 			{
-				var romFile = new GSEFile(path, _romExtensions);
-				var isGbaRom = romFile.UnderlyingExtension.Equals(".gba", StringComparison.OrdinalIgnoreCase);
-				var biosFile = ObtainBiosFile(isGbaRom);
-				if (biosFile == null)
-				{
-					_ = SDL_ShowSimpleMessageBox(
-						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
-						title: "BIOS Load Failure",
-						message: "The required BIOS path was not correctly configured. You must configure BIOS paths before loading a ROM.",
-						window: mainWindow.SdlWindow
-					);
-
-					return;
-				}
-
-				if (!VerifyBiosFile(isGbaRom, biosFile.UnderlyingFile))
-				{
-					_ = SDL_ShowSimpleMessageBox(
-						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
-						title: "BIOS Load Failure",
-						message: "The configured BIOS is incorrect. You must use a legitimate BIOS file.",
-						window: mainWindow.SdlWindow
-					);
-
-					return;
-				}
-
-				emuManager.LoadRom(new(
-					CoreType: isGbaRom ? EmuCoreType.mGBA : EmuCoreType.Gambatte,
-					EmuController: isGbaRom ? gbaController : gbController,
-					RomData: romFile.UnderlyingFile,
-					BiosData: biosFile.UnderlyingFile,
-					RomName: romFile.UnderlyingFileName,
-					SaveFilePath: PathResolver.GetPath(config.SavePathLocation, "Save", romFile.Directory, config.SavePathCustom),
-					SaveStatePath: PathResolver.GetPath(config.StatePathLocation, "State", romFile.Directory, config.StatePathCustom),
-					InputLogPath: PathResolver.GetPath(PathResolver.PathType.PrefPath, "Input Log", null, null),
-					EmuVersion: GSEVersion.FullSemVer,
-					HardResetCallback: osdManager.OnHardReset,
-					GbPlatform: isGbaRom ? GBPlatform.GBA : config.GbPlatform,
-					ApplyColorCorrection: config.ApplyColorCorrection,
-					DisableGbaRtc: config.DisableGbaRtc
-				));
-
-				osdManager.OnRomLoaded(romFile.UnderlyingFileName, romFile.UnderlyingFile.Span);
-
-				config.RecentRoms.RemoveAll(r => r == path);
-				config.RecentRoms.Insert(0, path);
-				if (config.RecentRoms.Count > 10) // arbitrary size limit
-				{
-					config.RecentRoms.RemoveRange(10, config.RecentRoms.Count - 10);
-				}
-
-				// reset our emu video texture immediately, mainly so we don't try to render a null texture with a rom loaded
-				var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(false);
-				postProcessor.ResetEmuTexture(emuWidth, emuHeight);
-
-				if (!config.AllowManualResizing)
-				{
-					(emuWidth, emuHeight) = emuManager.GetVideoDimensions(config.HideSgbBorder);
-					mainWindow.SetWindowSize(emuWidth, emuHeight, config.WindowScale, (config.HideStatusBar ? 1 : 2));
-				}
-			}
-			catch (Exception e)
-			{
-				emuManager.UnloadRom();
-				osdManager.OnRomUnloaded();
-				Console.WriteLine(e);
 				_ = SDL_ShowSimpleMessageBox(
 					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
-					title: "ROM Load Failure",
-					message: "Failed to load ROM file",
+					title: "BIOS Load Failure",
+					message: "The required BIOS path was not correctly configured. You must configure BIOS paths before loading a ROM.",
 					window: mainWindow.SdlWindow
 				);
+
+				return;
 			}
+
+			if (!VerifyBiosFile(isGbaRom, biosFile.UnderlyingFile))
+			{
+				_ = SDL_ShowSimpleMessageBox(
+					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+					title: "BIOS Load Failure",
+					message: "The configured BIOS is incorrect. You must use a legitimate BIOS file.",
+					window: mainWindow.SdlWindow
+				);
+
+				return;
+			}
+
+			emuManager.LoadRom(new(
+				CoreType: isGbaRom ? EmuCoreType.mGBA : EmuCoreType.Gambatte,
+				EmuController: isGbaRom ? gbaController : gbController,
+				RomData: romFile.UnderlyingFile,
+				BiosData: biosFile.UnderlyingFile,
+				RomName: romFile.UnderlyingFileName,
+				SaveFilePath: PathResolver.GetPath(config.SavePathLocation, "Save", romFile.Directory, config.SavePathCustom),
+				SaveStatePath: PathResolver.GetPath(config.StatePathLocation, "State", romFile.Directory, config.StatePathCustom),
+				InputLogPath: PathResolver.GetPath(PathResolver.PathType.PrefPath, "Input Log", null, null),
+				EmuVersion: GSEVersion.FullSemVer,
+				HardResetCallback: osdManager.OnHardReset,
+				GbPlatform: isGbaRom ? GBPlatform.GBA : config.GbPlatform,
+				ApplyColorCorrection: config.ApplyColorCorrection,
+				DisableGbaRtc: config.DisableGbaRtc
+			));
+
+			osdManager.OnRomLoaded(romFile.UnderlyingFileName, romFile.UnderlyingFile.Span);
+
+			config.RecentRoms.RemoveAll(r => r == path);
+			config.RecentRoms.Insert(0, path);
+			if (config.RecentRoms.Count > 10) // arbitrary size limit
+			{
+				config.RecentRoms.RemoveRange(10, config.RecentRoms.Count - 10);
+			}
+
+			// reset our emu video texture immediately, mainly so we don't try to render a null texture with a rom loaded
+			var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(false);
+			postProcessor.ResetEmuTexture(emuWidth, emuHeight);
+
+			if (!config.AllowManualResizing)
+			{
+				(emuWidth, emuHeight) = emuManager.GetVideoDimensions(config.HideSgbBorder);
+				var numBars = config.HideStatusBar ? 1 : 2;
+				if (config.HideMenuBarOnUnpause
+				    && emuPause.DidPause // will be unpausing
+				    && config.HotkeyBindings.PauseButtonBindings.Count != 0)
+				{
+					numBars--;
+				}
+
+				mainWindow.SetWindowSize(emuWidth, emuHeight, config.WindowScale, numBars);
+			}
+		}
+		catch (Exception e)
+		{
+			emuManager.UnloadRom();
+			osdManager.OnRomUnloaded();
+			Console.WriteLine(e);
+			_ = SDL_ShowSimpleMessageBox(
+				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+				title: "ROM Load Failure",
+				message: "Failed to load ROM file",
+				window: mainWindow.SdlWindow
+			);
 		}
 	}
 }

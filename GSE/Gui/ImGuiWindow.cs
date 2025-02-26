@@ -22,6 +22,8 @@ using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 #endif
 
+using GSE.Emu;
+
 namespace GSE.Gui;
 
 /// <summary>
@@ -634,6 +636,23 @@ internal sealed class ImGuiWindow : IDisposable
 		// so re-enable the window icon if we're fullscreen (the user won't be seeing the icon anyways)
 		SetWindowIconEnabled(_isFullscreen);
 #endif
+	}
+
+	/// <summary>
+	/// Only for main window usage
+	/// </summary>
+	public void UpdateMainWindowSize(EmuManager emuManager, Config config)
+	{
+		var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(config.HideSgbBorder);
+		var numBars = config.HideStatusBar ? 1 : 2;
+		if (config.HideMenuBarOnUnpause
+		    && emuManager.EmuAcceptingInputs
+		    && config.HotkeyBindings.PauseButtonBindings.Count != 0)
+		{
+			numBars--;
+		}
+
+		SetWindowSize(emuWidth, emuHeight, config.WindowScale, numBars);
 	}
 
 	public void SetWindowSize(int w, int h, int scale, int bars)

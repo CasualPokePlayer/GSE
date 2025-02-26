@@ -102,6 +102,7 @@ internal sealed class HotkeyManager
 	private readonly EmuManager _emuManager;
 	private readonly AudioManager _audioManager;
 	private readonly OSDManager _osdManager;
+	private readonly ImGuiWindow _mainWindow;
 	private readonly Func<InputGate> _inputGateCallback;
 	private readonly ImmutableArray<IHotkey> _hotkeys;
 
@@ -114,16 +115,17 @@ internal sealed class HotkeyManager
 		_emuManager = emuManager;
 		_audioManager = audioManager;
 		_osdManager = osdManager;
+		_mainWindow = mainWindow;
 		_inputGateCallback = inputGateCallback;
 
 		_hotkeys =
 		[
-			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, emuManager.TogglePause),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, TogglePause),
 #if !GSE_ANDROID
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
 #endif
 			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
-			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, emuManager.DoFrameStep),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, DoFrameStep),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeUpButtonBindings, VolumeUp),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeDownButtonBindings, VolumeDown),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.VolumeUp10ButtonBindings, VolumeUp10),
@@ -169,6 +171,16 @@ internal sealed class HotkeyManager
 		InputBindingsChanged = true;
 	}
 
+	private void TogglePause()
+	{
+		_emuManager.TogglePause();
+
+		if (_config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+		{
+			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+		}
+	}
+
 	private void EnableFastForward()
 	{
 		_emuManager.SetSpeedFactor(_config.FastForwardSpeed);
@@ -177,6 +189,16 @@ internal sealed class HotkeyManager
 	private void DisableFastForward()
 	{
 		_emuManager.SetSpeedFactor(1);
+	}
+
+	private void DoFrameStep()
+	{
+		_emuManager.DoFrameStep();
+
+		if (_config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+		{
+			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+		}
 	}
 
 	private void VolumeUp()

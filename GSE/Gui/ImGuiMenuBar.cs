@@ -171,11 +171,21 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				if (ImGui.MenuItem("Toggle Pause"))
 				{
 					emuManager.TogglePause();
+
+					if (config.HideMenuBarOnUnpause && !config.AllowManualResizing)
+					{
+						mainWindow.UpdateMainWindowSize(emuManager, config);
+					}
 				}
 
 				if (ImGui.MenuItem("Frame Step"))
 				{
 					emuManager.DoFrameStep();
+
+					if (config.HideMenuBarOnUnpause && !config.AllowManualResizing)
+					{
+						mainWindow.UpdateMainWindowSize(emuManager, config);
+					}
 				}
 
 				ImGui.EndMenu();
