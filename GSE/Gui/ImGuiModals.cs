@@ -247,6 +247,10 @@ internal sealed class ImGuiModals
 			needOpen = false;
 			opened = true;
 			_didPause = _emuManager.Pause();
+			if (_didPause && _config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+			{
+				_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+			}
 		}
 	}
 
@@ -258,6 +262,10 @@ internal sealed class ImGuiModals
 			if (_didPause)
 			{
 				_emuManager.Unpause();
+				if (_config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
+				{
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+				}
 			}
 		}
 	}
@@ -353,11 +361,6 @@ internal sealed class ImGuiModals
 		CheckModalNeedsOpen(OSD_SETTINGS, ref OpenOsdModal, ref _osdModalOpened);
 		CheckModalNeedsOpen(MISC_SETTINGS, ref OpenMiscModal, ref _miscModalOpened);
 		CheckModalNeedsOpen(ABOUT, ref OpenAboutModal, ref _aboutModalOpened);
-
-		if (_didPause && _config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
-		{
-			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
-		}
 
 		var center = ImGui.GetMainViewport().GetCenter();
 		ImGui.SetNextWindowPos(center, ImGuiCond.Always, new(.5f, .5f));
@@ -892,12 +895,5 @@ internal sealed class ImGuiModals
 		CheckModalWasClosed(osdOpen, ref _osdModalOpened);
 		CheckModalWasClosed(miscOpen, ref _miscModalOpened);
 		CheckModalWasClosed(aboutOpen, ref _aboutModalOpened);
-
-		if (_didPause && _config.HideMenuBarOnUnpause && !_config.AllowManualResizing)
-		{
-			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
-		}
-
-		_didPause = false;
 	}
 }
