@@ -732,6 +732,12 @@ internal sealed class ImGuiModals
 				}
 			}
 
+			var restrictOsdOverlayToGameArea = _config.RestrictOsdOverlayToGameArea;
+			if (ImGui.Checkbox("Restrict OSD Overlay To Game Area", ref restrictOsdOverlayToGameArea))
+			{
+				_config.RestrictOsdOverlayToGameArea = restrictOsdOverlayToGameArea;
+			}
+
 			ImGui.Separator();
 
 			var hideStatePreviews = _config.HideStatePreviews;

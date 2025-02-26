@@ -33,6 +33,7 @@ internal sealed class Config
 
 	public bool HideStatusBar { get; set; }
 	public bool HideMenuBarOnUnpause { get; set; }
+	public bool RestrictOsdOverlayToGameArea { get; set; }
 	public bool HideStatePreviews { get; set; }
 	public int StatePreviewOpacity { get; set; } = 75;
 	public int StatePreviewScale { get; set; } = 30;

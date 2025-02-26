@@ -195,13 +195,21 @@ internal sealed class OSDManager : IDisposable
 		ImGui.End();
 	}
 
-	public void RunOverlay()
+	public void RunOverlay((int X, int Y) lastRenderOffset)
 	{
 		var nextOsdMessage = NextOSDMessage();
 		if (nextOsdMessage != null)
 		{
 			var vp = ImGui.GetMainViewport();
-			ImGui.SetNextWindowPos(new(vp.Pos.X + ImGui.GetStyle().FramePadding.X, vp.Pos.Y + vp.Size.Y - ImGui.GetFrameHeight() * 2));
+			var x = vp.Pos.X + ImGui.GetStyle().FramePadding.X;
+			var y = vp.Pos.Y + vp.Size.Y - ImGui.GetFrameHeight() * 2;
+			if (_config.RestrictOsdOverlayToGameArea)
+			{
+				x += lastRenderOffset.X;
+				y -= lastRenderOffset.Y;
+			}
+
+			ImGui.SetNextWindowPos(new(x, y));
 			if (ImGui.Begin("OSD Overlay", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDecoration))
 			{
 				ImGui.TextUnformatted(nextOsdMessage);

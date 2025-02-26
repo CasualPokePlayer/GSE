@@ -32,6 +32,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
 	private (int Width, int Height) _lastEmuTextureDimensions;
+	private (int X, int Y) _lastRenderOffset;
 
 	public void ResetEmuTexture(int width, int height)
 	{
@@ -74,6 +75,9 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 			}
 
 			sdlRenderer.RenderCopy(src, ref srcRect, ref dstRect);
+
+			// we want to remember this for the OSD overlay
+			_lastRenderOffset = (dstRect.x, dstRect.y);
 		}
 	}
 
@@ -193,6 +197,11 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		}
 
 		return dstTex;
+	}
+
+	public (int X, int Y) GetLastRenderPos()
+	{
+		return _lastRenderOffset;
 	}
 
 	public void Dispose()

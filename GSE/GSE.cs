@@ -401,7 +401,7 @@ internal sealed class GSE : IDisposable
 
 			if (_config.HideStatusBar)
 			{
-				_osdManager.RunOverlay();
+				_osdManager.RunOverlay(_postProcessor.GetLastRenderPos());
 			}
 
 			if (!_config.HideStatePreviews)
