@@ -10,6 +10,7 @@ using System.Threading;
 
 #if GSE_WINDOWS
 using Windows.Win32;
+using Windows.Win32.System.Threading;
 #endif
 
 using GSE.Audio;
@@ -121,6 +122,22 @@ public sealed class EmuManager : IDisposable
 			// raise timer resolution to 1 ms
 			// TODO: it's possible to raise this to 0.5ms using the undocumented NtSetTimerResolution function, consider using that?
 			_ = PInvoke.timeBeginPeriod(1);
+			// win 11 adds some conditions where timer resolution will be ignored, ensure it's always respected
+			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+			{
+				unsafe
+				{
+					var proc = PInvoke.GetCurrentProcess();
+					var pi = new PROCESS_POWER_THROTTLING_STATE
+					{
+						Version = PInvoke.PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+						ControlMask = PInvoke.PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION,
+						StateMask = 0,
+					};
+
+					_ = PInvoke.SetProcessInformation(proc, PROCESS_INFORMATION_CLASS.ProcessPowerThrottling, &pi, (uint)sizeof(PROCESS_POWER_THROTTLING_STATE));
+				}
+			}
 #endif
 			var wasPaused = false;
 			var lastSpeedFactor = 1;
