@@ -36,29 +36,6 @@ internal static partial class X11Imports
 	public static partial int XCloseDisplay(nint display);
 
 	[LibraryImport("libX11.so.6")]
-	public static partial void XLockDisplay(nint display);
-
-	[LibraryImport("libX11.so.6")]
-	public static partial void XUnlockDisplay(nint display);
-
-	// helper struct for XLockDisplay/XUnlockDisplay
-	public readonly ref struct XLock
-	{
-		private readonly nint _display;
-
-		public XLock(nint display)
-		{
-			_display = display;
-			XLockDisplay(display);
-		}
-
-		public void Dispose()
-		{
-			XUnlockDisplay(_display);
-		}
-	}
-
-	[LibraryImport("libX11.so.6")]
 	public static partial int XQueryKeymap(nint display, Span<byte> keys_return);
 
 	/// <summary>
@@ -388,6 +365,8 @@ internal static partial class X11Imports
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct XkbNamesRec
 	{
+#pragma warning disable IDE0044
+#pragma warning disable IDE0051
 		[InlineArray(XkbNumVirtualMods)]
 		public struct XkbVirtualMods
 		{
@@ -405,6 +384,8 @@ internal static partial class X11Imports
 		{
 			private nuint _group0;
 		}
+#pragma warning restore IDE0051
+#pragma warning restore IDE0044
 
 		public nuint keycodes;
 		public nuint geometry;
@@ -443,7 +424,7 @@ internal static partial class X11Imports
 	}
 
 	[LibraryImport("libX11.so.6")]
-	public static unsafe partial XkbDescRec* XkbAllocKeyboard(nint display);
+	public static unsafe partial XkbDescRec* XkbAllocKeyboard();
 
 	[LibraryImport("libX11.so.6")]
 	public static unsafe partial void XkbFreeKeyboard(XkbDescRec* xkb, uint which, [MarshalAs(UnmanagedType.Bool)] bool free_all);

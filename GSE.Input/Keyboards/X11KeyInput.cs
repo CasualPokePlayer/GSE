@@ -534,129 +534,126 @@ internal sealed class X11KeyInput : IKeyInput
 
 		try
 		{
-			using (new XLock(_display))
+			// check if we can use xkb
+			int major = 1, minor = 0;
+			var supportsXkb = XkbQueryExtension(_display, out _, out _, out _, ref major, ref minor);
+
+			int keyCodeMin, keyCodeMax;
+			if (supportsXkb)
 			{
-				// check if we can use xkb
-				int major = 1, minor = 0;
-				var supportsXkb = XkbQueryExtension(_display, out _, out _, out _, ref major, ref minor);
-
-				int keyCodeMin, keyCodeMax;
-				if (supportsXkb)
-				{
-					// we generally want this behavior, as it prevents xkb from
-					// generating fake KeyRelease events to go with fake auto repeat KeyPress events
-					// not particularly bad if this isn't actually supported, so we don't care if this call fails
-					_ = XkbSetDetectableAutoRepeat(_display, true, out _);
-
-					unsafe
-					{
-						var keyboard = XkbAllocKeyboard(_display);
-						if (keyboard == null)
-						{
-							throw new("Failed to allocate Xkb keyboard");
-						}
-
-						try
-						{
-							var status = XkbGetNames(_display, 0x3FF, keyboard);
-							if (status != 0)
-							{
-								throw new($"Failed to get Xkb names, error code: {status}");
-							}
-
-							keyCodeMin = keyboard->min_key_code;
-							keyCodeMax = keyboard->max_key_code;
-							for (var i = keyCodeMin; i <= keyCodeMax; i++)
-							{
-								var name = new string(keyboard->names->keys[i].name, 0, XkbKeyNameLength);
-								if (_xkbStrToScanCodeMap.TryGetValue(name, out var scanCode))
-								{
-									_keyToScanCodeMap[i] = scanCode;
-									continue;
-								}
-
-								for (var j = 0; j < keyboard->names->num_key_aliases; j++)
-								{
-									var real = new string(keyboard->names->key_aliases[i].real, 0, XkbKeyNameLength);
-									if (name == real)
-									{
-										var alias = new string(keyboard->names->key_aliases[i].alias, 0, XkbKeyNameLength);
-										if (_xkbStrToScanCodeMap.TryGetValue(alias, out scanCode))
-										{
-											_keyToScanCodeMap[i] = scanCode;
-											break;
-										}
-									}
-								}
-							}
-						}
-						finally
-						{
-							XkbFreeKeyboard(keyboard, 0, true);
-						}
-					}
-				}
-				else
-				{
-					_ = XDisplayKeycodes(_display, out keyCodeMin, out keyCodeMax);
-				}
+				// we generally want this behavior, as it prevents xkb from
+				// generating fake KeyRelease events to go with fake auto repeat KeyPress events
+				// not particularly bad if this isn't actually supported, so we don't care if this call fails
+				_ = XkbSetDetectableAutoRepeat(_display, true, out _);
 
 				unsafe
 				{
-					var keysyms = XGetKeyboardMapping(_display, (uint)keyCodeMin, keyCodeMax - keyCodeMin + 1, out var keysymsPerKeycode);
-					if (keysyms == null)
+					var keyboard = XkbAllocKeyboard();
+					if (keyboard == null)
 					{
-						throw new("Failed to obtain X keyboard mapping");
+						throw new("Failed to allocate Xkb keyboard");
 					}
 
 					try
 					{
+						var status = XkbGetNames(_display, 0x3FF, keyboard);
+						if (status != 0)
+						{
+							throw new($"Failed to get Xkb names, error code: {status}");
+						}
+
+						keyCodeMin = keyboard->min_key_code;
+						keyCodeMax = keyboard->max_key_code;
 						for (var i = keyCodeMin; i <= keyCodeMax; i++)
 						{
-							static Keysym FindKeysym(nuint* keysyms, bool hasNumpad)
+							var name = new string(keyboard->names->keys[i].name, 0, XkbKeyNameLength);
+							if (_xkbStrToScanCodeMap.TryGetValue(name, out var scanCode))
 							{
-								if (!hasNumpad)
+								_keyToScanCodeMap[i] = scanCode;
+								continue;
+							}
+
+							for (var j = 0; j < keyboard->names->num_key_aliases; j++)
+							{
+								var real = new string(keyboard->names->key_aliases[i].real, 0, XkbKeyNameLength);
+								if (name == real)
 								{
-									return (Keysym)keysyms[0];
+									var alias = new string(keyboard->names->key_aliases[i].alias, 0, XkbKeyNameLength);
+									if (_xkbStrToScanCodeMap.TryGetValue(alias, out scanCode))
+									{
+										_keyToScanCodeMap[i] = scanCode;
+										break;
+									}
 								}
-
-								return (Keysym)keysyms[1] switch
-								{
-									Keysym.KP_0 => Keysym.KP_0,
-									Keysym.KP_1 => Keysym.KP_1,
-									Keysym.KP_2 => Keysym.KP_2,
-									Keysym.KP_3 => Keysym.KP_3,
-									Keysym.KP_4 => Keysym.KP_4,
-									Keysym.KP_5 => Keysym.KP_5,
-									Keysym.KP_6 => Keysym.KP_6,
-									Keysym.KP_7 => Keysym.KP_7,
-									Keysym.KP_8 => Keysym.KP_8,
-									Keysym.KP_9 => Keysym.KP_9,
-									Keysym.KP_Separator => Keysym.KP_Separator,
-									Keysym.KP_Decimal => Keysym.KP_Decimal,
-									Keysym.KP_Equal => Keysym.KP_Equal,
-									Keysym.KP_Enter => Keysym.KP_Enter,
-									_ => (Keysym)keysyms[0],
-								};
-							}
-
-							var keysym = FindKeysym(&keysyms[(i - keyCodeMin) * keysymsPerKeycode], keysymsPerKeycode > 1);
-
-							if (_keyToScanCodeMap[i] == 0)
-							{
-								_keyToScanCodeMap[i] = _keysymToScanCodeMap.GetValueOrDefault(keysym);
-							}
-
-							if (_keyToScanCodeMap[i] != 0)
-							{
-								_scanCodeSymStrMap[(byte)_keyToScanCodeMap[i]] = _keysymToStrMap.GetValueOrDefault(keysym);
 							}
 						}
 					}
 					finally
 					{
-						_ = XFree((nint)keysyms);
+						XkbFreeKeyboard(keyboard, 0, true);
 					}
+				}
+			}
+			else
+			{
+				_ = XDisplayKeycodes(_display, out keyCodeMin, out keyCodeMax);
+			}
+
+			unsafe
+			{
+				var keysyms = XGetKeyboardMapping(_display, (uint)keyCodeMin, keyCodeMax - keyCodeMin + 1, out var keysymsPerKeycode);
+				if (keysyms == null)
+				{
+					throw new("Failed to obtain X keyboard mapping");
+				}
+
+				try
+				{
+					for (var i = keyCodeMin; i <= keyCodeMax; i++)
+					{
+						static Keysym FindKeysym(nuint* keysyms, bool hasNumpad)
+						{
+							if (!hasNumpad)
+							{
+								return (Keysym)keysyms[0];
+							}
+
+							return (Keysym)keysyms[1] switch
+							{
+								Keysym.KP_0 => Keysym.KP_0,
+								Keysym.KP_1 => Keysym.KP_1,
+								Keysym.KP_2 => Keysym.KP_2,
+								Keysym.KP_3 => Keysym.KP_3,
+								Keysym.KP_4 => Keysym.KP_4,
+								Keysym.KP_5 => Keysym.KP_5,
+								Keysym.KP_6 => Keysym.KP_6,
+								Keysym.KP_7 => Keysym.KP_7,
+								Keysym.KP_8 => Keysym.KP_8,
+								Keysym.KP_9 => Keysym.KP_9,
+								Keysym.KP_Separator => Keysym.KP_Separator,
+								Keysym.KP_Decimal => Keysym.KP_Decimal,
+								Keysym.KP_Equal => Keysym.KP_Equal,
+								Keysym.KP_Enter => Keysym.KP_Enter,
+								_ => (Keysym)keysyms[0],
+							};
+						}
+
+						var keysym = FindKeysym(&keysyms[(i - keyCodeMin) * keysymsPerKeycode], keysymsPerKeycode > 1);
+
+						if (_keyToScanCodeMap[i] == 0)
+						{
+							_keyToScanCodeMap[i] = _keysymToScanCodeMap.GetValueOrDefault(keysym);
+						}
+
+						if (_keyToScanCodeMap[i] != 0)
+						{
+							_scanCodeSymStrMap[(byte)_keyToScanCodeMap[i]] = _keysymToStrMap.GetValueOrDefault(keysym);
+						}
+					}
+				}
+				finally
+				{
+					_ = XFree((nint)keysyms);
 				}
 			}
 		}
@@ -675,11 +672,7 @@ internal sealed class X11KeyInput : IKeyInput
 	public IEnumerable<KeyEvent> GetEvents()
 	{
 		Span<byte> keys = stackalloc byte[32];
-
-		using (new XLock(_display))
-		{
-			_ = XQueryKeymap(_display, keys);
-		}
+		_ = XQueryKeymap(_display, keys);
 
 		var keyEvents = new List<KeyEvent>();
 		for (var keycode = 0; keycode < 256; keycode++)
