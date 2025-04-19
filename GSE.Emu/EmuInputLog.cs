@@ -184,7 +184,7 @@ internal sealed class EmuInputLog : IDisposable
 		try
 		{
 			var now = DateTime.UtcNow;
-			var filename = $"{now.ToString("s", CultureInfo.InvariantCulture).Replace(':', '-')}-{romName}";
+			var filename = $"{now.ToLocalTime().ToString("s", CultureInfo.InvariantCulture).Replace(':', '-')}-{romName}";
 			// maximum length of a filename is 255 chars
 			// (this includes 4 chars for .gm2)
 			if (filename.Length > 255 - 4)
