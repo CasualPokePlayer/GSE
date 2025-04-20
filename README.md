@@ -25,6 +25,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * "Dead battery" RTC enabled by default for Game Boy Advance games
 * Always runs at the correct framerate (i.e. ~59.7275 FPS)
 * "Clock sync" used for host timing purposes, ensuring extremely consistent frame pacing (i.e. minimal "judder") and minimal input lag (both important for 1 frame tricks and such)
+* Input logs stored for all runs, giving run verifiers a secondary source of proof[^3]
 * Features not useful for speedrunners in runs or practice are not present (e.g. no cheat code support)
 
 ***Quality of Life***
@@ -36,7 +37,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 
 ***GUI***
 * Nearest Neighbor, Billinear, and Sharp Billinear filtering options
-* DPI aware GUI scaling[^3]
+* DPI aware GUI scaling[^4]
 * Dark and light mode options
 * Dark mode title bar on Windows 10+ when GUI is in dark mode
 
@@ -57,7 +58,8 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 
 [^1]: TASes are created with the [BizHawk](https://github.com/TASEmulators/BizHawk) project, which shares the same Game Boy / Game Boy Color emulation core. GSE itself does not have TAS creation capabilities.
 [^2]: As of now, Game Boy Advance emulation should not be assumed to be completely accurate to console for speedrunning timing purposes. Individual speedrunning communities should decide how to treat emulation for their boards. This situation is subject to change.
-[^3]: Linux users might not get an automatically scaled GUI, due to X11 not providing reliable DPI info. GUI scaling can be overriden by the GSE_SCALE environment variable.
+[^3]: Input logs are not intended as a sole source of proof for a run, but rather a secondary source if video proof is not enough or comes into question. Runners can find all their inputs logs within GSE's user folder, which can be easily opened in the `Paths...` settings. Run verifiers can play back input logs using [InputLogPlayer](https://github.com/CasualPokePlayer/InputLogPlayer).
+[^4]: Linux users might not get an automatically scaled GUI, due to X11 not providing reliable DPI info. GUI scaling can be overriden by the GSE_SCALE environment variable.
 
 ---
 ## User Requirements
