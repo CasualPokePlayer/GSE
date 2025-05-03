@@ -58,6 +58,10 @@ endif()
 
 if(APPLE)
 	target_sources(native_helper PRIVATE cocoa_helper.m)
+	if(GSE_SHARED)
+		target_link_libraries(native_helper PRIVATE "$<LINK_LIBRARY:FRAMEWORK,Cocoa>")
+		target_link_libraries(native_helper PRIVATE "$<LINK_LIBRARY:WEAK_FRAMEWORK,UniformTypeIdentifiers>")
+	endif()
 endif()
 
 # Copy output to our runtime folders
