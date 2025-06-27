@@ -3,6 +3,9 @@
 
 using System;
 using System.IO;
+#if GSE_WINDOWS
+using System.Threading;
+#endif
 
 using static SDL2.SDL;
 
@@ -17,6 +20,9 @@ internal static class Entrypoint
 	{
 		try
 		{
+#if GSE_WINDOWS
+			SynchronizationContext.SetSynchronizationContext(Win32BlockingWaitSyncContext.Singleton);
+#endif
 			_gse = new();
 			return _gse.MainLoop();
 		}
