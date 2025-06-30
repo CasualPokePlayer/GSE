@@ -171,6 +171,7 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 		SDL_SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
+		SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
 
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
@@ -203,7 +204,7 @@ internal sealed class ImGuiWindow : IDisposable
 	public readonly SDL_SysWMinfo SdlSysWMInfo;
 
 	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
-	private bool _isFullscreen;
+	public bool IsFullscreen { get; private set; }
 
 	private static readonly ulong _perfFreq = SDL_GetPerformanceFrequency();
 	private ulong _lastTime;
@@ -436,7 +437,7 @@ internal sealed class ImGuiWindow : IDisposable
 		SetFontTexture();
 	}
 
-	public ImGuiWindow(string windowName, Config config, bool isMainWindow)
+	public ImGuiWindow(string windowName, Config config)
 	{
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 		{
@@ -454,14 +455,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 			WindowId = SDL_GetWindowID(SdlWindow);
 
-			var rendererFlags = SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_TARGETTEXTURE;
-			if (isMainWindow)
-			{
-				// we only have the main window be vsync'd
-				// other windows don't need this treatment (and we don't want to wait for vsync multiple times)
-				rendererFlags |= SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-			}
-
+			const SDL_RendererFlags rendererFlags = SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_TARGETTEXTURE;
 			var sdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
 			if (sdlRenderer == 0)
 			{
@@ -619,14 +613,14 @@ internal sealed class ImGuiWindow : IDisposable
 	public void ToggleFullscreen()
 	{
 		// TODO: how should failure be handled?
-		if (SDL_SetWindowFullscreen(SdlWindow, _isFullscreen ? 0 : (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
+		if (SDL_SetWindowFullscreen(SdlWindow, IsFullscreen ? 0 : (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
 		{
 			return;
 		}
 
-		_isFullscreen = !_isFullscreen;
+		IsFullscreen = !IsFullscreen;
 
-		if (!_isFullscreen)
+		if (!IsFullscreen)
 		{
 			SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
 		}
@@ -634,7 +628,7 @@ internal sealed class ImGuiWindow : IDisposable
 #if GSE_WINDOWS
 		// the hack used to disable the window icon will cause fullscreen to have a noticeable border
 		// so re-enable the window icon if we're fullscreen (the user won't be seeing the icon anyways)
-		SetWindowIconEnabled(_isFullscreen);
+		SetWindowIconEnabled(IsFullscreen);
 #endif
 	}
 
@@ -661,7 +655,7 @@ internal sealed class ImGuiWindow : IDisposable
 		_lastHeight = h;
 		_lastScale = scale;
 		_lastBars = bars;
-		if (!_isFullscreen)
+		if (!IsFullscreen)
 		{
 			w *= scale;
 			h *= scale;
@@ -716,7 +710,7 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 
 			// don't know if this is needed, but if it's like the title bar, it probably is
-			if (!_isFullscreen)
+			if (!IsFullscreen)
 			{
 				var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
 				if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
@@ -781,7 +775,7 @@ internal sealed class ImGuiWindow : IDisposable
 					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkTitleBar, (uint)sizeof(BOOL));
 				}
 
-				if (!_isFullscreen)
+				if (!IsFullscreen)
 				{
 					var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
 					if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
@@ -1068,7 +1062,7 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 	}
 
-	public void Render()
+	public void Render(bool vsync)
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		ImGui.Render();
@@ -1144,6 +1138,7 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 		}
 
+		SdlRenderer.SetVSync(vsync);
 		SdlRenderer.RenderPresent();
 	}
 }

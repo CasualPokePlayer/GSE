@@ -812,6 +812,13 @@ internal sealed class ImGuiModals
 				_mainWindow.SetTheme(darkMode);
 			}
 
+			var preferLowLatency = _config.PreferLowLatency;
+			if (ImGui.Checkbox("Low Latency Mode", ref preferLowLatency))
+			{
+				_config.PreferLowLatency = preferLowLatency;
+				_emuManager.SetLowLatencyMode(preferLowLatency);
+			}
+
 #if GSE_WINDOWS
 			if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
 			{

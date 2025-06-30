@@ -179,13 +179,13 @@ internal sealed class GSE : IDisposable
 		try
 		{
 			_config = Config.LoadConfig();
-			_mainWindow = new("GSE", _config, true);
+			_mainWindow = new("GSE", _config);
 			_inputManager = new(in _mainWindow.SdlSysWMInfo, _config.EnableDirectInput);
 			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
 			// default bindings will be set if this fails for some reason
 			_config.DeserializeInputBindings(_inputManager, _mainWindow);
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
-			_emuManager = new(_audioManager);
+			_emuManager = new(_audioManager, _config.PreferLowLatency);
 			_postProcessor = new(_config, _emuManager, _mainWindow.SdlRenderer);
 			_osdManager = new(_config, _emuManager, _mainWindow.SdlRenderer);
 			_gbController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);
@@ -331,6 +331,12 @@ internal sealed class GSE : IDisposable
 			return;
 		}
 
+		if (_emuManager.EmuAcceptingInputs && _config.PreferLowLatency)
+		{
+			_postProcessor.RenderEmuTexture(
+				_emuManager.GetVideoBuffer(waitForUpdate: !_mainWindow.IsFullscreen));
+		}
+
 		var contentRegionAvail = ImGui.GetContentRegionAvail();
 		var finalTex = _postProcessor.DoPostProcessing((int)contentRegionAvail.X, (int)contentRegionAvail.Y);
 		ImGui.Image(finalTex.TextureId, contentRegionAvail);
@@ -409,12 +415,20 @@ internal sealed class GSE : IDisposable
 				_osdManager.RunStatePreviewOverlay();
 			}
 
-			_mainWindow.Render();
-
-			// do this immediately after render, so it closely aligns to vsync
-			if (_emuManager.RomIsLoaded)
+			if (_emuManager.EmuAcceptingInputs && _config.PreferLowLatency)
 			{
-				_postProcessor.RenderEmuTexture(_emuManager.GetVideoBuffer());
+				_mainWindow.Render(vsync: _mainWindow.IsFullscreen);
+			}
+			else
+			{
+				_mainWindow.Render(vsync: true);
+
+				// do this immediately after render, so it closely aligns to vsync
+				if (_emuManager.RomIsLoaded)
+				{
+					_postProcessor.RenderEmuTexture(
+						_emuManager.GetVideoBuffer(waitForUpdate: false));
+				}
 			}
 		}
 	}

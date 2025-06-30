@@ -51,6 +51,8 @@ public sealed class EmuManager : IDisposable
 	private uint[] _lastVideoFrame;
 	private uint[] _lastVideoFrameCopy;
 	private readonly object _videoLock = new();
+	private readonly AutoResetEvent _videoFrameUpdated = new(false);
+	private bool _lowLatencyMode;
 
 	private readonly AudioManager _audioManager;
 
@@ -60,13 +62,13 @@ public sealed class EmuManager : IDisposable
 	private const int TIMER_FIXED_SHIFT = 15;
 	private static readonly long _timerFreq = Stopwatch.Frequency << TIMER_FIXED_SHIFT;
 
-	private UInt128 _lastTime = (UInt128)Stopwatch.GetTimestamp() << TIMER_FIXED_SHIFT;
+	private UInt128 _lastTime;
 	private long _throttleError;
 	private int _speedFactor = 1;
 
 	private void Throttle(uint cpuCycles, int speedFactor, uint cpuFreq)
 	{
-		// same as samples / audioFreq * timerFreq, but avoids needing to use float math
+		// same as cpuCycles / cpuFreq * timerFreq, but avoids needing to use float math
 		// note that Stopwatch.Frequency is typically 10MHz on Windows, and always 1000MHz on non-Windows
 		// (ulong cast is needed here, due to the amount of cpu cycles a gba could produce)
 		var timeToThrottle = (long)((ulong)_timerFreq * cpuCycles / cpuFreq);
@@ -101,15 +103,15 @@ public sealed class EmuManager : IDisposable
 			timeToThrottle -= elaspedTime;
 
 			var timeToThrottleMs = timeToThrottle * 1000 / _timerFreq;
-			// if we're under 1 ms, don't throttle, leave it for the next time
 			if (timeToThrottleMs < 1)
 			{
-				_throttleError = -timeToThrottle;
-				break;
+				// with less than 1 ms left to wait, just spin wait
+				Thread.SpinWait(1);
+				continue;
 			}
 
 			// we'll likely oversleep by at least a millisecond, so reduce throttle time by 1 ms
-			// note that Thread.Sleep(0) is the same as Thread.Yield() (which we want in that case)
+			// note that Thread.Sleep(0) is (more or less) the same as Thread.Yield() (which we want in that case)
 			Thread.Sleep((int)(timeToThrottleMs - 1));
 		}
 	}
@@ -139,11 +141,12 @@ public sealed class EmuManager : IDisposable
 				}
 			}
 #endif
+			ResetThrottleState();
 			var wasPaused = false;
 			var lastSpeedFactor = 1;
 			while (!_disposing)
 			{
-				bool completedFrame, needsThrottleReset;
+				bool completedFrame, needsThrottleReset, lowLatencyMode;
 				ReadOnlySpan<short> samples;
 				uint cpuCycles, cpuFreq;
 				lock (_emuCoreLock)
@@ -175,6 +178,17 @@ public sealed class EmuManager : IDisposable
 					wasPaused = _emuPaused;
 					needsThrottleReset |= lastSpeedFactor != 1 && _speedFactor == 1;
 					lastSpeedFactor = _speedFactor;
+					lowLatencyMode = _lowLatencyMode;
+				}
+
+				if (lowLatencyMode && completedFrame)
+				{
+					lock (_videoLock)
+					{
+						_emuCore.VideoBuffer.CopyTo(_lastVideoFrame);
+					}
+
+					_videoFrameUpdated.Set();
 				}
 
 				_audioManager.DispatchAudio(samples, isFastForwarding: lastSpeedFactor != 1);
@@ -186,12 +200,14 @@ public sealed class EmuManager : IDisposable
 
 				Throttle(cpuCycles, lastSpeedFactor, cpuFreq);
 
-				if (completedFrame)
+				if (!lowLatencyMode && completedFrame)
 				{
 					lock (_videoLock)
 					{
 						_emuCore.VideoBuffer.CopyTo(_lastVideoFrame);
 					}
+
+					_videoFrameUpdated.Set();
 				}
 			}
 		}
@@ -216,9 +232,10 @@ public sealed class EmuManager : IDisposable
 		}
 	}
 
-	public EmuManager(AudioManager audioManager)
+	public EmuManager(AudioManager audioManager, bool lowLatencyMode)
 	{
 		_audioManager = audioManager;
+		_lowLatencyMode = lowLatencyMode;
 		SetToNullCore();
 
 		_emuThread = new(EmuThreadProc) { IsBackground = true, Name = "Emu Thread" };
@@ -237,6 +254,7 @@ public sealed class EmuManager : IDisposable
 
 		_emuCore.Dispose();
 		_frameStepDoneEvent.Dispose();
+		_videoFrameUpdated.Dispose();
 	}
 
 	private void SetToNullCore()
@@ -362,8 +380,16 @@ public sealed class EmuManager : IDisposable
 		}
 	}
 
-	public EmuVideoBuffer GetVideoBuffer()
+	public EmuVideoBuffer GetVideoBuffer(bool waitForUpdate)
 	{
+		if (waitForUpdate)
+		{
+			while (!_videoFrameUpdated.WaitOne(20))
+			{
+				CheckEmuThreadException();
+			}
+		}
+
 		lock (_videoLock)
 		{
 			CheckEmuThreadException();
@@ -524,6 +550,14 @@ public sealed class EmuManager : IDisposable
 		{
 			CheckEmuThreadException();
 			_emuCore.SetColorCorrectionEnable(enable);
+		}
+	}
+
+	public void SetLowLatencyMode(bool lowLatencyMode)
+	{
+		lock (_emuCoreLock)
+		{
+			_lowLatencyMode = lowLatencyMode;
 		}
 	}
 

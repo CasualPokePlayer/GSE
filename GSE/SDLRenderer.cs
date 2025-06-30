@@ -27,6 +27,7 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 
 	private readonly SDL_Event[] _sdlEvent = new SDL_Event[1];
 	private SDLTexture _currentRenderTarget;
+	private bool _vsyncEnabled;
 
 	public nint CreateTextureId(SDLTexture sdlTexture)
 	{
@@ -226,10 +227,27 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 		}
 	}
 
+	public void SetVSync(bool vsync)
+	{
+		if (_vsyncEnabled != vsync)
+		{
+			_vsyncEnabled = vsync;
+			while (SDL_RenderSetVSync(sdlRenderer, vsync ? 1 : 0) != 0)
+			{
+				if (!CheckDeviceLost())
+				{
+					throw new($"Failed to {(vsync ? "enable" : "disable")} VSync, SDL error {SDL_GetError()}");
+				}
+			}
+
+			// D3D9 changing vsync will trigger an SDL_RENDER_DEVICE_RESET event
+			_ = CheckDeviceLost();
+		}
+	}
+
 	public void RenderPresent()
 	{
 		SDL_RenderPresent(sdlRenderer);
-
 		// present is typically where SDL_RENDER_DEVICE_RESET events occur, so make sure to check it here
 		_ = CheckDeviceLost();
 	}
