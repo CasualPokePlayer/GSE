@@ -575,10 +575,10 @@ internal sealed class X11KeyInput : IKeyInput
 
 							for (var j = 0; j < keyboard->names->num_key_aliases; j++)
 							{
-								var real = new string(keyboard->names->key_aliases[i].real, 0, XkbKeyNameLength);
+								var real = new string(keyboard->names->key_aliases[j].real, 0, XkbKeyNameLength);
 								if (name == real)
 								{
-									var alias = new string(keyboard->names->key_aliases[i].alias, 0, XkbKeyNameLength);
+									var alias = new string(keyboard->names->key_aliases[j].alias, 0, XkbKeyNameLength);
 									if (_xkbStrToScanCodeMap.TryGetValue(alias, out scanCode))
 									{
 										_keyToScanCodeMap[i] = scanCode;
