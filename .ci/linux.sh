@@ -13,7 +13,7 @@ $HOME/llvm.sh 18
 
 if [ $TARGET_RID != "linux-arm" ]; then
 	# Enable backports packages
-	echo "deb http://deb.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
+	echo "deb http://archive.debian.org/debian bullseye-backports main" | tee /etc/apt/sources.list.d/backports.list
 	apt-get update
 
 	# Normally cmake from standard bulleye packages is enough
