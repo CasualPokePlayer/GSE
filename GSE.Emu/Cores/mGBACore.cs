@@ -15,7 +15,7 @@ internal sealed class MGBACore : IEmuCore
 {
 	private readonly nint _opaque;
 	private readonly uint[] _videoBuffer = new uint[240 * 160];
-	private readonly short[] _audioBuffer = new short[1024 * 2];
+	private readonly short[] _audioBuffer = new short[0x2000 * 2];
 	private readonly byte[] _savBuffer = new byte[0x20000 + 16];
 	private readonly string _savPath;
 	private readonly Action _resetCallback;
@@ -31,7 +31,8 @@ internal sealed class MGBACore : IEmuCore
 
 	public MGBACore(EmuLoadArgs loadArgs)
 	{
-		_opaque = mgba_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc);
+		var gbaStartTime = GetUnixTime();
+		_opaque = mgba_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc, gbaStartTime);
 		if (_opaque == 0)
 		{
 			throw new("Failed to create core opaque state!");
@@ -47,9 +48,9 @@ internal sealed class MGBACore : IEmuCore
 			if (savFi.Exists)
 			{
 				using var sav = savFi.OpenRead();
-				mgba_savesavedata(_opaque, _savBuffer);
-				sav.Read(_savBuffer);
-				mgba_loadsavedata(_opaque, _savBuffer);
+				var numRead = sav.Read(_savBuffer);
+				mgba_loadsavedata(_opaque, _savBuffer, numRead, gbaStartTime);
+				mgba_reset(_opaque); // the core needs a hard reset to apply RTC (if present)
 			}
 
 			_savPath = savPath;
@@ -68,12 +69,17 @@ internal sealed class MGBACore : IEmuCore
 		}
 	}
 
+	private static long GetUnixTime()
+	{
+		return (long)(DateTime.Now - DateTime.UnixEpoch).TotalSeconds;
+	}
+
 	private void RestartInputLog(ReadOnlySpan<byte> state)
 	{
-		var saveDataLength = mgba_getsavedatalength(_opaque);
-		if (state.IsEmpty && saveDataLength > 0)
+		var saveDataLength = 0;
+		if (state.IsEmpty)
 		{
-			mgba_savesavedata(_opaque, _savBuffer);
+			saveDataLength = mgba_savesavedata(_opaque, _savBuffer);
 		}
 
 		_emuInputLog?.Dispose();
@@ -84,6 +90,7 @@ internal sealed class MGBACore : IEmuCore
 			gbPlatform: GBPlatform.GBA,
 			isGba: true,
 			disableGbaRtc: _disableGbaRtc,
+			gbaRtcTime: mgba_getrtctime(_opaque),
 			gbRtcDividers: 0,
 			startsFromSaveState: !state.IsEmpty,
 			stateOrSaveFile: state.IsEmpty ? _savBuffer.AsSpan()[..saveDataLength] : state);
@@ -105,11 +112,10 @@ internal sealed class MGBACore : IEmuCore
 				return;
 			}
 
-			var saveDataLength = mgba_getsavedatalength(_opaque);
+			var saveDataLength = mgba_savesavedata(_opaque, _savBuffer);
 			if (saveDataLength > 0)
 			{
 				using var sav = File.Create(_savPath);
-				mgba_savesavedata(_opaque, _savBuffer);
 				sav.Write(_savBuffer.AsSpan()[..saveDataLength]);
 			}
 		}
@@ -147,42 +153,8 @@ internal sealed class MGBACore : IEmuCore
 
 	public bool LoadSave(ReadOnlySpan<byte> sav)
 	{
-		var saveDataLength = mgba_getsavedatalength(_opaque);
-		if (saveDataLength == 0)
-		{
-			return false;
-		}
-
-		if (sav.Length >= saveDataLength)
-		{
-			// if we're large enough, we can send the buffer in directly
-			mgba_loadsavedata(_opaque, sav);
-			RestartInputLog([]);
-			DoReset();
-			return true;
-		}
-
-		var savBuffer = _savBuffer.AsSpan();
-		// make sure we don't trash RTC/etc state
-		var footerLength = saveDataLength & 0xFF;
-		if (footerLength != 0)
-		{
-			// update the footer
-			mgba_savesavedata(_opaque, savBuffer);
-			sav.CopyTo(savBuffer);
-			var remainingSaveLength = saveDataLength - sav.Length - footerLength;
-			if (remainingSaveLength > 0)
-			{
-				savBuffer.Slice(sav.Length, remainingSaveLength).Fill(0xFF);
-			}
-		}
-		else
-		{
-			sav.CopyTo(savBuffer);
-			savBuffer[sav.Length..saveDataLength].Fill(0xFF);
-		}
-
-		mgba_loadsavedata(_opaque, savBuffer);
+		var saveDataLength = Math.Min(sav.Length, _savBuffer.Length);
+		mgba_loadsavedata(_opaque, sav, saveDataLength, GetUnixTime());
 		RestartInputLog([]);
 		DoReset();
 		return true;
@@ -287,7 +259,7 @@ internal sealed class MGBACore : IEmuCore
 			return false;
 		}
 
-		var success = mgba_loadstate(_opaque, state, state.Length);
+		var success = mgba_loadstate(_opaque, state, state.Length, GetUnixTime());
 		if (success)
 		{
 			RestartInputLog(state);
@@ -327,7 +299,7 @@ internal sealed class MGBACore : IEmuCore
 	public int VideoHeight => 160;
 
 	public ReadOnlySpan<short> AudioBuffer => _audioBuffer;
-	public int AudioFrequency => 32768;
+	public int AudioFrequency => 262144;
 
 	public uint CpuFrequency => 16777216;
 }

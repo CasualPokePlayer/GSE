@@ -1,14 +1,9 @@
-cmake_minimum_required(VERSION 3.1...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10...3.20 FATAL_ERROR)
 
-if(POLICY CMP0063)
-	cmake_policy(SET CMP0063 NEW)
-	set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
-endif()
-
-if(POLICY CMP0069)
-	cmake_policy(SET CMP0069 NEW)
-	set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
-endif()
+cmake_policy(SET CMP0063 NEW)
+cmake_policy(SET CMP0069 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 
 # MSVC policies, introduced in CMake 3.15
 if(POLICY CMP0092)
@@ -49,16 +44,22 @@ set(BINARY_NAME mgba-static)
 
 add_subdirectory(mgba EXCLUDE_FROM_ALL)
 
+target_compile_definitions(mgba-static PUBLIC MINIMAL_CORE=2 COLOR_16_BIT DISABLE_THREADING MGBA_STANDALONE ENABLE_VFS ENABLE_DIRECTORIES)
+
 if(MSVC)
 	# shut up the compiler
 	if (CMAKE_C_COMPILER_ID MATCHES "Clang")
 		target_compile_options(mgba-static PUBLIC -Wno-unused-command-line-argument -Wno-unused)
 	endif()
-
-	target_compile_definitions(mgba-static PUBLIC _CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-target_compile_definitions(mgba-static PUBLIC MINIMAL_CORE=2 COLOR_16_BIT DISABLE_THREADING MGBA_STANDALONE)
+# prevent localtime_r/mktime overrides from affecting other components
+if(WIN32)
+	target_compile_definitions(mgba-static PUBLIC _localtime64_s=GSE_localtime64_s _mktime64=GSE_mktime64)
+	target_compile_definitions(mgba-static PUBLIC _localtime32_s=GSE_localtime32_s _mktime32=GSE_mktime32)
+else()
+	target_compile_definitions(mgba-static PUBLIC localtime_r=GSE_localtime_r mktime=GSE_mktime)
+endif()
 
 if(GSE_SHARED)
 	add_library(mgba-gse SHARED gse_glue.c)

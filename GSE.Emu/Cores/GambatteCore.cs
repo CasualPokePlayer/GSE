@@ -155,7 +155,7 @@ internal sealed class GambatteCore : IEmuCore
 				{
 					using var sav = savFi.OpenRead();
 					gambatte_savesavedata(_opaque, savBuffer);
-					sav.Read(savBuffer);
+					_ = sav.Read(savBuffer);
 					gambatte_loadsavedata(_opaque, savBuffer);
 				}
 			}
@@ -241,6 +241,7 @@ internal sealed class GambatteCore : IEmuCore
 			gbPlatform: _gbPlatform,
 			isGba: false,
 			disableGbaRtc: false,
+			gbaRtcTime: 0,
 			gbRtcDividers: rtcDividers,
 			startsFromSaveState: !state.IsEmpty,
 			stateOrSaveFile: state.IsEmpty ? _savBuffer : state);

@@ -71,10 +71,10 @@ internal sealed class EmuInputLog : IDisposable
 		}
 	}
 
-	private const int GM2_VERSION = 1;
+	private const int GM2_VERSION = 2;
 	private const ulong GM2_MAGIC = 0x4753454D4F564945;
 
-	[StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, Size = 1024)]
 	private struct EmuInputLogHeader
 	{
 		/// <summary>
@@ -136,6 +136,12 @@ internal sealed class EmuInputLog : IDisposable
 		public HeaderString EmuVersion;
 
 		/// <summary>
+		/// GBA RTC time as a unix timestamp, used for mgba_create/mgba_loadsavedata/mgba_loadstate
+		/// For movies which start from a savestate, this is more a backup in case the savestate is missing RTC data 
+		/// </summary>
+		public long GbaRtcTime;
+
+		/// <summary>
 		/// Normalizes native endianness to little endian
 		/// (Except for magic, which is enforced to be big endian)
 		/// </summary>
@@ -150,6 +156,7 @@ internal sealed class EmuInputLog : IDisposable
 				StartTimestamp = BinaryPrimitives.ReverseEndianness(StartTimestamp);
 				GbRtcDividers = BinaryPrimitives.ReverseEndianness(GbRtcDividers);
 				StateOrSaveSize = BinaryPrimitives.ReverseEndianness(StateOrSaveSize);
+				GbaRtcTime = BinaryPrimitives.ReverseEndianness(GbaRtcTime);
 			}
 			else
 			{
@@ -177,6 +184,7 @@ internal sealed class EmuInputLog : IDisposable
 		GBPlatform gbPlatform,
 		bool isGba,
 		bool disableGbaRtc,
+		long gbaRtcTime,
 		ulong gbRtcDividers,
 		bool startsFromSaveState,
 		ReadOnlySpan<byte> stateOrSaveFile)
@@ -242,6 +250,8 @@ internal sealed class EmuInputLog : IDisposable
 
 			header.RomName.SetString(romName);
 			header.EmuVersion.SetString(emuVersion);
+
+			header.GbaRtcTime = gbaRtcTime;
 
 			header.NormalizeEndianness();
 			_gm2File.Write(MemoryMarshal.AsBytes<EmuInputLogHeader>(new(ref header)));

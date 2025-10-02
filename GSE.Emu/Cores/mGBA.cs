@@ -17,10 +17,12 @@ internal static partial class MGBA
 	/// <param name="biosData">the bios data, can be disposed of once this function returns</param>
 	/// <param name="biosLength">length of biosData in bytes</param>
 	/// <param name="forceDisableRtc">force disable rtc, if present</param>
+	/// <param name="rtcStartTime">rtc start time to set, if present</param>
 	/// <returns>opaque state pointer</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial nint mgba_create(ReadOnlySpan<byte> romData, int romLength, ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc);
+	public static partial nint mgba_create(ReadOnlySpan<byte> romData, int romLength,
+		ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc, long rtcStartTime);
 
 	/// <param name="core">opaque state pointer</param>
 	[LibraryImport("mgba")]
@@ -60,12 +62,12 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="buttons">input for this frame</param>
 	/// <param name="videoBuf">240x160 ARGB32 (native endian) video frame buffer</param>
-	/// <param name="soundBuf">buffer with at least 1024 stereo samples (2048 16-bit integers)</param>
+	/// <param name="soundBuf">buffer with at least 8192 stereo samples (16384 16-bit integers)</param>
 	/// <param name="samples">number of stereo samples produced (double this to get 16-bit integer count)</param>
 	/// <param name="cpuCycles">number of cpu cycles advanced</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_advance(nint core, Buttons buttons, [Out] uint[] videoBuf, [Out] short[] soundBuf, out uint samples, out uint cpuCycles);
+	public static partial void mgba_advance(nint core, Buttons buttons, Span<uint> videoBuf, Span<short> soundBuf, out uint samples, out uint cpuCycles);
 
 	/// <summary>
 	/// Reset to initial state.
@@ -80,29 +82,31 @@ internal static partial class MGBA
 	/// Get persistant cart memory.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
-	/// <param name="dest">byte buffer to write into. mgba_getsavedatalength() bytes will be written</param>
+	/// <param name="dest">byte buffer to write into.</param>
+	/// <returns>length in bytes. 0 means no internal persistant cart memory (or not yet detected)</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_savesavedata(nint core, Span<byte> dest);
+	public static partial int mgba_savesavedata(nint core, Span<byte> dest);
 
 	/// <summary>
-	/// restore persistant cart memory.
+	/// Restore persistant cart memory.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
-	/// <param name="data">byte buffer to read from. mgba_getsavedatalength() bytes will be read</param>
+	/// <param name="data">byte buffer to read from.</param>
+	/// <param name="size">size of data</param>
+	/// <param name="rtcStartTime">rtc start time to set</param>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_loadsavedata(nint core, ReadOnlySpan<byte> data);
+	public static partial void mgba_loadsavedata(nint core, ReadOnlySpan<byte> data, int size, long rtcStartTime);
 
 	/// <summary>
-	/// get the size of the persistant cart memory block. this value DEPENDS ON THE PARTICULAR CART LOADED
-	/// NOTE: mgba will dynamically detect save type, so this may shrink in the first few frames. maximum size will be 0x20000 + 16 bytes
+	/// Gets the current RTC time.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
-	/// <returns>length in bytes. 0 means no internal persistant cart memory</returns>
+	/// <returns>current rtc time as unix timestamp</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int mgba_getsavedatalength(nint core);
+	public static partial long mgba_getrtctime(nint core);
 
 	/// <summary>
 	/// Calculates the savestate length. Must be called every time before making a savestate!
@@ -130,11 +134,12 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <param name="size">size of savestate buffer</param>
+	/// <param name="rtcTime">rtc time to set (if not found in state)</param>
 	/// <returns>success</returns>
 	[LibraryImport("mgba")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size);
+	public static partial bool mgba_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size, long rtcTime);
 
 	/// <summary>
 	/// memory blocks that mgba_getmemoryblock() can return
