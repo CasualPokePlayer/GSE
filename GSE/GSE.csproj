@@ -73,6 +73,8 @@
 		<NativeLibrary Include="shell32.lib" />
 		<NativeLibrary Include="winmm.lib" />
 		<NativeLibrary Include="setupapi.lib" />
+		<!-- Needed for mGBA -->
+		<NativeLibrary Include="shlwapi.lib" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_OSX)' == 'true'">
 		<!-- More SDL linking madness -->
