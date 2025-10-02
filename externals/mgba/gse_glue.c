@@ -454,22 +454,22 @@ GSE_EXPORT void mgba_getmemoryblock(GSE_ctx* ctx, enum MemoryBlock which, void**
 // TODO: Remove this eventually (this is only needed due to localtime_r / mktime usage within the core, which use user timezones!)
 
 #ifdef _WIN32
-__declspec(dllexport) errno_t _localtime64_s(struct tm* tm, const __time64_t* time)
+GSE_EXPORT errno_t _localtime64_s(struct tm* tm, const __time64_t* time)
 {
 	return _gmtime64_s(tm, time);
 }
 
-__declspec(dllexport) __time64_t _mktime64(struct tm* tm)
+GSE_EXPORT __time64_t _mktime64(struct tm* tm)
 {
 	return _mkgmtime64(tm);
 }
 
-__declspec(dllexport) errno_t _localtime32_s(struct tm* tm, const __time32_t* time)
+GSE_EXPORT errno_t _localtime32_s(struct tm* tm, const __time32_t* time)
 {
 	return _gmtime32_s(tm, time);
 }
 
-__declspec(dllexport) __time32_t _mktime32(struct tm* tm)
+GSE_EXPORT __time32_t _mktime32(struct tm* tm)
 {
 	return _mkgmtime32(tm);
 }
