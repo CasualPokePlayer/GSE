@@ -22,6 +22,11 @@ namespace GSE.Input;
 
 public sealed class InputManager : IDisposable
 {
+	// This fake "+" symbol is used to distinguish against +s from input combos
+	// However, this won't necessarily display correctly
+	// So it's converted back to a normal + on deserialization
+	private const char POSITIVE_CHAR = '＋';
+
 	private readonly Thread _inputThread;
 	private readonly ManualResetEventSlim _inputThreadInitFinished = new();
 	private readonly ManualResetEventSlim _inputThreadThrottleEnd = new();
@@ -174,7 +179,7 @@ public sealed class InputManager : IDisposable
 
 	private static string ConvertToSeralizableLabel(in InputEvent e)
 	{
-		return e.ScanCode.HasValue ? $"SC {(byte)e.ScanCode.Value}" : e.InputName;
+		return e.ScanCode.HasValue ? $"SC {(byte)e.ScanCode.Value}" : e.InputName.Replace('+', POSITIVE_CHAR);
 	}
 
 	private InputBinding DeserializeSingleInputBinding(string serializationLabel)
@@ -191,7 +196,7 @@ public sealed class InputManager : IDisposable
 		else if (serializationLabel.StartsWith("JS", StringComparison.Ordinal))
 		{
 			// hard to really check if this is valid, we'll just assume it is at this point
-			return new(serializationLabel, null, serializationLabel);
+			return new(serializationLabel, null, serializationLabel.Replace(POSITIVE_CHAR, '+'));
 		}
 
 		return null;
@@ -202,6 +207,12 @@ public sealed class InputManager : IDisposable
 	/// </summary>
 	public InputBinding DeserializeInputBinding(string serializationLabel)
 	{
+		// Old (v0.1) configs are faulty and contain +s for positive joystick inputs
+		// Fix them up here (converting them to "normal" serialized labels without +)
+		serializationLabel = serializationLabel.Replace("X+", $"X{POSITIVE_CHAR}");
+		serializationLabel = serializationLabel.Replace("Y+", $"Y{POSITIVE_CHAR}");
+		serializationLabel = serializationLabel.Replace(" +", $" {POSITIVE_CHAR}");
+
 		var serializationLabels = serializationLabel.Split("+", 2, StringSplitOptions.RemoveEmptyEntries);
 		switch (serializationLabels.Length)
 		{
