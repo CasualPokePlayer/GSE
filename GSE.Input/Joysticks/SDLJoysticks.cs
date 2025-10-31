@@ -18,6 +18,10 @@ internal sealed class SDLJoysticks : IDisposable
 	{
 		SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
+#if GSE_WINDOWS
+		SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "1");
+		SDL_SetHint("SDL_HIDAPI_LIBUSB_WHITELIST", "0");
+#endif
 	}
 
 	public SDLJoysticks(bool enableDirectInput)
@@ -62,14 +66,25 @@ internal sealed class SDLJoysticks : IDisposable
 	private void AddJoyDevice(int deviceIndex)
 	{
 		var instanceId = SDL_JoystickGetDeviceInstanceID(deviceIndex);
-		if (!Joysticks.ContainsKey(instanceId))
+		if (instanceId == -1)
+		{
+			Console.WriteLine($"Failed to obtain instance ID for device index {deviceIndex}, ignoring add device event");
+		}
+		else if (!Joysticks.ContainsKey(instanceId))
 		{
 			var joystick = SDL_IsGameController(deviceIndex) == SDL_bool.SDL_TRUE
 				? new SDL2GameController(deviceIndex)
 				: new SDL2Joystick(deviceIndex);
-			Joysticks.Add(joystick.InstanceID, joystick);
-
-			Console.WriteLine($"Connected SDL joystick, device index {deviceIndex}, instance ID {joystick.InstanceID}, name {joystick.DeviceName}");
+			if (joystick.InstanceID == -1)
+			{
+				joystick.Dispose();
+				Console.WriteLine($"Failed to connect SDL joystick at device index {deviceIndex}");
+			}
+			else
+			{
+				Joysticks.Add(joystick.InstanceID, joystick);
+				Console.WriteLine($"Connected SDL joystick, device index {deviceIndex}, instance ID {joystick.InstanceID}, name {joystick.DeviceName}");
+			}
 		}
 		else
 		{
@@ -85,6 +100,8 @@ internal sealed class SDLJoysticks : IDisposable
 		{
 			joystick.Dispose();
 			Joysticks.Remove(deviceInstanceId);
+
+			Console.WriteLine($"Removed SDL joystick with instance ID {deviceInstanceId}");
 		}
 		else
 		{
