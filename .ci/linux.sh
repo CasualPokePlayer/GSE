@@ -6,10 +6,10 @@
 # Install some base tools
 apt-get install -y wget lsb-release software-properties-common gpg ninja-build pkg-config
 
-# Install clang 18
+# Install clang 21
 wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
 chmod +x $HOME/llvm.sh
-$HOME/llvm.sh 18
+$HOME/llvm.sh 21
 
 if [ $TARGET_RID != "linux-arm" ]; then
 	# Enable backports packages
@@ -94,8 +94,8 @@ CMakeNinjaBuild() {
 	cd build_$1_static_$TARGET_RID
 	cmake ../../externals/$1 \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_COMPILER=clang-18 \
-		-DCMAKE_CXX_COMPILER=clang++-18 \
+		-DCMAKE_C_COMPILER=clang-21 \
+		-DCMAKE_CXX_COMPILER=clang++-21 \
 		$EXTRA_CMAKE_ARGS \
 		-G Ninja \
 		-DGSE_SHARED=OFF
@@ -117,4 +117,4 @@ export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-18 -p:LinkerFlavor=lld-18 -p:ObjCopyName=llvm-objcopy-18
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-21 -p:LinkerFlavor=lld-21 -p:ObjCopyName=llvm-objcopy-21

@@ -23,11 +23,12 @@
 		<TargetName>libGSE</TargetName>
 	</PropertyGroup>
 	<ItemGroup>
+		<!-- ImGui.NET needs to remain pinned here until https://github.com/ImGuiNET/ImGui.NET/issues/509 is fixed -->
 		<PackageReference Include="ImGui.NET" Version="1.91.0.1" ExcludeAssets="native" />
-		<PackageReference Include="SharpCompress" Version="0.39.0" />
-		<PackageReference Include="System.IO.Hashing" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all" />
-		<PackageReference Include="GitInfo" Version="3.5.0" PrivateAssets="all" />
+		<PackageReference Include="SharpCompress" Version="0.41.0" />
+		<PackageReference Include="System.IO.Hashing" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.238" PrivateAssets="all" />
+		<PackageReference Include="GitInfo" Version="3.6.0" PrivateAssets="all" />
 		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Audio/GSE.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Emu/GSE.Emu.csproj" />

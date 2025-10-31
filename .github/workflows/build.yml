@@ -32,7 +32,7 @@ jobs:
           rid: win-x86
           msvc_arch: x64_x86
         - name: macos-universal
-          runner: macos-14
+          runner: macos-latest
           shell: sh
           build_script: ./macos.sh
           rid: macos-universal
