@@ -6,7 +6,7 @@
 apt-get install -y wget unzip openjdk-17-jdk-headless
 
 # Get Android Command Line Tools
-wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O $HOME/cmdline-tools.zip
+wget https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip -O $HOME/cmdline-tools.zip
 unzip $HOME/cmdline-tools.zip -d $HOME
 
 # Set ANDROID_HOME to somewhere known
@@ -19,12 +19,12 @@ mv $HOME/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 
 # Install Android SDK and NDK
 yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35"
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.2.12479018"
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.30.5"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-36"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.3.13750724"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.31.6"
 
-export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
-export PATH=$ANDROID_HOME/cmake/3.30.5/bin:$PATH
+export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.3.13750724"
+export PATH=$ANDROID_HOME/cmake/3.31.6/bin:$PATH
 
 # Build all externals
 cd ../externals/android
