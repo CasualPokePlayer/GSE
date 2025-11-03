@@ -25,6 +25,10 @@ using GSE.Android;
 using static GSE.Gui.CocoaHelper;
 #endif
 
+#if GSE_WINDOWS || GSE_OSX
+using static SDL3.SDL;
+#endif
+
 namespace GSE.Gui;
 
 /// <summary>
@@ -79,7 +83,7 @@ internal static class OpenFileDialog
 
 			fileDialog->SetFileTypeIndex(1);
 
-			fileDialog->Show(new(mainWindow.SdlSysWMInfo.info.win.window));
+			fileDialog->Show(new(SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0)));
 
 			IShellItem* result;
 			fileDialog->GetResult(&result);
@@ -116,7 +120,7 @@ internal static class OpenFileDialog
 	{
 		var fileTypesArray = fileTypes.Select(ft => ft[1..]).ToArray();
 		var path = cocoa_helper_show_open_file_dialog(
-			mainWindow: mainWindow.SdlSysWMInfo.info.cocoa.window,
+			mainWindow: SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0),
 			title: $"Open {description}",
 			baseDir: baseDir ?? AppContext.BaseDirectory,
 			fileTypes: fileTypesArray,

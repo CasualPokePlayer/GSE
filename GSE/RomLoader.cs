@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Immutable;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 using GSE.Emu.Controllers;

@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading;
 #endif
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 namespace GSE;
 

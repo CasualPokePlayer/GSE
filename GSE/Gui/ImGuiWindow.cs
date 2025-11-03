@@ -12,7 +12,7 @@ using System.Threading;
 
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 #if GSE_WINDOWS
 using Windows.Win32;
@@ -55,7 +55,7 @@ internal sealed class ImGuiWindow : IDisposable
 		[SDL_Keycode.SDLK_SPACE] = ImGuiKey.Space,
 		[SDL_Keycode.SDLK_RETURN] = ImGuiKey.Enter,
 		[SDL_Keycode.SDLK_ESCAPE] = ImGuiKey.Escape,
-		[SDL_Keycode.SDLK_QUOTE] = ImGuiKey.Apostrophe,
+		[SDL_Keycode.SDLK_APOSTROPHE] = ImGuiKey.Apostrophe,
 		[SDL_Keycode.SDLK_COMMA] = ImGuiKey.Comma,
 		[SDL_Keycode.SDLK_MINUS] = ImGuiKey.Minus,
 		[SDL_Keycode.SDLK_PERIOD] = ImGuiKey.Period,
@@ -65,7 +65,7 @@ internal sealed class ImGuiWindow : IDisposable
 		[SDL_Keycode.SDLK_LEFTBRACKET] = ImGuiKey.LeftBracket,
 		[SDL_Keycode.SDLK_BACKSLASH] = ImGuiKey.Backslash,
 		[SDL_Keycode.SDLK_RIGHTBRACKET] = ImGuiKey.RightBracket,
-		[SDL_Keycode.SDLK_BACKQUOTE] = ImGuiKey.GraveAccent,
+		[SDL_Keycode.SDLK_GRAVE] = ImGuiKey.GraveAccent,
 		[SDL_Keycode.SDLK_CAPSLOCK] = ImGuiKey.CapsLock,
 		[SDL_Keycode.SDLK_SCROLLLOCK] = ImGuiKey.ScrollLock,
 		[SDL_Keycode.SDLK_NUMLOCKCLEAR] = ImGuiKey.NumLock,
@@ -107,32 +107,32 @@ internal sealed class ImGuiWindow : IDisposable
 		[SDL_Keycode.SDLK_7] = ImGuiKey._7,
 		[SDL_Keycode.SDLK_8] = ImGuiKey._8,
 		[SDL_Keycode.SDLK_9] = ImGuiKey._9,
-		[SDL_Keycode.SDLK_a] = ImGuiKey.A,
-		[SDL_Keycode.SDLK_b] = ImGuiKey.B,
-		[SDL_Keycode.SDLK_c] = ImGuiKey.C,
-		[SDL_Keycode.SDLK_d] = ImGuiKey.D,
-		[SDL_Keycode.SDLK_e] = ImGuiKey.E,
-		[SDL_Keycode.SDLK_f] = ImGuiKey.F,
-		[SDL_Keycode.SDLK_g] = ImGuiKey.G,
-		[SDL_Keycode.SDLK_h] = ImGuiKey.H,
-		[SDL_Keycode.SDLK_i] = ImGuiKey.I,
-		[SDL_Keycode.SDLK_j] = ImGuiKey.J,
-		[SDL_Keycode.SDLK_k] = ImGuiKey.K,
-		[SDL_Keycode.SDLK_l] = ImGuiKey.L,
-		[SDL_Keycode.SDLK_m] = ImGuiKey.M,
-		[SDL_Keycode.SDLK_n] = ImGuiKey.N,
-		[SDL_Keycode.SDLK_o] = ImGuiKey.O,
-		[SDL_Keycode.SDLK_p] = ImGuiKey.P,
-		[SDL_Keycode.SDLK_q] = ImGuiKey.Q,
-		[SDL_Keycode.SDLK_r] = ImGuiKey.R,
-		[SDL_Keycode.SDLK_s] = ImGuiKey.S,
-		[SDL_Keycode.SDLK_t] = ImGuiKey.T,
-		[SDL_Keycode.SDLK_u] = ImGuiKey.U,
-		[SDL_Keycode.SDLK_v] = ImGuiKey.V,
-		[SDL_Keycode.SDLK_w] = ImGuiKey.W,
-		[SDL_Keycode.SDLK_x] = ImGuiKey.X,
-		[SDL_Keycode.SDLK_y] = ImGuiKey.Y,
-		[SDL_Keycode.SDLK_z] = ImGuiKey.Z,
+		[SDL_Keycode.SDLK_A] = ImGuiKey.A,
+		[SDL_Keycode.SDLK_B] = ImGuiKey.B,
+		[SDL_Keycode.SDLK_C] = ImGuiKey.C,
+		[SDL_Keycode.SDLK_D] = ImGuiKey.D,
+		[SDL_Keycode.SDLK_E] = ImGuiKey.E,
+		[SDL_Keycode.SDLK_F] = ImGuiKey.F,
+		[SDL_Keycode.SDLK_G] = ImGuiKey.G,
+		[SDL_Keycode.SDLK_H] = ImGuiKey.H,
+		[SDL_Keycode.SDLK_I] = ImGuiKey.I,
+		[SDL_Keycode.SDLK_J] = ImGuiKey.J,
+		[SDL_Keycode.SDLK_K] = ImGuiKey.K,
+		[SDL_Keycode.SDLK_L] = ImGuiKey.L,
+		[SDL_Keycode.SDLK_M] = ImGuiKey.M,
+		[SDL_Keycode.SDLK_N] = ImGuiKey.N,
+		[SDL_Keycode.SDLK_O] = ImGuiKey.O,
+		[SDL_Keycode.SDLK_P] = ImGuiKey.P,
+		[SDL_Keycode.SDLK_Q] = ImGuiKey.Q,
+		[SDL_Keycode.SDLK_R] = ImGuiKey.R,
+		[SDL_Keycode.SDLK_S] = ImGuiKey.S,
+		[SDL_Keycode.SDLK_T] = ImGuiKey.T,
+		[SDL_Keycode.SDLK_U] = ImGuiKey.U,
+		[SDL_Keycode.SDLK_V] = ImGuiKey.V,
+		[SDL_Keycode.SDLK_W] = ImGuiKey.W,
+		[SDL_Keycode.SDLK_X] = ImGuiKey.X,
+		[SDL_Keycode.SDLK_Y] = ImGuiKey.Y,
+		[SDL_Keycode.SDLK_Z] = ImGuiKey.Z,
 		[SDL_Keycode.SDLK_F1] = ImGuiKey.F1,
 		[SDL_Keycode.SDLK_F2] = ImGuiKey.F2,
 		[SDL_Keycode.SDLK_F3] = ImGuiKey.F3,
@@ -167,21 +167,19 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 		SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
-		SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-		SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1"); // FIXME: add missing SDL hint constants
+		SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "0");
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
-		SDL_SetHint("SDL_ENABLE_SCREEN_KEYBOARD", "0");
-		SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
+		SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
 
-		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
-		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
-		_sdlCursors[(int)ImGuiMouseCursor.ResizeAll] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL);
-		_sdlCursors[(int)ImGuiMouseCursor.ResizeNS] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS);
-		_sdlCursors[(int)ImGuiMouseCursor.ResizeEW] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
-		_sdlCursors[(int)ImGuiMouseCursor.ResizeNESW] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
-		_sdlCursors[(int)ImGuiMouseCursor.ResizeNWSE] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
-		_sdlCursors[(int)ImGuiMouseCursor.Hand] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND);
-		_sdlCursors[(int)ImGuiMouseCursor.NotAllowed] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
+		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_DEFAULT);
+		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_TEXT);
+		_sdlCursors[(int)ImGuiMouseCursor.ResizeAll] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_MOVE);
+		_sdlCursors[(int)ImGuiMouseCursor.ResizeNS] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NS_RESIZE);
+		_sdlCursors[(int)ImGuiMouseCursor.ResizeEW] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_EW_RESIZE);
+		_sdlCursors[(int)ImGuiMouseCursor.ResizeNESW] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NESW_RESIZE);
+		_sdlCursors[(int)ImGuiMouseCursor.ResizeNWSE] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NWSE_RESIZE);
+		_sdlCursors[(int)ImGuiMouseCursor.Hand] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_POINTER);
+		_sdlCursors[(int)ImGuiMouseCursor.NotAllowed] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NOT_ALLOWED);
 
 		using var notoSansMono = typeof(ImGuiWindow).Assembly
 			.GetManifestResourceStream($"GSE.res.NotoSansMono-Medium.ttf")!;
@@ -200,8 +198,9 @@ internal sealed class ImGuiWindow : IDisposable
 	public readonly uint WindowId;
 
 	public readonly SDLRenderer SdlRenderer;
+	private SDL_FColor[] _sdlColorBuffer = [];
 
-	public readonly SDL_SysWMinfo SdlSysWMInfo;
+	public readonly uint SdlWindowProperties;
 
 	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
 	public bool IsFullscreen { get; private set; }
@@ -220,28 +219,39 @@ internal sealed class ImGuiWindow : IDisposable
 	private static nint GetClipboardText(nint userdata)
 	{
 		var window = (ImGuiWindow)GCHandle.FromIntPtr(userdata).Target!;
-		SDL_free(window.ClipboardText);
-		window.ClipboardText = INTERNAL_SDL_GetClipboardText();
+		Marshal.FreeCoTaskMem(window.ClipboardText);
+		window.ClipboardText = Marshal.StringToCoTaskMemUTF8(SDL_GetClipboardText());
 		return window.ClipboardText;
 	}
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
-	private static unsafe void SetClipboardText(nint userdata, nint text)
+	private static void SetClipboardText(nint userdata, nint text)
 	{
-		_ = INTERNAL_SDL_SetClipboardText((byte*)text);
+		SDL_SetClipboardText(Marshal.PtrToStringUTF8(text));
 	}
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
-	private static unsafe void PlatformSetImeData(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+	private static unsafe void PlatformSetImeData(nint imGuiContext, ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 	{
-		if (data->WantVisible != 0)
+		if (viewport->PlatformUserData == null)
+		{
+			return;
+		}
+
+		var window = (ImGuiWindow)GCHandle.FromIntPtr((nint)viewport->PlatformUserData).Target!;
+		if (data->WantVisible == 0)
+		{
+			SDL_StopTextInput(window.SdlWindow);
+		}
+		else
 		{
 			SDL_Rect rect;
 			rect.x = (int)data->InputPos.X;
 			rect.y = (int)data->InputPos.Y;
 			rect.w = 1;
 			rect.h = (int)data->InputLineHeight;
-			SDL_SetTextInputRect(ref rect);
+			SDL_SetTextInputArea(window.SdlWindow, ref rect, 0);
+			SDL_StartTextInput(window.SdlWindow);
 		}
 	}
 
@@ -256,8 +266,8 @@ internal sealed class ImGuiWindow : IDisposable
 		["metal"] = "Metal",
 		["opengl"] = "OpenGL 2.1",
 		["opengles2"] = "OpenGL ES 2.0",
-		["opengles"] = "OpenGL ES 1.1",
-		["directfb"] = "DirectFB",
+		["gpu"] = "SDL3 GPU",
+		["vulkan"] = "Vulkan",
 		["software"] = "Software",
 	}.ToFrozenDictionary();
 
@@ -268,122 +278,74 @@ internal sealed class ImGuiWindow : IDisposable
 	public static readonly Lazy<ImmutableArray<string>> RenderDrivers = new(() =>
 	{
 		// we don't really need to check renderer feature support here, as SDL is quite generous with fallbacks
-		// in case vsync is not supported, vsync will be "simulated"
+		// in case vsync is not supported (e.g. software rendering), vsync will be "simulated"
 		// if a texture format isn't natively supported, SDL will internally do conversions to the closest supported native format
-		// target texture is almost always supported, although its support should be checked at runtime
-		// (mainly as it's only conditionally supported on some drivers)
 		var renderDrivers = new string[SDL_GetNumRenderDrivers()];
 		for (var i = 0; i < renderDrivers.Length; i++)
 		{
-			SDL_GetRenderDriverInfo(i, out var info);
-			renderDrivers[i] = UTF8_ToManaged(info.name);
+			renderDrivers[i] = SDL_GetRenderDriver(i);
 		}
 
 		return [..renderDrivers];
 	});
 
-	private static nint CreateSdlRenderer(nint sdlWindow, Config config, SDL_RendererFlags rendererFlags)
+	private static nint CreateSdlRenderer(nint sdlWindow, Config config)
 	{
-		var renderDriver = config.RenderDriver;
-		var index = -1;
+		var friendlyRenderDriverName = RenderDriverFriendlyNameMap.GetValueOrDefault(config.RenderDriver, config.RenderDriver);
 		if (config.RenderDriver != DEFAULT_RENDER_DRIVER)
 		{
 			var renderDrivers = RenderDrivers.Value;
-			for (index = 0; index < renderDrivers.Length; index++)
-			{
-				if (renderDrivers[index] == renderDriver)
-				{
-					break;
-				}
-			}
-
-			renderDriver = RenderDriverFriendlyNameMap.GetValueOrDefault(renderDriver, renderDriver);
-			if (index == renderDrivers.Length)
+			if (!renderDrivers.Contains(config.RenderDriver))
 			{
 				_ = SDL_ShowSimpleMessageBox(
 					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
 					title: "Warning",
-					message: $"{renderDriver} was not in list of available render drivers, falling back on default render driver.",
+					message: $"{friendlyRenderDriverName} was not in list of available render drivers, falling back on default render driver.",
 					window: sdlWindow
 				);
 
 				config.RenderDriver = DEFAULT_RENDER_DRIVER;
-				index = -1;
 			}
 		}
 
+		var defaultRenderDriverFailed = false;
 		while (true)
 		{
-			var sdlRenderer = SDL_CreateRenderer(sdlWindow, index, rendererFlags);
+			var renderDriver = config.RenderDriver == DEFAULT_RENDER_DRIVER ? null : config.RenderDriver;
+			var sdlRenderer = SDL_CreateRenderer(sdlWindow, renderDriver);
 			if (sdlRenderer == 0)
 			{
-				if (index != -1)
+				if (renderDriver != null)
 				{
+					if (renderDriver == SOFTWARE_RENDER_DRIVER && defaultRenderDriverFailed)
+					{
+						// failed to create the default render driver and software renderer, somehow
+						return 0;
+					}
+
 					_ = SDL_ShowSimpleMessageBox(
 						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
 						title: "Warning",
-						message: $"{renderDriver} render driver could not be created, falling back on default render driver.",
+						message: $"{friendlyRenderDriverName} render driver could not be created, falling back on default render driver.",
 						window: sdlWindow
 					);
 
-					index = -1;
 					config.RenderDriver = DEFAULT_RENDER_DRIVER;
-					continue;
 				}
-
-				if ((rendererFlags & SDL_RendererFlags.SDL_RENDERER_ACCELERATED) != 0)
+				else
 				{
 					_ = SDL_ShowSimpleMessageBox(
 						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
 						title: "Warning",
-						message: "Default accelerated render driver could not be created, falling back on software render driver.",
+						message: "Default render driver could not be created, falling back on software render driver.",
 						window: sdlWindow
 					);
 
-					rendererFlags &= ~SDL_RendererFlags.SDL_RENDERER_ACCELERATED;
-					rendererFlags |= SDL_RendererFlags.SDL_RENDERER_SOFTWARE;
 					config.RenderDriver = SOFTWARE_RENDER_DRIVER;
-					continue;
+					defaultRenderDriverFailed = true;
 				}
 
-				// failed to create software renderer?
-				return 0;
-			}
-
-			// check if render targets are supported (only truly knowable when the renderer is actually created)
-			if (SDL_RenderTargetSupported(sdlRenderer) == SDL_bool.SDL_FALSE)
-			{
-				if (index != -1)
-				{
-					_ = SDL_ShowSimpleMessageBox(
-						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-						title: "Warning",
-						message: $"{renderDriver} render driver does not support render targets, falling back on default render driver.",
-						window: sdlWindow
-					);
-
-					index = -1;
-					config.RenderDriver = DEFAULT_RENDER_DRIVER;
-					continue;
-				}
-
-				if ((rendererFlags & SDL_RendererFlags.SDL_RENDERER_ACCELERATED) != 0)
-				{
-					_ = SDL_ShowSimpleMessageBox(
-						flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-						title: "Warning",
-						message: "Default accelerated render driver does not support render targets, falling back on software render driver.",
-						window: sdlWindow
-					);
-
-					rendererFlags &= ~SDL_RendererFlags.SDL_RENDERER_ACCELERATED;
-					rendererFlags |= SDL_RendererFlags.SDL_RENDERER_SOFTWARE;
-					config.RenderDriver = SOFTWARE_RENDER_DRIVER;
-					continue;
-				}
-
-				// software renderer doesn't support render targets? this should not happen in practice
-				return 0;
+				continue;
 			}
 
 			return sdlRenderer;
@@ -392,7 +354,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private float GetDpiScale()
 	{
-		SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
+		SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
 		SDL_GetWindowSize(SdlWindow, out var w, out var h);
 		return Math.Max(displayW / (float)w, displayH / (float)h);
 	}
@@ -439,15 +401,15 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public ImGuiWindow(string windowName, Config config)
 	{
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+		if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS))
 		{
 			throw new($"Could not init SDL video! SDL error: {SDL_GetError()}");
 		}
 
 		try
 		{
-			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
-			SdlWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 64, 64, windowFlags);
+			const SDL_WindowFlags windowFlags = SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WindowFlags.SDL_WINDOW_HIDDEN;
+			SdlWindow = SDL_CreateWindow(windowName, 64, 64, windowFlags);
 			if (SdlWindow == 0)
 			{
 				throw new($"Could not create SDL window! SDL error: {SDL_GetError()}");
@@ -455,26 +417,17 @@ internal sealed class ImGuiWindow : IDisposable
 
 			WindowId = SDL_GetWindowID(SdlWindow);
 
-			const SDL_RendererFlags rendererFlags = SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL_RendererFlags.SDL_RENDERER_TARGETTEXTURE;
-			var sdlRenderer = CreateSdlRenderer(SdlWindow, config, rendererFlags);
+			var sdlRenderer = CreateSdlRenderer(SdlWindow, config);
 			if (sdlRenderer == 0)
 			{
 				throw new($"Could not create SDL renderer! SDL error: {SDL_GetError()}");
 			}
 
 			SdlRenderer = new(sdlRenderer);
-			_fontSdlTexture = new(SdlRenderer, SDL_PIXELFORMAT_ABGR8888,
-				SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_BLEND, SetFontTexture);
+			_fontSdlTexture = new(SdlRenderer, SDL_PixelFormat.SDL_PIXELFORMAT_ABGR8888,
+				SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, SDL_ScaleMode.SDL_SCALEMODE_LINEAR, SDL_BLENDMODE_BLEND, SetFontTexture);
 
-			// we obtain WM info after creating a renderer
-			// as creating a renderer may need to re-create the window
-			// (OpenGL on Windows at least does this)
-			SdlSysWMInfo = default;
-			SDL_GetVersion(out SdlSysWMInfo.version);
-			if (SDL_GetWindowWMInfo(SdlWindow, ref SdlSysWMInfo) == SDL_bool.SDL_FALSE)
-			{
-				throw new($"Failed to obtain SDL window info! SDL error: {SDL_GetError()}");
-			}
+			SdlWindowProperties = SDL_GetWindowProperties(SdlWindow);
 
 #if GSE_WINDOWS
 			// disable the window icon
@@ -513,12 +466,15 @@ internal sealed class ImGuiWindow : IDisposable
 			io.BackendRendererUserData = io.BackendPlatformUserData;
 			io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors | ImGuiBackendFlags.HasSetMousePos | ImGuiBackendFlags.RendererHasVtxOffset;
 
+			var mainViewport = ImGui.GetMainViewport();
+			mainViewport.PlatformUserData = io.BackendPlatformUserData;
+
 			unsafe
 			{
 				io.ClipboardUserData = io.BackendPlatformUserData;
 				io.GetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint>)&GetClipboardText;
 				io.SetClipboardTextFn = (nint)(delegate* unmanaged[Cdecl]<nint, nint, void>)&SetClipboardText;
-				io.PlatformSetImeDataFn = (nint)(delegate* unmanaged[Cdecl]<ImGuiViewport*, ImGuiPlatformImeData*, void>)&PlatformSetImeData;
+				io.PlatformSetImeDataFn = (nint)(delegate* unmanaged[Cdecl]<nint, ImGuiViewport*, ImGuiPlatformImeData*, void>)&PlatformSetImeData;
 			}
 
 			_dpiScale = GetDpiScale();
@@ -574,6 +530,9 @@ internal sealed class ImGuiWindow : IDisposable
 			io.BackendRendererUserData = 0;
 			io.ClipboardUserData = 0;
 
+			var mainViewport = ImGui.GetMainViewport();
+			mainViewport.PlatformUserData = 0;
+
 			ImGui.DestroyContext(_imGuiContext);
 		}
 
@@ -582,7 +541,7 @@ internal sealed class ImGuiWindow : IDisposable
 			_imGuiUserData.Free();
 		}
 
-		SDL_free(ClipboardText);
+		Marshal.FreeCoTaskMem(ClipboardText);
 
 		_fontSdlTexture?.Dispose();
 		SdlRenderer?.Dispose();
@@ -591,7 +550,7 @@ internal sealed class ImGuiWindow : IDisposable
 		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763) &&
 		    !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
 		{
-			var hwnd = SdlSysWMInfo.info.win.window;
+			var hwnd = SDL_GetPointerProperty(SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0);
 			if (hwnd != 0)
 			{
 				unsafe
@@ -607,13 +566,13 @@ internal sealed class ImGuiWindow : IDisposable
 
 		SDL_DestroyWindow(SdlWindow);
 
-		SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS);
 	}
 
 	public void ToggleFullscreen()
 	{
 		// TODO: how should failure be handled?
-		if (SDL_SetWindowFullscreen(SdlWindow, IsFullscreen ? 0 : (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
+		if (!SDL_SetWindowFullscreen(SdlWindow, !IsFullscreen))
 		{
 			return;
 		}
@@ -639,9 +598,9 @@ internal sealed class ImGuiWindow : IDisposable
 	{
 		var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(config.HideSgbBorder);
 		var numBars = config.HideStatusBar ? 1 : 2;
-		if (config.HideMenuBarOnUnpause
-		    && emuManager.EmuAcceptingInputs
-		    && config.HotkeyBindings.PauseButtonBindings.Count != 0)
+		if (config.HideMenuBarOnUnpause &&
+		    emuManager.EmuAcceptingInputs &&
+		    config.HotkeyBindings.PauseButtonBindings.Count != 0)
 		{
 			numBars--;
 		}
@@ -662,7 +621,7 @@ internal sealed class ImGuiWindow : IDisposable
 			h += (int)(ImGui.GetFrameHeight() * bars);
 			// we want to adjust our width/height to match up against the renderer output
 			// as imgui coords go against the dpi scaled size, not the window size
-			SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
+			SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
 			SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
 			w = w * lastWindowWidth / displayW;
 			h = h * lastWindowHeight / displayH;
@@ -677,12 +636,12 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public void SetAlwaysOnTop(bool alwaysOnTop)
 	{
-		SDL_SetWindowAlwaysOnTop(SdlWindow, alwaysOnTop ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
+		SDL_SetWindowAlwaysOnTop(SdlWindow, alwaysOnTop);
 	}
 
 	public void SetResizable(bool resizable)
 	{
-		SDL_SetWindowResizable(SdlWindow, resizable ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
+		SDL_SetWindowResizable(SdlWindow, resizable);
 	}
 
 	public void SetVisible(bool makeVisible)
@@ -705,14 +664,15 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			unsafe
 			{
+				var hwnd = SDL_GetPointerProperty(SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0);
 				var cornerPref = doNotRound ? DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND : DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DEFAULT;
-				_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
+				_ = PInvoke.DwmSetWindowAttribute(new(hwnd), DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPref, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
 			}
 
 			// don't know if this is needed, but if it's like the title bar, it probably is
 			if (!IsFullscreen)
 			{
-				var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+				var windowFlags = SDL_GetWindowFlags(SdlWindow);
 				if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
 				    (windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) == 0)
 				{
@@ -725,7 +685,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private void SetWindowIconEnabled(bool enable)
 	{
-		var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+		var hwnd = SDL_GetPointerProperty(SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0);
+		var curStyle = (WINDOW_EX_STYLE)PInvoke.GetWindowLong(new(hwnd), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
 		if (enable)
 		{
 			curStyle &= ~WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
@@ -736,12 +697,12 @@ internal sealed class ImGuiWindow : IDisposable
 			curStyle |= WINDOW_EX_STYLE.WS_EX_DLGMODALFRAME;
 		}
 
-		_ = PInvoke.SetWindowLong(new(SdlSysWMInfo.info.win.window), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
-		_ = PInvoke.SetWindowPos(new(SdlSysWMInfo.info.win.window), HWND.HWND_TOP, 0, 0, 0, 0,
+		_ = PInvoke.SetWindowLong(new(hwnd), WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (int)curStyle);
+		_ = PInvoke.SetWindowPos(new(hwnd), HWND.HWND_TOP, 0, 0, 0, 0,
 			SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
 		unsafe
 		{
-			_ = PInvoke.RedrawWindow(new(SdlSysWMInfo.info.win.window), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
+			_ = PInvoke.RedrawWindow(new(hwnd), null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE | REDRAW_WINDOW_FLAGS.RDW_FRAME);
 		}
 	}
 
@@ -754,11 +715,12 @@ internal sealed class ImGuiWindow : IDisposable
 		{
 			unsafe
 			{
+				var hwnd = SDL_GetPointerProperty(SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0);
 				BOOL darkTitleBar = dark;
 				if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18985))
 				{
 					// windows 10 20H1 and above has the same documented dark mode api
-					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, &darkTitleBar, (uint)sizeof(BOOL));
+					_ = PInvoke.DwmSetWindowAttribute(new(hwnd), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, &darkTitleBar, (uint)sizeof(BOOL));
 				}
 				else
 				{
@@ -767,17 +729,17 @@ internal sealed class ImGuiWindow : IDisposable
 					{
 						fixed (char* useImmersiveDarkModeColors = "UseImmersiveDarkModeColors")
 						{
-							_ = PInvoke.SetProp(new(SdlSysWMInfo.info.win.window), useImmersiveDarkModeColors, new(darkTitleBar));
+							_ = PInvoke.SetProp(new(hwnd), useImmersiveDarkModeColors, new(darkTitleBar));
 						}
 					}
 
 					// before windows 10 20H1 the DWMWA_USE_IMMERSIVE_DARK_MODE flag was -1 the final value
-					_ = PInvoke.DwmSetWindowAttribute(new(SdlSysWMInfo.info.win.window), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkTitleBar, (uint)sizeof(BOOL));
+					_ = PInvoke.DwmSetWindowAttribute(new(hwnd), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &darkTitleBar, (uint)sizeof(BOOL));
 				}
 
 				if (!IsFullscreen)
 				{
-					var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+					var windowFlags = SDL_GetWindowFlags(SdlWindow);
 					if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_HIDDEN) == 0 &&
 					    (windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) == 0)
 					{
@@ -819,18 +781,18 @@ internal sealed class ImGuiWindow : IDisposable
 		var xScale = io.DisplayFramebufferScale.X < 0.01 ? 1 : io.DisplayFramebufferScale.X;
 		var yScale = io.DisplayFramebufferScale.Y < 0.01 ? 1 : io.DisplayFramebufferScale.Y;
 		// ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-		switch (e.type)
+		switch ((SDL_EventType)e.type)
 		{
-			case SDL_EventType.SDL_MOUSEMOTION:
+			case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
 				io.AddMouseSourceEvent(e.motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
 				io.AddMousePosEvent(e.motion.x * xScale, e.motion.y * yScale);
 				break;
-			case SDL_EventType.SDL_MOUSEWHEEL:
+			case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
 				io.AddMouseSourceEvent(e.wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
-				io.AddMouseWheelEvent(e.wheel.preciseX, e.wheel.preciseY);
+				io.AddMouseWheelEvent(e.wheel.x, e.wheel.y);
 				break;
-			case SDL_EventType.SDL_MOUSEBUTTONDOWN:
-			case SDL_EventType.SDL_MOUSEBUTTONUP:
+			case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
 			{
 				var mouseButton = (uint)e.button.button switch
 				{
@@ -848,7 +810,7 @@ internal sealed class ImGuiWindow : IDisposable
 				}
 
 				io.AddMouseSourceEvent(e.button.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
-				if (e.type == SDL_EventType.SDL_MOUSEBUTTONDOWN)
+				if ((SDL_EventType)e.type == SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN)
 				{
 					io.AddMouseButtonEvent(mouseButton, true);
 					_mouseButtonsDown |= 1u << mouseButton;
@@ -861,51 +823,39 @@ internal sealed class ImGuiWindow : IDisposable
 
 				break;
 			}
-			case SDL_EventType.SDL_TEXTINPUT:
+			case SDL_EventType.SDL_EVENT_TEXT_INPUT:
 				unsafe
 				{
-					fixed (byte* text = e.text.text)
-					{
-						ImGuiNative.ImGuiIO_AddInputCharactersUTF8(io.NativePtr, text);
-					}
+					ImGuiNative.ImGuiIO_AddInputCharactersUTF8(io.NativePtr, e.text.text);
 					break;
 				}
-			case SDL_EventType.SDL_KEYDOWN:
-			case SDL_EventType.SDL_KEYUP:
+			case SDL_EventType.SDL_EVENT_KEY_DOWN:
+			case SDL_EventType.SDL_EVENT_KEY_UP:
 			{
-				if (SuppressEscape && e.key.keysym.sym == SDL_Keycode.SDLK_ESCAPE)
+				if (SuppressEscape && (SDL_Keycode)e.key.key == SDL_Keycode.SDLK_ESCAPE)
 				{
 					break;
 				}
 
-				var mods = e.key.keysym.mod;
-				io.AddKeyEvent(ImGuiKey.ModCtrl, (mods & SDL_Keymod.KMOD_CTRL) != 0);
-				io.AddKeyEvent(ImGuiKey.ModShift, (mods & SDL_Keymod.KMOD_SHIFT) != 0);
-				io.AddKeyEvent(ImGuiKey.ModAlt, (mods & SDL_Keymod.KMOD_ALT) != 0);
-				io.AddKeyEvent(ImGuiKey.ModSuper, (mods & SDL_Keymod.KMOD_GUI) != 0);
+				var mods = e.key.mod;
+				io.AddKeyEvent(ImGuiKey.ModCtrl, (mods & SDL_Keymod.SDL_KMOD_CTRL) != 0);
+				io.AddKeyEvent(ImGuiKey.ModShift, (mods & SDL_Keymod.SDL_KMOD_SHIFT) != 0);
+				io.AddKeyEvent(ImGuiKey.ModAlt, (mods & SDL_Keymod.SDL_KMOD_ALT) != 0);
+				io.AddKeyEvent(ImGuiKey.ModSuper, (mods & SDL_Keymod.SDL_KMOD_GUI) != 0);
 
-				var key = _imGuiMap.GetValueOrDefault(e.key.keysym.sym, ImGuiKey.None);
-				io.AddKeyEvent(key, e.type == SDL_EventType.SDL_KEYDOWN);
-				io.SetKeyEventNativeData(key, (int)e.key.keysym.sym, (int)e.key.keysym.scancode, (int)e.key.keysym.scancode);
+				var key = _imGuiMap.GetValueOrDefault((SDL_Keycode)e.key.key, ImGuiKey.None);
+				io.AddKeyEvent(key, (SDL_EventType)e.type == SDL_EventType.SDL_EVENT_KEY_DOWN);
+				io.SetKeyEventNativeData(key, (int)e.key.key, (int)e.key.scancode, (int)e.key.scancode);
 				break;
 			}
-			case SDL_EventType.SDL_WINDOWEVENT:
-			{
-				// ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-				switch (e.window.windowEvent)
-				{
-					case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-					case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-						_mouseLeavePending = e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_ENTER ? 0 : 2;
-						break;
-					case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-					case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-						io.AddFocusEvent(e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED);
-						break;
-				}
-
+			case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER:
+			case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE:
+				_mouseLeavePending = (SDL_EventType)e.type == SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER ? 0 : 2;
 				break;
-			}
+			case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
+			case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+				io.AddFocusEvent((SDL_EventType)e.type == SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED);
+				break;
 		}
 	}
 
@@ -953,13 +903,13 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 		SDL_GetWindowSize(SdlWindow, out var w, out var h);
-		var windowFlags = (SDL_WindowFlags)SDL_GetWindowFlags(SdlWindow);
+		var windowFlags = SDL_GetWindowFlags(SdlWindow);
 		if ((windowFlags & SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
 		{
 			w = h = 0;
 		}
 
-		SdlRenderer.GetRendererOutputSize(out var displayW, out var displayH);
+		SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{
@@ -984,7 +934,7 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 		}
 
-		var mouseCaptureSupported = SDL_CaptureMouse(_mouseButtonsDown != 0 ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE) == 0;
+		var mouseCaptureSupported = SDL_CaptureMouse(_mouseButtonsDown != 0);
 		var windowFocused = mouseCaptureSupported
 			? SDL_GetKeyboardFocus() == SdlWindow
 			: (windowFlags & SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) != 0;
@@ -1008,7 +958,7 @@ internal sealed class ImGuiWindow : IDisposable
 		var imGuiMouseCursor = ImGui.GetMouseCursor();
 		if (io.MouseDrawCursor || imGuiMouseCursor == ImGuiMouseCursor.None)
 		{
-			_ = SDL_ShowCursor(0);
+			_ = SDL_HideCursor();
 		}
 		else
 		{
@@ -1024,7 +974,7 @@ internal sealed class ImGuiWindow : IDisposable
 				_lastMouseCursor = sdlCursor;
 			}
 
-			_ = SDL_ShowCursor(1);
+			_ = SDL_ShowCursor();
 		}
 
 		ImGui.NewFrame();
@@ -1043,23 +993,45 @@ internal sealed class ImGuiWindow : IDisposable
 		public SDLSaveRenderStateWrapper(SDLRenderer sdlRenderer)
 		{
 			_sdlRenderer = sdlRenderer;
-			_clipEnabled = _sdlRenderer.RenderIsClipEnabled();
-			_sdlRenderer.RenderGetViewport(out _viewport);
-			_sdlRenderer.RenderGetClipRect(out _clipRect);
+			_clipEnabled = _sdlRenderer.RenderClipEnabled();
+			_sdlRenderer.GetRenderViewport(out _viewport);
+			_sdlRenderer.GetRenderClipRect(out _clipRect);
 		}
 
 		public void Dispose()
 		{
-			_sdlRenderer.RenderSetViewport(ref _viewport);
+			_sdlRenderer.SetRenderViewport(ref _viewport);
 			if (_clipEnabled)
 			{
-				_sdlRenderer.RenderSetClipRect(ref _clipRect);
+				_sdlRenderer.SetRenderClipRect(ref _clipRect);
 			}
 			else
 			{
-				_sdlRenderer.RenderSetClipRect(ref Unsafe.NullRef<SDL_Rect>());
+				_sdlRenderer.SetRenderClipRect(ref Unsafe.NullRef<SDL_Rect>());
 			}
 		}
+	}
+
+	// annoying conversion that needs to be done for SDL3's SDL_Renderer
+	private ReadOnlySpan<SDL_FColor> ConvertColors(ReadOnlySpan<ImDrawVert> verts)
+	{
+		if (_sdlColorBuffer.Length < verts.Length)
+		{
+			_sdlColorBuffer = new SDL_FColor[verts.Length];
+		}
+
+		for (var i = 0; i < verts.Length; i++)
+		{
+			var packedColor = verts[i].col;
+			SDL_FColor color;
+			color.r = (packedColor & 0xFF) / 255.0f;
+			color.g = ((packedColor >> 8) & 0xFF) / 255.0f;
+			color.b = ((packedColor >> 16) & 0xFF) / 255.0f;
+			color.a = ((packedColor >> 24) & 0xFF) / 255.0f;
+			_sdlColorBuffer[i] = color;
+		}
+
+		return _sdlColorBuffer.AsSpan(0, verts.Length);
 	}
 
 	public void Render(bool vsync)
@@ -1082,8 +1054,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 		using (new SDLSaveRenderStateWrapper(SdlRenderer))
 		{
-			SdlRenderer.RenderSetViewport(ref Unsafe.NullRef<SDL_Rect>());
-			SdlRenderer.RenderSetClipRect(ref Unsafe.NullRef<SDL_Rect>());
+			SdlRenderer.SetRenderViewport(ref Unsafe.NullRef<SDL_Rect>());
+			SdlRenderer.SetRenderClipRect(ref Unsafe.NullRef<SDL_Rect>());
 
 			var clipOff = drawData.DisplayPos;
 			for (var i = 0; i < drawData.CmdListsCount; i++)
@@ -1114,31 +1086,35 @@ internal sealed class ImGuiWindow : IDisposable
 						w = (int)(clipMax.X - clipMin.X),
 						h = (int)(clipMax.Y - clipMin.Y)
 					};
-					SdlRenderer.RenderSetClipRect(ref r);
+					SdlRenderer.SetRenderClipRect(ref r);
 
 					unsafe
 					{
 						var vtx = (ImDrawVert*)(vtxBuffer + cmd.VtxOffset * sizeof(ImDrawVert));
+						var colors = ConvertColors(new(vtx, (int)(cmdList.VtxBuffer.Size - cmd.VtxOffset)));
 						var texId = cmd.GetTexID();
-						SdlRenderer.RenderGeometryRaw(
-							textureId: texId,
-							xy: (nint)(&vtx->pos),
-							xy_stride: sizeof(ImDrawVert),
-							color: (nint)(&vtx->col),
-							color_stride: sizeof(ImDrawVert),
-							uv: (nint)(&vtx->uv),
-							uv_stride: sizeof(ImDrawVert),
-							num_vertices: (int)(cmdList.VtxBuffer.Size - cmd.VtxOffset),
-							indices: (nint)((nuint)idxBuffer + cmd.IdxOffset * sizeof(ushort)),
-							num_indices: (int)cmd.ElemCount,
-							size_indices: sizeof(ushort)
-						);
+						fixed (SDL_FColor* colorsPtr = colors)
+						{
+							SdlRenderer.RenderGeometryRaw(
+								textureId: texId,
+								xy: (nint)(&vtx->pos),
+								xy_stride: sizeof(ImDrawVert),
+								color: (nint)colorsPtr,
+								color_stride: sizeof(SDL_FColor),
+								uv: (nint)(&vtx->uv),
+								uv_stride: sizeof(ImDrawVert),
+								num_vertices: (int)(cmdList.VtxBuffer.Size - cmd.VtxOffset),
+								indices: (nint)((nuint)idxBuffer + cmd.IdxOffset * sizeof(ushort)),
+								num_indices: (int)cmd.ElemCount,
+								size_indices: sizeof(ushort)
+							);
+						}
 					}
 				}
 			}
 		}
 
-		SdlRenderer.SetVSync(vsync);
+		SdlRenderer.SetRenderVSync(vsync);
 		SdlRenderer.RenderPresent();
 	}
 }

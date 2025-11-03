@@ -3,7 +3,7 @@
 
 using System;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 
@@ -23,12 +23,12 @@ public enum ScalingFilter
 /// </summary>
 internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRenderer sdlRenderer) : IDisposable
 {
-	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _firstScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeLinear, SDL_BlendMode.SDL_BLENDMODE_NONE);
-	private readonly SDLTexture _secondScaledTexture = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _emuTexture = new(sdlRenderer, SDL_PixelFormat.SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_SCALEMODE_NEAREST, SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _firstScaledTexture = new(sdlRenderer, SDL_PixelFormat.SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_SCALEMODE_LINEAR, SDL_BLENDMODE_NONE);
+	private readonly SDLTexture _secondScaledTexture = new(sdlRenderer, SDL_PixelFormat.SDL_PIXELFORMAT_ARGB8888,
+		SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, SDL_ScaleMode.SDL_SCALEMODE_NEAREST, SDL_BLENDMODE_NONE);
 
 	private (bool KeepAspectRatio, ScalingFilter VideoFilter) _lastFrameConfig;
 	private (int Width, int Height) _lastEmuTextureDimensions;
@@ -63,7 +63,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		}
 	}
 
-	private void RenderTexture(SDLTexture src, SDLTexture dst, ref SDL_Rect srcRect, ref SDL_Rect dstRect, bool clear)
+	private void RenderTexture(SDLTexture src, SDLTexture dst, in SDL_Rect srcRect, in SDL_Rect dstRect, bool clear)
 	{
 		using (new SDLSetRenderTargetWrapper(sdlRenderer, dst))
 		{
@@ -74,7 +74,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 				sdlRenderer.RenderClear();
 			}
 
-			sdlRenderer.RenderCopy(src, ref srcRect, ref dstRect);
+			sdlRenderer.RenderTexture(src, in srcRect, in dstRect);
 
 			// we want to remember this for the OSD overlay
 			_lastRenderOffset = (dstRect.x, dstRect.y);
@@ -174,7 +174,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 		var needsClear = dstTex.Width != dstWidth || dstTex.Height != dstHeight;
 		dstTex.SetVideoDimensions(dstWidth, dstHeight);
 
-		RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
+		RenderTexture(srcTex, dstTex, in srcRect, in dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
 
 		if (config.OutputFilter != ScalingFilter.NearestNeighbor)
 		{
@@ -192,7 +192,7 @@ internal sealed class PostProcessor(Config config, EmuManager emuManager, SDLRen
 				dstTex = _secondScaledTexture;
 				needsClear = dstTex.Width != finalWidth || dstTex.Height != finalHeight;
 				dstTex.SetVideoDimensions(finalWidth, finalHeight);
-				RenderTexture(srcTex, dstTex, ref srcRect, ref dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
+				RenderTexture(srcTex, dstTex, in srcRect, in dstRect, needsClear || configChanged || emuTextureDimensionsChanged);
 			}
 		}
 

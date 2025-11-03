@@ -11,7 +11,7 @@ CMakeNinjaBuild() {
 }
 
 CMakeNinjaBuild cimgui
-CMakeNinjaBuild SDL2
+CMakeNinjaBuild SDL3
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
 CMakeNinjaBuild native_helper

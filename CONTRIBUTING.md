@@ -50,7 +50,7 @@ Once all C/C++ libraries are compiled, you can fire up your favorite IDE and sta
 - Use tabs rather than spaces for indentation.
 - Use "Allman" style braces.
 - For `using` namespace statements, place `System.*` first, then third-party namespaces (e.g. ImGui.NET), then finally internal (`GSE.*`) namespaces.
-	- For SDL2, prefer `using static SDL2.SDL`.
+	- For SDL3, prefer `using static SDL3.SDL`.
 - Prefer var over explicit types whenever possible.
 
 ## Copyright/Licensing

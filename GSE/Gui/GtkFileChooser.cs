@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 namespace GSE.Gui;
 

@@ -12,7 +12,7 @@ using DiscordRPC;
 #endif
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 
@@ -51,8 +51,8 @@ internal sealed class OSDManager : IDisposable
 	{
 		_config = config;
 		_emuManager = emuManager;
-		_statePreview = new(sdlRenderer, SDL_PIXELFORMAT_ARGB8888,
-			SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_ScaleModeNearest, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+		_statePreview = new(sdlRenderer, SDL_PixelFormat.SDL_PIXELFORMAT_ARGB8888,
+			SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, SDL_ScaleMode.SDL_SCALEMODE_NEAREST, SDL_BLENDMODE_BLEND);
 #if !GSE_ANDROID
 		try
 		{

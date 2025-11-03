@@ -12,7 +12,7 @@ using System.Linq;
 
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 #if GSE_ANDROID
 using GSE.Android;
@@ -609,13 +609,21 @@ internal sealed class ImGuiModals
 				}
 			}
 
-			if (SDL_GetCurrentDisplayMode(0, out var displayMode) != 0)
+			int displayWidth, displayHeight;
+			unsafe
 			{
-				throw new($"Failed to get display mode for window, SDL error: {SDL_GetError()}");
+				var displayMode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
+				if (displayMode == null)
+				{
+					throw new($"Failed to get display mode for window, SDL error: {SDL_GetError()}");
+				}
+
+				displayWidth = displayMode->w;
+				displayHeight = displayMode->h;
 			}
 
 			var (emuWidth, emuHeight) = _emuManager.GetVideoDimensions(_config.HideSgbBorder);
-			var maxWindowScale = Math.Min(displayMode.w / emuWidth, displayMode.h / emuHeight);
+			var maxWindowScale = Math.Min(displayWidth / emuWidth, displayHeight / emuHeight);
 			maxWindowScale = Math.Clamp(maxWindowScale, 1, _windowScalingOptions.Length);
 
 			if (!_config.AllowManualResizing && maxWindowScale < _config.WindowScale)

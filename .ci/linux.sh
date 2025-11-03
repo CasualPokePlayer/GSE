@@ -26,13 +26,14 @@ fi
 if [ $TARGET_RID = "linux-x64" ]; then
 	# Nothing special needed here
 	export EXTRA_CMAKE_ARGS=""
-	# Install SDL2 dependencies
-	apt-get install -y libasound2-dev libpulse-dev libaudio-dev libjack-jackd2-dev libsamplerate0-dev \
-		libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
-		libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+	# Install SDL3 dependencies
+	apt-get install -y gnome-desktop-testing libasound2-dev libpulse-dev \
+		libaudio-dev libfribidi-dev libjack-jackd2-dev libsndio-dev libx11-dev \
+		libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
+		libxtst-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
 		libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev \
-		fcitx-libs-dev libudev-dev libusb-1.0-0-dev pkg-config
-	# More SDL2 dependencies only under backports
+		fcitx-libs-dev libudev-dev libusb-1.0-0-dev liburing-dev pkg-config
+	# More SDL3 dependencies only under backports
 	apt-get install -y libdecor-0-dev/bullseye-backports libpipewire-0.3-dev/bullseye-backports
 	# Install .NET AOT dependencies
 	apt-get install -y zlib1g-dev
@@ -48,13 +49,14 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	# Enable ARM64 packages
 	dpkg --add-architecture arm64
 	apt-get update
-	# Install SDL2 dependencies
-	apt-get install -y libasound2-dev:arm64 libpulse-dev:arm64 libaudio-dev:arm64 libjack-jackd2-dev:arm64 libsamplerate0-dev:arm64 \
-		libx11-dev:arm64 libxext-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxfixes-dev:arm64 libxi-dev:arm64 \
-		libxss-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64 libdrm-dev:arm64 libgbm-dev:arm64 libgl1-mesa-dev:arm64 \
+	# Install SDL3 dependencies
+	apt-get install -y gnome-desktop-testing:arm64 libasound2-dev:arm64 libpulse-dev:arm64 libaudio-dev:arm64 \
+		libfribidi-dev:arm64 libjack-jackd2-dev:arm64 libsndio-dev:arm64 libx11-dev:arm64 libxext-dev:arm64 \
+		libxrandr-dev:arm64 libxcursor-dev:arm64 libxfixes-dev:arm64 libxi-dev:arm64 libxss-dev:arm64 libxtst-dev:arm64 \
+		libwayland-dev:arm64 libxkbcommon-dev:arm64 libdrm-dev:arm64 libgbm-dev:arm64 libgl1-mesa-dev:arm64 \
 		libgles2-mesa-dev:arm64 libegl1-mesa-dev:arm64 libdbus-1-dev:arm64 libibus-1.0-dev:arm64 \
-		fcitx-libs-dev:arm64 libudev-dev:arm64 libusb-1.0-0-dev:arm64
-	# More SDL2 dependencies only under backports
+		fcitx-libs-dev:arm64 libudev-dev:arm64 libusb-1.0-0-dev:arm64 liburing-dev:arm64
+	# More SDL3 dependencies only under backports
 	apt-get install -y libdecor-0-dev:arm64/bullseye-backports libpipewire-0.3-dev:arm64/bullseye-backports
 	# Install .NET AOT dependencies
 	apt-get install -y zlib1g-dev:arm64
@@ -76,12 +78,13 @@ elif [ $TARGET_RID = "linux-arm" ]; then
 	sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
 	dpkg --add-architecture armhf
 	apt-get update
-	# Install SDL2 dependencies
-	apt-get install -y libasound2-dev:armhf libpulse-dev:armhf libaudio-dev:armhf libjack-jackd2-dev:armhf libsamplerate0-dev:armhf \
-		libx11-dev:armhf libxext-dev:armhf libxrandr-dev:armhf libxcursor-dev:armhf libxfixes-dev:armhf libxi-dev:armhf \
-		libxss-dev:armhf libwayland-dev:armhf libxkbcommon-dev:armhf libdrm-dev:armhf libgbm-dev:armhf libgl1-mesa-dev:armhf \
-		libgles2-mesa-dev:armhf libegl1-mesa-dev:armhf libdbus-1-dev:armhf libibus-1.0-dev:armhf \
-		fcitx-libs-dev:armhf libudev-dev:armhf libusb-1.0-0-dev:armhf libdecor-0-dev:armhf libpipewire-0.3-dev:armhf
+	# Install SDL3 dependencies
+	apt-get install -y gnome-desktop-testing:armhf libasound2-dev:armhf libpulse-dev:armhf libaudio-dev:armhf \
+		libfribidi-dev:armhf libjack-jackd2-dev:armhf libsndio-dev:armhf libx11-dev:armhf libxext-dev:armhf \
+		libxrandr-dev:armhf libxcursor-dev:armhf libxfixes-dev:armhf libxi-dev:armhf libxss-dev:armhf libxtst-dev:armhf \
+		libwayland-dev:armhf libxkbcommon-dev:armhf libdrm-dev:armhf libgbm-dev:armhf libgl1-mesa-dev:armhf \
+		libgles2-mesa-dev:armhf libegl1-mesa-dev:armhf libdbus-1-dev:armhf libibus-1.0-dev:armhf fcitx-libs-dev:armhf \
+		libudev-dev:armhf libusb-1.0-0-dev:armhf liburing-dev:armhf libdecor-0-dev:armhf libpipewire-0.3-dev:armhf
 	# Install .NET AOT dependencies
 	apt-get install -y zlib1g-dev:armhf
 else
@@ -104,7 +107,7 @@ CMakeNinjaBuild() {
 }
 
 CMakeNinjaBuild cimgui
-CMakeNinjaBuild SDL2
+CMakeNinjaBuild SDL3
 CMakeNinjaBuild gambatte
 CMakeNinjaBuild mgba
 CMakeNinjaBuild native_helper

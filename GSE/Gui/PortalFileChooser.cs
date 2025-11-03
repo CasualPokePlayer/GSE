@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 namespace GSE.Gui;
 
@@ -294,13 +294,31 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_init_append(query, out var iter);
 
 			// set "parent window"
-			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
+			var parentWindowStr = string.Empty;
+			switch (SDL_GetCurrentVideoDriver())
 			{
-				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
-				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
-				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
-				_ => string.Empty,
-			};
+				case "x11":
+				{
+					var x11Window = SDL_GetNumberProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+					if (x11Window != 0)
+					{
+						parentWindowStr = $"x11:{x11Window:X}";
+					}
+
+					break;
+				}
+				case "wayland":
+				{
+					var exportHandle = SDL_GetStringProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING, null);
+					if (!string.IsNullOrEmpty(exportHandle))
+					{
+						parentWindowStr = $"wayland:{exportHandle}";
+					}
+
+					break;
+				}
+			}
+
 			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
 
 			// set title
@@ -342,13 +360,31 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_init_append(query, out var iter);
 
 			// set "parent window"
-			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
+			var parentWindowStr = string.Empty;
+			switch (SDL_GetCurrentVideoDriver())
 			{
-				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
-				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
-				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
-				_ => string.Empty,
-			};
+				case "x11":
+				{
+					var x11Window = SDL_GetNumberProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+					if (x11Window != 0)
+					{
+						parentWindowStr = $"x11:{x11Window:X}";
+					}
+
+					break;
+				}
+				case "wayland":
+				{
+					var exportHandle = SDL_GetStringProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING, null);
+					if (!string.IsNullOrEmpty(exportHandle))
+					{
+						parentWindowStr = $"wayland:{exportHandle}";
+					}
+
+					break;
+				}
+			}
+
 			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
 
 			// set title
@@ -394,13 +430,31 @@ internal sealed partial class PortalFileChooser : IDisposable
 			dbus_message_iter_init_append(query, out var iter);
 
 			// set "parent window"
-			var parentWindowStr = parentWindow.SdlSysWMInfo.subsystem switch
+			var parentWindowStr = string.Empty;
+			switch (SDL_GetCurrentVideoDriver())
 			{
-				SDL_SYSWM_TYPE.SDL_SYSWM_X11 => $"x11:{parentWindow.SdlSysWMInfo.info.x11.window:X}",
-				// wayland requires an "exported surface handle", something only implemented in SDL3, not SDL2
-				// SDL3 also has file dialogs, so upgrading to SDL3 would just mean throwing out this code anyways
-				_ => string.Empty,
-			};
+				case "x11":
+				{
+					var x11Window = SDL_GetNumberProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+					if (x11Window != 0)
+					{
+						parentWindowStr = $"x11:{x11Window:X}";
+					}
+
+					break;
+				}
+				case "wayland":
+				{
+					var exportHandle = SDL_GetStringProperty(parentWindow.SdlWindowProperties, SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING, null);
+					if (!string.IsNullOrEmpty(exportHandle))
+					{
+						parentWindowStr = $"wayland:{exportHandle}";
+					}
+
+					break;
+				}
+			}
+
 			EnsureSuccess(dbus_message_iter_append_basic_string(ref iter, DBusType.DBUS_TYPE_STRING, in parentWindowStr));
 
 			// set title

@@ -5,7 +5,7 @@ using System.IO;
 
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 
@@ -159,7 +159,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				if (ImGui.MenuItem("Quit"))
 				{
 					var e = default(SDL_Event);
-					e.type = SDL_EventType.SDL_QUIT;
+					e.type = (uint)SDL_EventType.SDL_EVENT_QUIT;
 					SDL_PushEvent(ref e);
 				}
 

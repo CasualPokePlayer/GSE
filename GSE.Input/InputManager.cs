@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-using static SDL2.SDL;
-
 #if GSE_WINDOWS
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -35,7 +33,7 @@ public sealed class InputManager : IDisposable
 	private volatile bool _disposing;
 	private volatile InputThreadException _inputThreadException;
 
-	private readonly SDL_SysWMinfo _mainWindowWmInfo;
+	private readonly uint _mainWindowProperties;
 	private volatile bool _enableDirectInput;
 
 	// These must be created/destroyed on the input thread!
@@ -52,7 +50,7 @@ public sealed class InputManager : IDisposable
 	{
 		try
 		{
-			_keyInput = KeyInputFactory.CreateKeyInput(in _mainWindowWmInfo);
+			_keyInput = KeyInputFactory.CreateKeyInput(_mainWindowProperties);
 			_sdlJoysticks = new(_enableDirectInput);
 
 			_inputThreadInitFinished.Set();
@@ -126,9 +124,9 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
-	public InputManager(in SDL_SysWMinfo mainWindowWmInfo, bool enableDirectInput)
+	public InputManager(uint mainWindowProperties, bool enableDirectInput)
 	{
-		_mainWindowWmInfo = mainWindowWmInfo;
+		_mainWindowProperties = mainWindowProperties;
 		_enableDirectInput = enableDirectInput;
 		_inputThread = new(InputThreadProc) { IsBackground = true, Name = "Input Thread" };
 		_inputThread.Start();
