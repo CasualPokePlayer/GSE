@@ -46,7 +46,7 @@ public sealed class AudioManager : IDisposable
 
 		fixed (short* sampleBufferPtr = sampleBuffer)
 		{
-			SDL_PutAudioStreamData(stream, (nint)sampleBufferPtr, sampleBuffer.Length);
+			SDL_PutAudioStreamData(stream, (nint)sampleBufferPtr, sampleBuffer.Length * 2);
 		}
 	}
 
