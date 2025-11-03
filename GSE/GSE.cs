@@ -291,15 +291,17 @@ internal sealed class GSE : IDisposable
 					_config.AudioDeviceName = _audioManager.AudioDeviceName;
 				}
 
+				// ReSharper disable once ConvertIfStatementToSwitchStatement
+				if (eventType is SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED or SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED)
+				{
+					_imGuiModals.AudioDeviceListChanged = true;
+					continue;
+				}
+
 				if (eventType == SDL_EventType.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED)
 				{
 					_audioManager.ResetAudioDeviceIfNeeded(e.adevice.which);
 					_config.AudioDeviceName = _audioManager.AudioDeviceName;
-				}
-
-				if (eventType is SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED or SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED)
-				{
-					_imGuiModals.AudioDeviceListChanged = true;
 					continue;
 				}
 
