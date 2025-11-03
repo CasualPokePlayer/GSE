@@ -2785,9 +2785,9 @@ public static unsafe partial class SDL
 		public fixed byte data[16];
 	}
 
-	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
+	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial void SDL_GUIDToString(SDL_GUID guid, string pszGUID, int cbGUID);
+	public static partial void SDL_GUIDToString(SDL_GUID guid, Span<byte> pszGUID, int cbGUID);
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]

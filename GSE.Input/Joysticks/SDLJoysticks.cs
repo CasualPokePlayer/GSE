@@ -19,10 +19,7 @@ internal sealed class SDLJoysticks : IDisposable
 	{
 		SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
-#if GSE_WINDOWS
 		SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "1");
-		SDL_SetHint(SDL_HINT_HIDAPI_LIBUSB_WHITELIST, "0");
-#endif
 	}
 
 	public SDLJoysticks(bool enableDirectInput)
