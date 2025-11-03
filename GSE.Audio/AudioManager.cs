@@ -34,7 +34,7 @@ public sealed class AudioManager : IDisposable
 	{
 		var manager = (AudioManager)GCHandle.FromIntPtr(userdata).Target!;
 		var samples = additionalAmount / 2;
-		var sampleBuffer = samples > 1024
+		var sampleBuffer = samples > 2048
 			? new short[samples]
 			: stackalloc short[samples];
 		var samplesRead = manager.OutputAudioBuffer.Read(sampleBuffer);
@@ -46,7 +46,7 @@ public sealed class AudioManager : IDisposable
 
 		fixed (short* sampleBufferPtr = sampleBuffer)
 		{
-			SDL_PutAudioStreamData(stream, (nint)sampleBufferPtr, sampleBuffer.Length * 2);
+			_ = SDL_PutAudioStreamData(stream, (nint)sampleBufferPtr, sampleBuffer.Length * 2);
 		}
 	}
 
@@ -194,7 +194,7 @@ public sealed class AudioManager : IDisposable
 		}
 
 		// the device sample frames isn't properly known until after the device is opened
-		if (!SDL_GetAudioDeviceFormat(_sdlAudioDeviceId, out _, out var deviceSampleBatchSize))
+		if (!SDL_GetAudioDeviceFormat(deviceId, out _, out var deviceSampleBatchSize))
 		{
 			// audio device probably disconnected at this point
 			// we'll handle that later, just give a dummy deviceSampleBatchSize for now
