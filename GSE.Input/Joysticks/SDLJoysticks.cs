@@ -20,8 +20,8 @@ internal sealed class SDLJoysticks : IDisposable
 		SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
 #if GSE_WINDOWS
-		//SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "1");
-		//SDL_SetHint(SDL_HINT_HIDAPI_LIBUSB_WHITELIST, "0");
+		SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "1");
+		SDL_SetHint(SDL_HINT_HIDAPI_LIBUSB_WHITELIST, "0");
 #endif
 	}
 
@@ -124,7 +124,7 @@ internal sealed class SDLJoysticks : IDisposable
 			var joystick = SDL_IsGamepad(instanceId)
 				? new SDL3Gamepad(instanceId)
 				: new SDL3Joystick(instanceId);
-			if (joystick.InstanceID == instanceId)
+			if (!joystick.IsValid)
 			{
 				joystick.Dispose();
 				Console.WriteLine($"Failed to connect SDL joystick with instance ID {instanceId}");
@@ -220,12 +220,14 @@ internal sealed class SDLJoysticks : IDisposable
 
 		public readonly uint InstanceID;
 		public string DeviceName { get; protected init; }
+		public bool IsValid { get; protected init; }
 
 		public SDL3Joystick(uint instanceId)
 		{
 			_opaque = SDL_OpenJoystick(instanceId);
 			InstanceID = instanceId;
 			DeviceName = SDL_GetJoystickName(_opaque);
+			IsValid |= _opaque != 0;
 			// index has to be set later
 		}
 
@@ -332,6 +334,7 @@ internal sealed class SDLJoysticks : IDisposable
 		{
 			_opaque = SDL_OpenGamepad(instanceId);
 			DeviceName = SDL_GetGamepadName(_opaque);
+			IsValid |= _opaque != 0;
 		}
 
 		public override void Dispose()
