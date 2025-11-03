@@ -132,7 +132,7 @@ internal sealed class SDLJoysticks : IDisposable
 			else
 			{
 				Joysticks.Add(joystick.InstanceID, joystick);
-				Console.WriteLine($"Connected SDL joystick, device index {instanceId}, instance ID {joystick.InstanceID}, name {joystick.DeviceName}");
+				Console.WriteLine($"Connected SDL joystick, instance ID {joystick.InstanceID}, name {joystick.DeviceName}");
 			}
 		}
 		else
