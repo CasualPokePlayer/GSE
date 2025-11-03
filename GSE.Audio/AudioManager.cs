@@ -319,7 +319,7 @@ public sealed class AudioManager : IDisposable
 				return;
 			}
 
-			if (_outputAudioFrequency != deviceSpec.freq || _outputAudioSampleBatchSize != _outputAudioFrequency)
+			if (_outputAudioFrequency != deviceSpec.freq || _outputAudioSampleBatchSize != deviceSampleBatchSize)
 			{
 				lock (_resamplerLock)
 				{
