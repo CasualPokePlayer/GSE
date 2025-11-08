@@ -299,7 +299,7 @@ public sealed class AudioManager : IDisposable
 	public void RecoverLostAudioDeviceIfNeeded(uint deviceIdLost)
 	{
 		// if the current device was lost, it's no longer valid, and must be reset with the default device (which never stops)
-		if (deviceIdLost == _sdlAudioDeviceId)
+		if (_sdlAudioDeviceId == deviceIdLost)
 		{
 			AudioDeviceName = null;
 			SetAudioDevice(DEFAULT_AUDIO_DEVICE);
@@ -315,7 +315,7 @@ public sealed class AudioManager : IDisposable
 			return SDL_GetAudioDeviceName(_sdlAudioDeviceId) == SDL_GetAudioDeviceName(deviceId);
 		}
 
-		return deviceId == _sdlAudioDeviceId;
+		return _sdlAudioDeviceId == deviceId;
 	}
 
 	/// <summary>
