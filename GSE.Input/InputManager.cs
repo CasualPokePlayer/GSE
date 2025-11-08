@@ -180,6 +180,38 @@ public sealed class InputManager : IDisposable
 		return e.ScanCode.HasValue ? $"SC {(byte)e.ScanCode.Value}" : e.InputName.Replace('+', POSITIVE_CHAR);
 	}
 
+	// migrating from v0.4 SDL2 inputs to newer SDL3 inputs
+	private static string MigrateJoystickSerializationLabel(string serializationLabel)
+	{
+		if (serializationLabel.EndsWith(" A", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" A", " South");
+		}
+
+		if (serializationLabel.EndsWith(" B", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" B", " East");
+		}
+
+		if (serializationLabel.EndsWith(" X", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" X", " West");
+		}
+
+		if (serializationLabel.EndsWith(" Y", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" Y", " North");
+		}
+
+		// ReSharper disable once ConvertIfStatementToReturnStatement
+		if (serializationLabel.EndsWith(" Misc", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" Misc", " Misc 1");
+		}
+
+		return serializationLabel;
+	}
+
 	private InputBinding DeserializeSingleInputBinding(string serializationLabel)
 	{
 		// scancode
@@ -193,6 +225,7 @@ public sealed class InputManager : IDisposable
 		// joystick
 		else if (serializationLabel.StartsWith("JS", StringComparison.Ordinal))
 		{
+			serializationLabel = MigrateJoystickSerializationLabel(serializationLabel);
 			// hard to really check if this is valid, we'll just assume it is at this point
 			return new(serializationLabel, null, serializationLabel.Replace(POSITIVE_CHAR, '+'));
 		}

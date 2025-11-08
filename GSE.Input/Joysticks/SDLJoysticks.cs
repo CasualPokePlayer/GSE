@@ -281,10 +281,10 @@ internal sealed class SDLJoysticks : IDisposable
 	{
 		private static readonly string[] _buttonStrings =
 		[
-			"A",
-			"B",
-			"X",
-			"Y",
+			"South",
+			"East",
+			"West",
+			"North",
 			"Back",
 			"Guide",
 			"Start",
@@ -296,12 +296,17 @@ internal sealed class SDLJoysticks : IDisposable
 			"Dpad Down",
 			"Dpad Left",
 			"Dpad Right",
-			"Misc",
+			"Misc 1",
 			"Paddle 1",
 			"Paddle 2",
 			"Paddle 3",
 			"Paddle 4",
 			"Touchpad",
+			"Misc 2",
+			"Misc 3",
+			"Misc 4",
+			"Misc 5",
+			"Misc 6",
 		];
 
 		private static readonly string[] _stickStrings =
