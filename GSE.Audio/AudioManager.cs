@@ -306,13 +306,25 @@ public sealed class AudioManager : IDisposable
 		}
 	}
 
+	private bool DeviceIdIsCurrent(uint deviceId)
+	{
+		if (AudioDeviceName == DEFAULT_AUDIO_DEVICE)
+		{
+			// default device makes this tricky, since it uses a logical device id rather than a physical device id
+			// as such, we have to match by name rather than by id
+			return SDL_GetAudioDeviceName(_sdlAudioDeviceId) == SDL_GetAudioDeviceName(deviceId);
+		}
+
+		return deviceId == _sdlAudioDeviceId;
+	}
+
 	/// <summary>
 	/// NOTE: CALLED ON GUI THREAD
 	/// </summary>
 	public void ResetAudioDeviceIfNeeded(uint deviceIdFormatChanged)
 	{
 		// if the current device format changed, we may need to reset some things
-		if (deviceIdFormatChanged == _sdlAudioDeviceId)
+		if (DeviceIdIsCurrent(deviceIdFormatChanged))
 		{
 			if (!SDL_GetAudioDeviceFormat(_sdlAudioDeviceId, out var deviceSpec, out var deviceSampleBatchSize))
 			{
