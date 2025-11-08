@@ -233,13 +233,8 @@ internal sealed class SDLJoysticks : IDisposable
 			SDL_CloseJoystick(_opaque);
 		}
 
-		public virtual void GetInputs(IList<JoystickInput> inputs)
+		public virtual void GetInputs(List<JoystickInput> inputs)
 		{
-			if (InputNamePrefix == null)
-			{
-				throw new("Joystick index was not set");
-			}
-
 			var numButtons = SDL_GetNumJoystickButtons(_opaque);
 			for (var i = 0; i < numButtons; i++)
 			{
@@ -323,7 +318,7 @@ internal sealed class SDLJoysticks : IDisposable
 			"Right Trigger",
 		];
 
-		/// <summary>SDL_GameController handle</summary>
+		/// <summary>SDL_Gamepad handle</summary>
 		private readonly nint _opaque;
 
 		public SDL3Gamepad(uint instanceId)
@@ -340,7 +335,7 @@ internal sealed class SDLJoysticks : IDisposable
 			base.Dispose();
 		}
 
-		public override void GetInputs(IList<JoystickInput> inputs)
+		public override void GetInputs(List<JoystickInput> inputs)
 		{
 			for (var i = 0; i < _buttonStrings.Length; i++)
 			{
