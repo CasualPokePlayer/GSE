@@ -238,7 +238,7 @@ internal sealed class GSE : IDisposable
 			var numEvents = SDL_PeepEvents(_sdlEvents, _sdlEvents.Length,
 				SDL_EventAction.SDL_GETEVENT, (uint)SDL_EventType.SDL_EVENT_QUIT, (uint)SDL_EventType.SDL_EVENT_MOUSE_WHEEL);
 			numEvents += SDL_PeepEvents(_sdlEvents.AsSpan(numEvents), _sdlEvents.Length - numEvents,
-				SDL_EventAction.SDL_GETEVENT, (uint)SDL_EventType.SDL_EVENT_DROP_FILE, (uint)SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED);
+				SDL_EventAction.SDL_GETEVENT, (uint)SDL_EventType.SDL_EVENT_DROP_FILE, (uint)SDL_EventType.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED);
 			if (numEvents == 0)
 			{
 				break;

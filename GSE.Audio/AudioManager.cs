@@ -175,6 +175,8 @@ public sealed class AudioManager : IDisposable
 					throw new($"Failed to obtain the default audio device format, SDL error: {SDL_GetError()}");
 				}
 
+				wantedAudioSpec.freq = deviceAudioSpec.freq;
+
 				deviceId = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
 				deviceName = DEFAULT_AUDIO_DEVICE;
 
