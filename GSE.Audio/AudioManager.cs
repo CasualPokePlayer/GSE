@@ -53,6 +53,7 @@ public sealed class AudioManager : IDisposable
 	private readonly object _resamplerLock = new();
 
 	private int _inputAudioFrequency;
+	private int _inputAudioSampleBatchSize; // in stereo samples, using output audio frequency
 	private int _outputAudioFrequency;
 	private int _outputAudioSampleBatchSize; // in stereo samples
 
@@ -211,6 +212,7 @@ public sealed class AudioManager : IDisposable
 		{
 			_outputAudioSampleBatchSize = deviceSampleBatchSize;
 			_outputAudioFrequency = wantedAudioSpec.freq;
+			_inputAudioSampleBatchSize = (int)Math.Ceiling(_outputAudioFrequency * 4389 / 262144.0);
 			_resampler?.Dispose();
 			_resampler = null;
 			_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
@@ -339,6 +341,7 @@ public sealed class AudioManager : IDisposable
 				{
 					_outputAudioSampleBatchSize = deviceSampleBatchSize;
 					_outputAudioFrequency = deviceSpec.freq;
+					_inputAudioSampleBatchSize = (int)Math.Ceiling(_outputAudioFrequency * 4389 / 262144.0);
 					_resampler?.Dispose();
 					_resampler = null;
 					_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
@@ -378,7 +381,9 @@ public sealed class AudioManager : IDisposable
 				// if we have > latency + 2.5 sample batches of the buffer used, we're likely out of sync, and thus need an audio buffer reset
 				// we have quite some tolerance here, latency should normally be balanced out by eventual audio callbacks
 				// 2.5 sample batches is chosen to avoid hopefully overzealous buffer resets
-				var toleratedBufferUsage = _latencyMs * _outputAudioFrequency * 2 / 1000 + _outputAudioSampleBatchSize * 5;
+				// Note: We'll enforce a lower limit of 1.5 input audio sample batches (in case that's higher than 2.5 output sample batches)
+				var toleratedExtraBufferUsage = Math.Max(_outputAudioSampleBatchSize * 5, _inputAudioSampleBatchSize * 3);
+				var toleratedBufferUsage = _latencyMs * _outputAudioFrequency * 2 / 1000 + toleratedExtraBufferUsage;
 				if (bufferUsed > toleratedBufferUsage)
 				{
 					Reset();
