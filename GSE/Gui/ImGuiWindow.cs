@@ -487,7 +487,7 @@ internal sealed class ImGuiWindow : IDisposable
 				scaleFactor = _dpiScale;
 			}
 
-#if GSE_ANDROID
+#if GSE_ANDROID && false
 			// Ugly hack around default scaling not be suitable on Android
 			// TODO: Probably want to do some heuristics based on screen size? (maybe GetDpiScale needs adjustments?)
 			_isOverridingScale = true;
