@@ -132,7 +132,6 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 	{
 		if (!SDL_SetRenderDrawColor(sdlRenderer, r, g, b, a))
 		{
-			// never can error due to device reset
 			throw new($"Failed to set render draw color, SDL error: {SDL_GetError()}");
 		}
 	}
@@ -141,7 +140,6 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 	{
 		if (!SDL_RenderClear(sdlRenderer))
 		{
-			// never can error due to device reset
 			throw new($"Failed to clear render target, SDL error: {SDL_GetError()}");
 		}
 	}
@@ -169,7 +167,7 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 
 	public bool RenderClipEnabled()
 	{
-		SDL_ClearError();
+		_ = SDL_ClearError();
 		var ret = SDL_RenderClipEnabled(sdlRenderer);
 		if (!ret)
 		{
@@ -185,57 +183,42 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 
 	public void GetRenderViewport(out SDL_Rect rect)
 	{
-		while (!SDL_GetRenderViewport(sdlRenderer, out rect))
+		if (!SDL_GetRenderViewport(sdlRenderer, out rect))
 		{
-			if (!CheckDeviceReset())
-			{
-				throw new($"Failed to get viewport, SDL error: {SDL_GetError()}");
-			}
+			throw new($"Failed to get viewport, SDL error: {SDL_GetError()}");
 		}
 	}
 
 	public void GetRenderClipRect(out SDL_Rect rect)
 	{
-		while (!SDL_GetRenderClipRect(sdlRenderer, out rect))
+		if (!SDL_GetRenderClipRect(sdlRenderer, out rect))
 		{
-			if (!CheckDeviceReset())
-			{
-				throw new($"Failed to get clip rect, SDL error: {SDL_GetError()}");
-			}
+			throw new($"Failed to get clip rect, SDL error: {SDL_GetError()}");
 		}
 	}
 
 	public void SetRenderViewport(ref SDL_Rect rect)
 	{
-		while (!SDL_SetRenderViewport(sdlRenderer, ref rect))
+		if (!SDL_SetRenderViewport(sdlRenderer, ref rect))
 		{
-			if (!CheckDeviceReset())
-			{
-				throw new($"Failed to set viewport, SDL error: {SDL_GetError()}");
-			}
+			throw new($"Failed to set viewport, SDL error: {SDL_GetError()}");
 		}
 	}
 
 	public void SetRenderClipRect(ref SDL_Rect rect)
 	{
-		while (!SDL_SetRenderClipRect(sdlRenderer, ref rect))
+		if (!SDL_SetRenderClipRect(sdlRenderer, ref rect))
 		{
-			if (!CheckDeviceReset())
-			{
-				throw new($"Failed to set clip rect, SDL error: {SDL_GetError()}");
-			}
+			throw new($"Failed to set clip rect, SDL error: {SDL_GetError()}");
 		}
 	}
 
 	public void RenderGeometryRaw(nint textureId, nint xy, int xy_stride, nint color, int color_stride, nint uv, int uv_stride, int num_vertices, nint indices, int num_indices, int size_indices)
 	{
 		var sdlTexture = textureId == 0 ? null : _textureIdMap[textureId];
-		while (!SDL_RenderGeometryRaw(sdlRenderer, sdlTexture?.GetNativeTexture() ?? 0, xy, xy_stride, color, color_stride, uv, uv_stride, num_vertices, indices, num_indices, size_indices))
+		if (!SDL_RenderGeometryRaw(sdlRenderer, sdlTexture?.GetNativeTexture() ?? 0, xy, xy_stride, color, color_stride, uv, uv_stride, num_vertices, indices, num_indices, size_indices))
 		{
-			if (!CheckDeviceReset())
-			{
-				throw new($"Failed to render raw geometry, SDL error: {SDL_GetError()}");
-			}
+			throw new($"Failed to render raw geometry, SDL error: {SDL_GetError()}");
 		}
 	}
 
@@ -244,12 +227,9 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 		if (_vsyncEnabled != vsync)
 		{
 			_vsyncEnabled = vsync;
-			while (!SDL_SetRenderVSync(sdlRenderer, vsync ? 1 : 0))
+			if (!SDL_SetRenderVSync(sdlRenderer, vsync ? 1 : 0))
 			{
-				if (!CheckDeviceReset())
-				{
-					throw new($"Failed to {(vsync ? "enable" : "disable")} VSync, SDL error: {SDL_GetError()}");
-				}
+				throw new($"Failed to {(vsync ? "enable" : "disable")} VSync, SDL error: {SDL_GetError()}");
 			}
 
 			// D3D9 changing vsync will trigger an SDL_EVENT_RENDER_TARGETS_RESET event
@@ -259,7 +239,11 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 
 	public void RenderPresent()
 	{
-		SDL_RenderPresent(sdlRenderer);
+		if (!SDL_RenderPresent(sdlRenderer))
+		{
+			throw new($"Failed to present, SDL error: {SDL_GetError()}");
+		}
+
 		// present is typically where SDL_EVENT_RENDER_DEVICE_RESET events occur, so make sure to check it here
 		_ = CheckDeviceReset();
 	}
