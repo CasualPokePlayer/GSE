@@ -354,9 +354,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private float GetDpiScale()
 	{
-		SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
-		SDL_GetWindowSize(SdlWindow, out var w, out var h);
-		return Math.Max(displayW / (float)w, displayH / (float)h);
+		return SDL_GetWindowDisplayScale(SdlWindow);
 	}
 
 	private void SetFontTexture()
@@ -621,7 +619,7 @@ internal sealed class ImGuiWindow : IDisposable
 			h += (int)(ImGui.GetFrameHeight() * bars);
 			// we want to adjust our width/height to match up against the renderer output
 			// as imgui coords go against the dpi scaled size, not the window size
-			SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
+			SdlRenderer.GetCurrentRenderOutputSize(out var displayW, out var displayH);
 			SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
 			w = w * lastWindowWidth / displayW;
 			h = h * lastWindowHeight / displayH;
@@ -909,7 +907,7 @@ internal sealed class ImGuiWindow : IDisposable
 			w = h = 0;
 		}
 
-		SdlRenderer.GetRenderOutputSize(out var displayW, out var displayH);
+		SdlRenderer.GetCurrentRenderOutputSize(out var displayW, out var displayH);
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{

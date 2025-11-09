@@ -157,9 +157,9 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 		}
 	}
 
-	public void GetRenderOutputSize(out int w, out int h)
+	public void GetCurrentRenderOutputSize(out int w, out int h)
 	{
-		if (!SDL_GetRenderOutputSize(sdlRenderer, out w, out h))
+		if (!SDL_GetCurrentRenderOutputSize(sdlRenderer, out w, out h))
 		{
 			throw new($"Failed to obtain renderer output size, SDL error: {SDL_GetError()}");
 		}
