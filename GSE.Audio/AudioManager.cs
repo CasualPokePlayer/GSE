@@ -24,7 +24,11 @@ public sealed class AudioManager : IDisposable
 	{
 		// aim for as low latency as possible here
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_RAW_STREAM, "1");
+#if !GSE_ANDROID
+		// note: aaudio picks the optimal buffer size automatically, don't attempt to override it there
+		// for other platforms, we'll want to do this, it'll be raised up the minimum (optimal) buffer size anyways
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "32");
+#endif
 	}
 
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
