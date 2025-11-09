@@ -30,10 +30,8 @@ public sealed class AudioManager : IDisposable
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "32");
 #endif
 #if GSE_ANDROID
-		// prefer OpenSL ES over aaudio on android? (has less issues usually)
-		//SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "openslES,aaudio");
-		// Low latency mode seems to have issues?
-		SDL_SetHint(SDL_HINT_ANDROID_LOW_LATENCY_AUDIO, "0");
+		// prefer OpenSL ES over aaudio on Android (has less issues usually)
+		SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "openslES,aaudio");
 #endif
 	}
 
