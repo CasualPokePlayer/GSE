@@ -29,6 +29,12 @@ public sealed class AudioManager : IDisposable
 		// for other platforms, we'll want to do this, it'll be raised up the minimum (optimal) buffer size anyways
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "32");
 #endif
+#if GSE_ANDROID
+		// prefer OpenSL ES over aaudio on android? (has less issues usually)
+		//SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "openslES,aaudio");
+		// Low latency mode seems to have issues?
+		SDL_SetHint(SDL_HINT_ANDROID_LOW_LATENCY_AUDIO, "0");
+#endif
 	}
 
 	private readonly AudioRingBuffer OutputAudioBuffer = new();
