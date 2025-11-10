@@ -5,6 +5,8 @@
 
 using System.Runtime.InteropServices;
 
+// ReSharper disable DefaultStructEqualityIsUsed.Global
+
 namespace GSE.Android.JNI;
 
 [StructLayout(LayoutKind.Sequential)]
