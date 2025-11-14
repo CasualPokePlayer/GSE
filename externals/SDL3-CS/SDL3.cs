@@ -896,10 +896,11 @@ public static unsafe partial class SDL
 		SDL_AUDIO_S32BE = 36896,
 		SDL_AUDIO_F32LE = 33056,
 		SDL_AUDIO_F32BE = 37152,
-		SDL_AUDIO_S16 = 32784,
-		SDL_AUDIO_S32 = 32800,
-		SDL_AUDIO_F32 = 33056,
 	}
+
+	public static readonly SDL_AudioFormat SDL_AUDIO_S16 = BitConverter.IsLittleEndian ? SDL_AudioFormat.SDL_AUDIO_S16LE : SDL_AudioFormat.SDL_AUDIO_S16BE;
+	public static readonly SDL_AudioFormat SDL_AUDIO_S32 = BitConverter.IsLittleEndian ? SDL_AudioFormat.SDL_AUDIO_S32LE : SDL_AudioFormat.SDL_AUDIO_S32BE;
+	public static readonly SDL_AudioFormat SDL_AUDIO_F32 = BitConverter.IsLittleEndian ? SDL_AudioFormat.SDL_AUDIO_F32LE : SDL_AudioFormat.SDL_AUDIO_F32BE;
 
 	public const uint SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = 0xFFFFFFFF;
 	public const uint SDL_AUDIO_DEVICE_DEFAULT_RECORDING  = 0xFFFFFFFE;

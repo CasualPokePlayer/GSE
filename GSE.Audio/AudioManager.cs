@@ -164,7 +164,7 @@ public sealed class AudioManager : IDisposable
 
 		var wantedAudioSpec = default(SDL_AudioSpec);
 		wantedAudioSpec.freq = deviceAudioSpec.freq; // try to use the device sample rate, so we can avoid a secondary resampling by SDL or whatever native api is used
-		wantedAudioSpec.format = BitConverter.IsLittleEndian ? SDL_AudioFormat.SDL_AUDIO_S16LE : SDL_AudioFormat.SDL_AUDIO_S16BE;
+		wantedAudioSpec.format = SDL_AUDIO_S16;
 		wantedAudioSpec.channels = 2;
 
 		var audioDeviceStream = SDL_OpenAudioDeviceStream(
@@ -204,17 +204,26 @@ public sealed class AudioManager : IDisposable
 			}
 		}
 
-		// the device sample frames isn't properly known until after the device is opened
-		if (!SDL_GetAudioDeviceFormat(deviceId, out _, out var deviceSampleBatchSize))
-		{
-			// audio device probably disconnected at this point
-			// we'll handle that later, just give a dummy deviceSampleBatchSize for now
-			deviceSampleBatchSize = 512;
-		}
-
 		_sdlAudioDeviceId = SDL_GetAudioStreamDevice(audioDeviceStream);
 		_sdlAudioDeviceStream = audioDeviceStream;
 		AudioDeviceName = deviceName;
+
+		// the device sample frames isn't properly known until after the device is opened
+		// also, the audio sample rate might change underneath us when opening a device, make sure to catch that
+		if (!SDL_GetAudioDeviceFormat(_sdlAudioDeviceId, out deviceAudioSpec, out var deviceSampleBatchSize))
+		{
+			// audio device probably disconnected at this point
+			// we'll handle that later, just fill in the fields best we can for now
+			deviceAudioSpec.freq = wantedAudioSpec.freq;
+			deviceSampleBatchSize = deviceAudioSpec.freq / 100;
+		}
+
+		// Make sure the audio stream matches up with the device freq
+		if (deviceAudioSpec.freq != wantedAudioSpec.freq)
+		{
+			wantedAudioSpec.freq = deviceAudioSpec.freq;
+			_ = SDL_SetAudioStreamFormat(_sdlAudioDeviceStream, ref wantedAudioSpec, ref Unsafe.NullRef<SDL_AudioSpec>());
+		}
 
 		lock (_resamplerLock)
 		{
@@ -320,8 +329,7 @@ public sealed class AudioManager : IDisposable
 	{
 		if (AudioDeviceName == DEFAULT_AUDIO_DEVICE)
 		{
-			// default device makes this tricky, since it uses a logical device id rather than a physical device id
-			// as such, we have to match by name rather than by id
+			// default device appears to be buggy and doesn't properly output these events with our device id?
 			return SDL_GetAudioDeviceName(_sdlAudioDeviceId) == SDL_GetAudioDeviceName(deviceId);
 		}
 
@@ -347,6 +355,15 @@ public sealed class AudioManager : IDisposable
 			{
 				lock (_resamplerLock)
 				{
+					if (_outputAudioFrequency != deviceSpec.freq)
+					{
+						var wantedAudioSpec = default(SDL_AudioSpec);
+						wantedAudioSpec.freq = deviceSpec.freq;
+						wantedAudioSpec.format = SDL_AUDIO_S16;
+						wantedAudioSpec.channels = 2;
+						_ = SDL_SetAudioStreamFormat(_sdlAudioDeviceStream, ref wantedAudioSpec, ref Unsafe.NullRef<SDL_AudioSpec>());
+					}
+
 					_outputAudioSampleBatchSize = deviceSampleBatchSize;
 					_outputAudioFrequency = deviceSpec.freq;
 					_inputAudioSampleBatchSize = (int)Math.Ceiling(_outputAudioFrequency * 4389 / 262144.0);
