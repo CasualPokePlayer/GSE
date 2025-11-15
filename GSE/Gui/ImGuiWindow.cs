@@ -498,6 +498,10 @@ internal sealed class ImGuiWindow : IDisposable
 			// but without a border light mode is terrible
 			style.FrameBorderSize = 1;
 
+			// calling NewFrame isn't valid until this is set
+			// just set it to 0 for now
+			io.DisplaySize = new(0, 0);
+
 			// this must be done in order to scaling to properly take effect for e.g. GetFrameHeight() calls
 			ImGui.NewFrame();
 			ImGui.EndFrame();
@@ -909,9 +913,6 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 
 		SdlRenderer.GetCurrentRenderOutputSize(out var displayW, out var displayH);
-		if (displayW < 0) displayW = 0;
-		if (displayH < 0) displayH = 0;
-
 		io.DisplaySize = new(displayW, displayH);
 		if (w > 0 && h > 0)
 		{
