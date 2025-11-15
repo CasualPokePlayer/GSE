@@ -220,13 +220,21 @@ internal sealed class GSE : IDisposable
 #if GSE_ANDROID
 		AndroidInput.InputManager = null;
 #endif
+		Console.WriteLine("Disposing _postProcessor");
 		_postProcessor?.Dispose();
+		Console.WriteLine("Disposing _osdManager");
 		_osdManager?.Dispose();
+		Console.WriteLine("Disposing _emuManager");
 		_emuManager?.Dispose();
+		Console.WriteLine("Disposing _audioManager");
 		_audioManager?.Dispose();
+		Console.WriteLine("Disposing _inputManager");
 		_inputManager?.Dispose();
+		Console.WriteLine("Disposing _mainWindow");
 		_mainWindow?.Dispose();
+		Console.WriteLine("Saving _config");
 		_config?.SaveConfig(PathResolver.GetConfigPath());
+		Console.WriteLine("Disposed GSE");
 	}
 
 	private bool HandleEvents()

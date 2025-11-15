@@ -48,9 +48,7 @@ internal static class Entrypoint
 		{
 			Console.WriteLine("Disposing GSE object");
 			_gse?.Dispose();
-			Console.WriteLine("Disposed GSE object, calling final SDL_Quit");
 			SDL_Quit();
-			Console.WriteLine("Returning, program has ended");
 		}
 	}
 }
