@@ -65,6 +65,9 @@ set(SDL_LIBC ON)
 # Don't need this
 set(SDL_RPATH OFF)
 
+# Not sure how useful this is, but it appears to be buggy, so keep it off for now
+set(SDL_DBUS OFF)
+
 # Get rid of SDL audio stuff we will not be using
 set(SDL_DISKAUDIO OFF)
 set(SDL_DUMMYAUDIO OFF)
