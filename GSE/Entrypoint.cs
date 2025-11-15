@@ -23,6 +23,9 @@ internal static class Entrypoint
 #if GSE_WINDOWS
 			SynchronizationContext.SetSynchronizationContext(Win32BlockingWaitSyncContext.Singleton);
 #endif
+#if GSE_LINUX
+			SDL_SetHint(SDL_HINT_SHUTDOWN_DBUS_ON_QUIT, "1");
+#endif
 			_gse = new();
 			return _gse.MainLoop();
 		}
