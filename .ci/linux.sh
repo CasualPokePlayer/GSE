@@ -96,7 +96,7 @@ CMakeNinjaBuild() {
 	mkdir build_$1_static_$TARGET_RID
 	cd build_$1_static_$TARGET_RID
 	cmake ../../externals/$1 \
-		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_C_COMPILER=clang-21 \
 		-DCMAKE_CXX_COMPILER=clang++-21 \
 		$EXTRA_CMAKE_ARGS \

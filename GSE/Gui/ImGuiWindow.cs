@@ -535,7 +535,6 @@ internal sealed class ImGuiWindow : IDisposable
 		Marshal.FreeCoTaskMem(ClipboardText);
 
 		_fontSdlTexture?.Dispose();
-		Console.WriteLine("Disposing SDLRenderer");
 		SdlRenderer?.Dispose();
 
 #if GSE_WINDOWS
@@ -556,11 +555,12 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 #endif
 
-		Console.WriteLine("Destroying SDL_Window");
 		SDL_DestroyWindow(SdlWindow);
 
-		Console.WriteLine("Performing SDL_QuitSubSystem");
-		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS);
+		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_EVENTS");
+		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_EVENTS);
+		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_VIDEO");
+		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO);
 	}
 
 	public void ToggleFullscreen(Config config)
