@@ -225,9 +225,7 @@ internal sealed class GSE : IDisposable
 		_emuManager?.Dispose();
 		_audioManager?.Dispose();
 		_inputManager?.Dispose();
-		Console.WriteLine("Disposing _mainWindow");
 		_mainWindow?.Dispose();
-		Console.WriteLine("Disposed _mainWindow");
 		_config?.SaveConfig(PathResolver.GetConfigPath());
 	}
 
