@@ -436,7 +436,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 #if GSE_ANDROID
 			// android is always fullscreen (don't let the user toggle this!)
-			ToggleFullscreen();
+			ToggleFullscreen(config);
 #endif
 
 			var videoDriver = SDL_GetCurrentVideoDriver();
@@ -535,6 +535,7 @@ internal sealed class ImGuiWindow : IDisposable
 		Marshal.FreeCoTaskMem(ClipboardText);
 
 		_fontSdlTexture?.Dispose();
+		Console.WriteLine("Disposing SDLRenderer");
 		SdlRenderer?.Dispose();
 
 #if GSE_WINDOWS
@@ -555,12 +556,14 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 #endif
 
+		Console.WriteLine("Destroying SDL_Window");
 		SDL_DestroyWindow(SdlWindow);
 
+		Console.WriteLine("Performing SDL_QuitSubSystem");
 		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS);
 	}
 
-	public void ToggleFullscreen()
+	public void ToggleFullscreen(Config config)
 	{
 		// TODO: how should failure be handled?
 		if (!SDL_SetWindowFullscreen(SdlWindow, !IsFullscreen))
@@ -579,6 +582,11 @@ internal sealed class ImGuiWindow : IDisposable
 		// the hack used to disable the window icon will cause fullscreen to have a noticeable border
 		// so re-enable the window icon if we're fullscreen (the user won't be seeing the icon anyways)
 		SetWindowIconEnabled(IsFullscreen);
+		if (!IsFullscreen)
+		{
+			// SDL mucks with how win11 corner preference when toggling fullscreen, ensure it's properly set
+			SetWin11CornerPreference(config.DisableWin11RoundCorners);
+		}
 #endif
 	}
 

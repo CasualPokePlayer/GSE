@@ -227,7 +227,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 
 				if (ImGui.MenuItem("Toggle Fullscreen"))
 				{
-					mainWindow.ToggleFullscreen();
+					mainWindow.ToggleFullscreen(config);
 				}
 #endif
 

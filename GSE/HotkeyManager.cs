@@ -122,7 +122,7 @@ internal sealed class HotkeyManager
 		[
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.PauseButtonBindings, TogglePause),
 #if !GSE_ANDROID
-			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, mainWindow.ToggleFullscreen),
+			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FullScreenButtonBindings, ToggleFullscreen),
 #endif
 			new PressUnpressTriggerHotkeyState(inputManager, config.HotkeyBindings.FastForwardButtonBindings, EnableFastForward, DisableFastForward),
 			new PressTriggerHotkeyState(inputManager, config.HotkeyBindings.FrameStepButtonBindings, DoFrameStep),
@@ -180,7 +180,12 @@ internal sealed class HotkeyManager
 			_mainWindow.UpdateMainWindowSize(_emuManager, _config);
 		}
 	}
-
+#if !GSE_ANDROID
+	private void ToggleFullscreen()
+	{
+		_mainWindow.ToggleFullscreen(_config);
+	}
+#endif
 	private void EnableFastForward()
 	{
 		_emuManager.SetSpeedFactor(_config.FastForwardSpeed);
