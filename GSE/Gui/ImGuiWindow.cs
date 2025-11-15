@@ -561,11 +561,7 @@ internal sealed class ImGuiWindow : IDisposable
 
 		SDL_DestroyWindow(SdlWindow);
 
-		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_EVENTS");
-		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_EVENTS);
-		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_VIDEO");
-		System.Diagnostics.Debugger.Break();
-		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO);
+		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS);
 	}
 
 	public void ToggleFullscreen(Config config)

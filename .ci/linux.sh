@@ -96,7 +96,7 @@ CMakeNinjaBuild() {
 	mkdir build_$1_static_$TARGET_RID
 	cd build_$1_static_$TARGET_RID
 	cmake ../../externals/$1 \
-		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_COMPILER=clang-21 \
 		-DCMAKE_CXX_COMPILER=clang++-21 \
 		$EXTRA_CMAKE_ARGS \
@@ -120,4 +120,4 @@ export PATH=$HOME/.dotnet:$PATH
 
 # Build GSE
 cd ..
-dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-21 -p:LinkerFlavor=lld-21 -p:ObjCopyName=llvm-objcopy-21 -p:StripSymbols=false
+dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-21 -p:LinkerFlavor=lld-21 -p:ObjCopyName=llvm-objcopy-21
