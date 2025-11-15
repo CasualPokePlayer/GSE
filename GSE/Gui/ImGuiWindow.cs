@@ -564,6 +564,7 @@ internal sealed class ImGuiWindow : IDisposable
 		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_EVENTS");
 		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_EVENTS);
 		Console.WriteLine("Performing SDL_QuitSubSystem / SDL_INIT_VIDEO");
+		System.Diagnostics.Debugger.Break();
 		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO);
 	}
 
