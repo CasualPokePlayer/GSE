@@ -67,6 +67,7 @@ set(SDL_RPATH OFF)
 
 # Not sure how useful this is, but it appears to be buggy, so keep it off for now
 set(SDL_DBUS OFF)
+set(SDL_IBUS OFF)
 
 # Get rid of SDL audio stuff we will not be using
 set(SDL_DISKAUDIO OFF)
