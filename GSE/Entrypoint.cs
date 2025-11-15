@@ -44,6 +44,7 @@ internal static class Entrypoint
 		finally
 		{
 			_gse?.Dispose();
+			SDL_Quit();
 		}
 	}
 }
