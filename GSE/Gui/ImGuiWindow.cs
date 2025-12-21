@@ -219,15 +219,15 @@ internal sealed class ImGuiWindow : IDisposable
 	private static nint GetClipboardText(nint userdata)
 	{
 		var window = (ImGuiWindow)GCHandle.FromIntPtr(userdata).Target!;
-		Marshal.FreeCoTaskMem(window.ClipboardText);
-		window.ClipboardText = Marshal.StringToCoTaskMemUTF8(SDL_GetClipboardText());
+		SDL_free(window.ClipboardText);
+		window.ClipboardText = SDL_GetClipboardText_RAW();
 		return window.ClipboardText;
 	}
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static void SetClipboardText(nint userdata, nint text)
 	{
-		SDL_SetClipboardText(Marshal.PtrToStringUTF8(text));
+		SDL_SetClipboardText(text);
 	}
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
@@ -536,7 +536,7 @@ internal sealed class ImGuiWindow : IDisposable
 			_imGuiUserData.Free();
 		}
 
-		Marshal.FreeCoTaskMem(ClipboardText);
+		SDL_free(ClipboardText);
 
 		_fontSdlTexture?.Dispose();
 		SdlRenderer?.Dispose();
