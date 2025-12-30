@@ -171,7 +171,7 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 		SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
 #if GSE_LINUX
-		// Prefer x11, as wayland is more problematic 
+		// Prefer x11, as wayland is more problematic
 		SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland");
 #endif
 
