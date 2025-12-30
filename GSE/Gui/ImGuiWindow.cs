@@ -170,6 +170,10 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "0");
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 		SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+#if GSE_LINUX
+		// Prefer x11, as wayland is more problematic 
+		SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland");
+#endif
 
 		_sdlCursors[(int)ImGuiMouseCursor.Arrow] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_DEFAULT);
 		_sdlCursors[(int)ImGuiMouseCursor.TextInput] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_TEXT);
@@ -354,7 +358,13 @@ internal sealed class ImGuiWindow : IDisposable
 
 	private float GetDpiScale()
 	{
-		return SDL_GetWindowDisplayScale(SdlWindow);
+		var displayScale = SDL_GetWindowDisplayScale(SdlWindow);
+		if (!float.IsNormal(displayScale) || float.IsNegative(displayScale))
+		{
+			return 1;
+		}
+
+		return displayScale;
 	}
 
 	private void SetFontTexture()
