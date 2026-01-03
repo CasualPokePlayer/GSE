@@ -22,15 +22,21 @@ public sealed class AudioManager : IDisposable
 
 	static AudioManager()
 	{
-		// aim for as low latency as possible here
+		// Aim for as low latency as possible here
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_RAW_STREAM, "1");
-#if !GSE_ANDROID
-		// note: aaudio picks the optimal buffer size automatically, don't attempt to override it there
-		// for other platforms, we'll want to do this, it'll be raised up the minimum (optimal) buffer size anyways
+		// SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES behavior is wonky depending on the platform
+#if GSE_WINDOWS
+		// Windows: This works as expected in every case so far, just put it as low as we can
+		// This will automatically be raised up to the device's minimum (optimal) buffer size
 		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "32");
-#endif
-#if GSE_ANDROID
-		// prefer OpenSL ES over aaudio on Android (has less issues usually)
+#elif GSE_OSX || GSE_LINUX
+		// macOS: This doesn't work entirely as expected, as it won't automatically bump up the buffer size to the optimal minimum size
+		// Linux: This is a wildcard due to the potential variety of audio backends
+		// Regardless, we can get away with lowering the buffer to a decently low value for these platforms (better than 1024 samples at least)
+		SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "512");
+#elif GSE_ANDROID
+		// Android: aaudio picks the optimal buffer size automatically, and OpenSL ES doesn't care for the buffer size
+		// However, we prefer OpenSL ES over aaudio on Android anyways (has less issues usually)
 		SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "openslES,aaudio");
 #endif
 	}
