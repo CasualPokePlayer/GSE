@@ -5,6 +5,9 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+#if GSE_ANDROID
+using System.Linq;
+#endif
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -277,7 +280,6 @@ internal sealed class ImGuiWindow : IDisposable
 
 	/// <summary>
 	/// All render drivers available, should only be accessed from the GUI thread
-	/// Index of the string will also match up with the index passed for SDL_CreateRenderer
 	/// </summary>
 	public static readonly Lazy<ImmutableArray<string>> RenderDrivers = new(() =>
 	{
@@ -290,7 +292,13 @@ internal sealed class ImGuiWindow : IDisposable
 			renderDrivers[i] = SDL_GetRenderDriver(i);
 		}
 
+#if GSE_ANDROID
+		// Don't allow Vulkan to be used on Android, as it has rendering issues
+		// TODO: Remove this when https://github.com/libsdl-org/SDL/issues/14476 is resolved
+		return [..renderDrivers.SkipWhile(driver => driver is "vulkan")];
+#else
 		return [..renderDrivers];
+#endif
 	});
 
 	private static nint CreateSdlRenderer(nint sdlWindow, Config config)
