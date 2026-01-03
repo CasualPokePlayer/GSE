@@ -573,10 +573,11 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 		var t4 = System.Diagnostics.Stopwatch.GetTimestamp();
 
+		var ts0 = System.Diagnostics.Stopwatch.GetElapsedTime(t0, t1).TotalMilliseconds;
 		var ts1 = System.Diagnostics.Stopwatch.GetElapsedTime(t1, t2).TotalMilliseconds;
 		var ts2 = System.Diagnostics.Stopwatch.GetElapsedTime(t2, t3).TotalMilliseconds;
 		var ts3 = System.Diagnostics.Stopwatch.GetElapsedTime(t3, t4).TotalMilliseconds;
-		Console.WriteLine($"Polled input, {ts1:F2} ms / {ts2:F2} ms / {ts3:F2} ms");
+		Console.WriteLine($"Polled input, {ts0:F2} ms / {ts1:F2} ms / {ts2:F2} ms / {ts3:F2} ms");
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
