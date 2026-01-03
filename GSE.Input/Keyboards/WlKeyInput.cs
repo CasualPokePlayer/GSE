@@ -558,15 +558,25 @@ internal sealed class WlKeyInput : EvDevKeyInput
 
 		// prep reading new events
 		// existing events need to be drained for this to succeed
+		var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
 		while (wl_display_prepare_read_queue(_wlDisplay, _wlEventQueue) != 0)
 		{
 			_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 		}
+		var t1 = System.Diagnostics.Stopwatch.GetTimestamp();
 
 		// read and dispatch new events
 		_ = wl_display_flush(_wlDisplay);
+		var t2 = System.Diagnostics.Stopwatch.GetTimestamp();
 		_ = wl_display_read_events(_wlDisplay);
+		var t3 = System.Diagnostics.Stopwatch.GetTimestamp();
 		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
+		var t4 = System.Diagnostics.Stopwatch.GetTimestamp();
+
+		var ts1 = System.Diagnostics.Stopwatch.GetElapsedTime(t1, t2).TotalMilliseconds;
+		var ts2 = System.Diagnostics.Stopwatch.GetElapsedTime(t2, t3).TotalMilliseconds;
+		var ts3 = System.Diagnostics.Stopwatch.GetElapsedTime(t3, t4).TotalMilliseconds;
+		Console.WriteLine($"Polled input, {ts1:F2} ms / {ts2:F2} ms / {ts3:F2} ms");
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
