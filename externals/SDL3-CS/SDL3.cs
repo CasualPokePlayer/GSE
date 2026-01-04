@@ -7087,19 +7087,19 @@ public static unsafe partial class SDL
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial int SDL_hid_get_manufacturer_string(IntPtr dev, Span<char> @string, UIntPtr maxlen);
+	public static partial int SDL_hid_get_manufacturer_string(IntPtr dev, IntPtr @string, UIntPtr maxlen);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial int SDL_hid_get_product_string(IntPtr dev, Span<char> @string, UIntPtr maxlen);
+	public static partial int SDL_hid_get_product_string(IntPtr dev, IntPtr @string, UIntPtr maxlen);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial int SDL_hid_get_serial_number_string(IntPtr dev, Span<char> @string, UIntPtr maxlen);
+	public static partial int SDL_hid_get_serial_number_string(IntPtr dev, IntPtr @string, UIntPtr maxlen);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial int SDL_hid_get_indexed_string(IntPtr dev, int string_index, Span<char> @string, UIntPtr maxlen);
+	public static partial int SDL_hid_get_indexed_string(IntPtr dev, int string_index, IntPtr @string, UIntPtr maxlen);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
