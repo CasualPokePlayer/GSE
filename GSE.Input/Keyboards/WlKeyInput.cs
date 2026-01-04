@@ -383,6 +383,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private readonly nint _wlDisplayProxy;
 	private readonly nint _wlEventQueue;
 	private readonly nint _wlRegistry;
+	private readonly int _wlFd;
 
 	private GCHandle _wlUserData;
 
@@ -430,6 +431,12 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			if (_wlRegistry == 0)
 			{
 				throw new("Failed to get global registry");
+			}
+
+			_wlFd = wl_display_get_fd(_wlDisplay);
+			if (_wlFd == 0)
+			{
+				throw new("Failed to get display fd");
 			}
 
 			// TODO: xkb isn't strictly needed (and in theory might not work?), perhaps only do this if we get an xkb keymap?
@@ -564,20 +571,28 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		}
 
 		// read and dispatch new events
-		var ret0 = wl_display_flush(_wlDisplay);
-		var errno0 = Marshal.GetLastSystemError();
-		var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
-		var ret1 = wl_display_read_events(_wlDisplay);
-		var errno1 = Marshal.GetLastSystemError();
-		var t1 = System.Diagnostics.Stopwatch.GetTimestamp();
-		var ret2 = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
-		var errno2 = Marshal.GetLastSystemError();
-		var t2 = System.Diagnostics.Stopwatch.GetTimestamp();
+		var flushRes = wl_display_flush(_wlDisplay);
+		var ready = 0;
+		if (flushRes == 0)
+		{
+			do
+			{
+				var pollfd = default(Pollfd);
+				pollfd.fd = _wlFd;
+				pollfd.events = POLLIN | POLLPRI;
+				ready = poll(ref pollfd, 1, 0);
+			} while (ready == -1 && Marshal.GetLastPInvokeError() == EINTR);
+		}
 
-		var ts0 = System.Diagnostics.Stopwatch.GetElapsedTime(t0, t1).TotalMilliseconds;
-		var ts1 = System.Diagnostics.Stopwatch.GetElapsedTime(t1, t2).TotalMilliseconds;
-		Console.WriteLine($"Polled input, {ts0:F2} ms / {ts1:F2} ms");
-		Console.WriteLine($"{ret0} | {errno0} / {ret1} | {errno1} / {ret2} | {errno2}");
+		if (ready <= 0)
+		{
+			wl_display_cancel_read(_wlDisplay);
+		}
+		else
+		{
+			_ = wl_display_read_events(_wlDisplay);
+			_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
+		}
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());

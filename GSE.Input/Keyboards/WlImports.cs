@@ -63,6 +63,9 @@ internal static partial class WlImports
 	public static partial void wl_event_queue_destroy(nint queue);
 
 	[LibraryImport("libwayland-client.so.0")]
+	public static partial int wl_display_get_fd(nint display);
+
+	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_flush(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
@@ -73,6 +76,9 @@ internal static partial class WlImports
 
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_read_events(nint display);
+
+	[LibraryImport("libwayland-client.so.0")]
+	public static partial void wl_display_cancel_read(nint display);
 
 	[LibraryImport("libwayland-client.so.0")]
 	public static partial int wl_display_dispatch_queue_pending(nint display, nint queue);
