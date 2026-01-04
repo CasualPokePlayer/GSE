@@ -591,8 +591,9 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		else
 		{
 			_ = wl_display_read_events(_wlDisplay);
-			_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 		}
+
+		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
