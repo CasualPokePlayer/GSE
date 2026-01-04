@@ -577,6 +577,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		var ts0 = System.Diagnostics.Stopwatch.GetElapsedTime(t0, t1).TotalMilliseconds;
 		var ts1 = System.Diagnostics.Stopwatch.GetElapsedTime(t1, t2).TotalMilliseconds;
 		Console.WriteLine($"Polled input, {ts0:F2} ms / {ts1:F2} ms");
+		Console.WriteLine($"{ret0} | {errno0} / {ret1} | {errno1} / {ret2} | {errno2}");
 
 		var ret = new KeyEvent[KeyEvents.Count];
 		KeyEvents.CopyTo(ret.AsSpan());
