@@ -295,7 +295,7 @@ internal sealed class ImGuiWindow : IDisposable
 #if GSE_ANDROID
 		// Don't allow Vulkan to be used on Android, as it has rendering issues
 		// TODO: Remove this when https://github.com/libsdl-org/SDL/issues/14476 is resolved
-		return [..renderDrivers.SkipWhile(driver => driver is "vulkan")];
+		return [..renderDrivers.Where(driver => driver is not "vulkan")];
 #else
 		return [..renderDrivers];
 #endif
