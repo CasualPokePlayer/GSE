@@ -73,6 +73,8 @@ internal sealed class GSE : IDisposable
 			SDL_SetEventFilter(&SDLEventFilter, 0); // filter out events which we don't care for
 		}
 
+		SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0");
+
 #if GSE_WINDOWS
 		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
 		// do this to bypass the issue
