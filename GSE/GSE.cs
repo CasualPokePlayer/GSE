@@ -61,24 +61,36 @@ internal sealed class GSE : IDisposable
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
 	private static unsafe SDLBool SDLEventFilter(nint userdata, SDL_Event* sdlEvent)
 	{
-		return _allowedEvents.Contains((SDL_EventType)sdlEvent->type);
+		var eventType = (SDL_EventType)sdlEvent->type;
+#if GSE_ANDROID
+		var gse = (GSE)GCHandle.FromIntPtr(userdata).Target!;
+		// ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+		switch (eventType)
+		{
+			case SDL_EventType.SDL_EVENT_TERMINATING:
+				gse.OnTermination();
+				break;
+			case SDL_EventType.SDL_EVENT_WILL_ENTER_BACKGROUND:
+				gse.OnEnterBackground();
+				break;
+			case SDL_EventType.SDL_EVENT_DID_ENTER_FOREGROUND:
+				gse.OnEnterForeground();
+				break;
+		}
+#endif
+
+		return _allowedEvents.Contains(eventType);
 	}
 
 	static GSE()
 	{
-		// we want a few SDL hints set before anything else
-		SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0"); // we'll manually update joysticks (don't let the gui thread handle that!)
-		unsafe
-		{
-			SDL_SetEventFilter(&SDLEventFilter, 0); // filter out events which we don't care for
-		}
-
-		SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0");
+		// We want to set SDL hints set before anything else
+		SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0"); // We'll manually update joysticks (don't let the gui thread handle that!)
 
 #if GSE_WINDOWS
-		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
-		// do this to bypass the issue
-		const uint WM_COPYGLOBALDATA = 0x0049; // apparently this isn't documented anymore?
+		// If the user runs with elevated privileges, drag-n-drop will be broken on win7+
+		// Do this to bypass the issue
+		const uint WM_COPYGLOBALDATA = 0x0049; // Apparently this isn't documented anymore?
 		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_DROPFILES, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 		PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
@@ -157,7 +169,9 @@ internal sealed class GSE : IDisposable
 	/// </summary>
 	private readonly ImGuiMenuBar _imGuiMenuBar;
 
+
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
+	private GCHandle _gseUserData;
 
 	private InputGate InputGateCallback()
 	{
@@ -181,11 +195,18 @@ internal sealed class GSE : IDisposable
 	{
 		try
 		{
+			_gseUserData = GCHandle.Alloc(this, GCHandleType.Weak);
+			unsafe
+			{
+				// Filter out events which we don't care for
+				SDL_SetEventFilter(&SDLEventFilter, GCHandle.ToIntPtr(_gseUserData));
+			}
+
 			_config = Config.LoadConfig();
 			_mainWindow = new("GSE", _config);
 			_inputManager = new(_mainWindow.SdlWindowProperties, _config.EnableDirectInput);
-			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
-			// default bindings will be set if this fails for some reason
+			// Input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
+			// Default bindings will be set if this fails for some reason
 			_config.DeserializeInputBindings(_inputManager, _mainWindow);
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
 			_emuManager = new(_audioManager, _config.PreferLowLatency);
@@ -206,7 +227,7 @@ internal sealed class GSE : IDisposable
 		}
 		catch
 		{
-			// this just works around a potential Android bug when opening an audio device it doesn't like
+			// This just works around a potential Android bug when opening an audio device it doesn't like
 			if (_inputManager != null && _audioManager == null)
 			{
 				_config.AudioDeviceName = AudioManager.DEFAULT_AUDIO_DEVICE;
@@ -229,7 +250,43 @@ internal sealed class GSE : IDisposable
 		_inputManager?.Dispose();
 		_mainWindow?.Dispose();
 		_config?.SaveConfig(PathResolver.GetConfigPath());
+
+		unsafe
+		{
+			SDL_SetEventFilter(null, 0);
+		}
+
+		if (_gseUserData.IsAllocated)
+		{
+			_gseUserData.Free();
+		}
 	}
+
+#if GSE_ANDROID
+	private void OnTermination()
+	{
+		_emuManager?.FlushSave();
+		_config?.SaveConfig(PathResolver.GetConfigPath());
+	}
+
+	private bool _wasPausedOnBackground;
+
+	private void OnEnterBackground()
+	{
+		_wasPausedOnBackground = _wasPausedOnBackground || _emuManager.Pause();
+		_mainWindow.SdlRenderer.PauseRenderer();
+	}
+
+	private void OnEnterForeground()
+	{
+		_mainWindow.SdlRenderer.RestoreRenderer();
+		if (_wasPausedOnBackground)
+		{
+			_emuManager.Unpause();
+			_wasPausedOnBackground = false;
+		}
+	}
+#endif
 
 	private bool HandleEvents()
 	{
@@ -261,7 +318,7 @@ internal sealed class GSE : IDisposable
 				{
 					if (_imGuiModals.ModalIsOpened)
 					{
-						// don't allow drag+drop while a modal is open
+						// Don't allow drag+drop while a modal is open
 						continue;
 					}
 
@@ -319,7 +376,7 @@ internal sealed class GSE : IDisposable
 
 				if (windowId == _mainWindow.WindowId)
 				{
-					// suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
+					// Suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
 					if (eventType is SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP && _emuManager.EmuAcceptingInputs)
 					{
 						continue;
@@ -383,7 +440,7 @@ internal sealed class GSE : IDisposable
 
 			_mainWindow.NewFrame();
 
-			// position of the emu window is below the menu bar
+			// Position of the emu window is below the menu bar
 			var barHeight = ImGui.GetFrameHeight();
 			var menuBarHeight = 0.0f;
 			var statusBarHeight = 0.0f;
@@ -440,7 +497,7 @@ internal sealed class GSE : IDisposable
 			{
 				_mainWindow.Render(vsync: true);
 
-				// do this immediately after render, so it closely aligns to vsync
+				// Do this immediately after render, so it closely aligns to vsync
 				if (_emuManager.RomIsLoaded)
 				{
 					_postProcessor.RenderEmuTexture(

@@ -116,6 +116,17 @@ internal sealed class SDLRenderer(nint sdlRenderer) : IDisposable
 		}
 	}
 
+	public void PauseRenderer()
+	{
+		_ = SDL_SetRenderTarget(sdlRenderer, 0);
+	}
+
+	public void RestoreRenderer()
+	{
+		_ = CheckDeviceReset();
+		SetRenderTarget(_currentRenderTarget);
+	}
+
 	public void SetRenderTarget(SDLTexture sdlTexture)
 	{
 		_currentRenderTarget = sdlTexture;

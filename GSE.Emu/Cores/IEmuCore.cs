@@ -9,6 +9,7 @@ internal interface IEmuCore : IDisposable
 {
 	void Advance(EmuControllerState controllerState, out bool completedFrame, out uint samples, out uint cpuCycles);
 
+	void FlushSave();
 	bool LoadSave(ReadOnlySpan<byte> sav);
 
 	ReadOnlySpan<byte> SaveState();
