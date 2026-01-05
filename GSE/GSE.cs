@@ -278,7 +278,7 @@ internal sealed class GSE : IDisposable
 	}
 
 	private bool _test;
-	private int _enterForegroundCount;
+	private ulong _enterForegroundCycleCount;
 
 	private void OnEnterForeground()
 	{
@@ -289,7 +289,7 @@ internal sealed class GSE : IDisposable
 			_wasPausedOnBackground = false;
 		}
 
-		_enterForegroundCount++;
+		_enterForegroundCycleCount = _emuManager.GetCycleCount();
 		_test = true;
 	}
 #endif
@@ -303,7 +303,7 @@ internal sealed class GSE : IDisposable
 			_ = SDL_ShowSimpleMessageBox(
 				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
 				title: "Test",
-				message: $"Enter foreground count: {_enterForegroundCount}",
+				message: $"Enter foreground: {_enterForegroundCycleCount}",
 				window: _mainWindow.SdlWindow
 			);
 			
