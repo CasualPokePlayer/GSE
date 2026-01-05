@@ -283,7 +283,7 @@ internal sealed class GSE : IDisposable
 	private void OnEnterForeground()
 	{
 		_mainWindow.SdlRenderer.RestoreRenderer();
-		if (_wasPausedOnBackground)
+		if (_wasPausedOnBackground || true)
 		{
 			_emuManager.Unpause();
 			_wasPausedOnBackground = false;
