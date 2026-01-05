@@ -277,6 +277,7 @@ internal sealed class GSE : IDisposable
 		_mainWindow.SdlRenderer.PauseRenderer();
 	}
 
+	private bool _test;
 	private int _enterForegroundCount;
 
 	private void OnEnterForeground()
@@ -289,18 +290,25 @@ internal sealed class GSE : IDisposable
 		}
 
 		_enterForegroundCount++;
-		_ = SDL_ShowSimpleMessageBox(
-			flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
-			title: "Test",
-			message: $"Enter foreground count: {_enterForegroundCount}",
-			window: _mainWindow.SdlWindow
-		);
+		_test = true;
 	}
 #endif
 
 	private bool HandleEvents()
 	{
 		SDL_PumpEvents();
+
+		if (_test)
+		{
+			_ = SDL_ShowSimpleMessageBox(
+				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
+				title: "Test",
+				message: $"Enter foreground count: {_enterForegroundCount}",
+				window: _mainWindow.SdlWindow
+			);
+			
+			_test = false;
+		}
 
 		while (true)
 		{
