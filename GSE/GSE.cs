@@ -262,7 +262,7 @@ internal sealed class GSE : IDisposable
 		}
 	}
 
-#if GSE_ANDROID
+#if GSE_ANDROID || GSE_WINDOWS
 	private void OnTermination()
 	{
 		_emuManager?.FlushSave();
@@ -277,6 +277,8 @@ internal sealed class GSE : IDisposable
 		_mainWindow.SdlRenderer.PauseRenderer();
 	}
 
+	private int _enterForegroundCount;
+
 	private void OnEnterForeground()
 	{
 		_mainWindow.SdlRenderer.RestoreRenderer();
@@ -285,6 +287,14 @@ internal sealed class GSE : IDisposable
 			_emuManager.Unpause();
 			_wasPausedOnBackground = false;
 		}
+
+		_enterForegroundCount++;
+		_ = SDL_ShowSimpleMessageBox(
+			flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
+			title: "Test",
+			message: $"Enter foreground count: {_enterForegroundCount}",
+			window: _mainWindow.SdlWindow
+		);
 	}
 #endif
 
