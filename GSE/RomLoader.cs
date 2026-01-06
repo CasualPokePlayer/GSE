@@ -96,6 +96,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 		try
 		{
 			var romFile = new GSEFile(path, _romExtensions);
+			return;
 			var isGbaRom = romFile.UnderlyingExtension.Equals(".gba", StringComparison.OrdinalIgnoreCase);
 			var biosFile = ObtainBiosFile(isGbaRom);
 			if (biosFile == null)
@@ -110,7 +111,6 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				return;
 			}
 
-			return;
 			if (!VerifyBiosFile(isGbaRom, biosFile.UnderlyingFile))
 			{
 				_ = SDL_ShowSimpleMessageBox(
