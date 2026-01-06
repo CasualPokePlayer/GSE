@@ -262,7 +262,7 @@ internal sealed class GSE : IDisposable
 		}
 	}
 
-#if GSE_ANDROID || GSE_WINDOWS
+#if GSE_ANDROID
 	private void OnTermination()
 	{
 		_emuManager?.FlushSave();
@@ -277,38 +277,20 @@ internal sealed class GSE : IDisposable
 		_mainWindow.SdlRenderer.PauseRenderer();
 	}
 
-	private bool _test;
-	private ulong _enterForegroundCycleCount;
-
 	private void OnEnterForeground()
 	{
 		_mainWindow.SdlRenderer.RestoreRenderer();
-		if (_wasPausedOnBackground || true)
+		if (_wasPausedOnBackground)
 		{
 			_emuManager.Unpause();
 			_wasPausedOnBackground = false;
 		}
-
-		_enterForegroundCycleCount = _emuManager.GetCycleCount();
-		_test = true;
 	}
 #endif
 
 	private bool HandleEvents()
 	{
 		SDL_PumpEvents();
-
-		if (_test)
-		{
-			_ = SDL_ShowSimpleMessageBox(
-				flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION,
-				title: "Test",
-				message: $"Enter foreground: {_enterForegroundCycleCount}",
-				window: _mainWindow.SdlWindow
-			);
-			
-			_test = false;
-		}
 
 		while (true)
 		{

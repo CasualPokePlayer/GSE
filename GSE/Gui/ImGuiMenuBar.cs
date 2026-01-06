@@ -26,7 +26,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var filePath = OpenFileDialog.ShowDialog("GB/C/A ROM File", null, RomLoader.RomAndCompressionExtensions, mainWindow);
 						if (filePath != null)
 						{
-							romLoader.LoadRomFile(filePath);
+							//romLoader.LoadRomFile(filePath);
 						}
 					}
 				}
