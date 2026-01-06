@@ -544,9 +544,9 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         if (mHIDDeviceManager != null) {
             mHIDDeviceManager.setFrozen(false);
         }
-        if (!mHasMultiWindow) {
+        //if (!mHasMultiWindow) {
             resumeNativeThread();
-        }
+        //}
     }
 
     @Override
