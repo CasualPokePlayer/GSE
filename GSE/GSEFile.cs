@@ -51,7 +51,7 @@ internal sealed class GSEFile
 #endif
 		Directory = Path.GetDirectoryName(path);
 
-		var validExts = validExtensions as string[] ?? [.. validExtensions];
+		var validExts = validExtensions as string[] ?? [..validExtensions];
 		var ext = Path.GetExtension(path);
 		if (Array.Exists(validExts, validExt => validExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
 		{

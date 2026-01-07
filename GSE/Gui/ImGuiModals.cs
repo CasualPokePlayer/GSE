@@ -82,7 +82,7 @@ internal sealed class ImGuiModals
 			ret[i + 1] = renderDrivers[i];
 		}
 
-		return [.. ret];
+		return [..ret];
 	});
 
 	private static readonly string[] _filterOptions = [ "Nearest Neighbor", "Bilinear", "Sharp Bilinear" ];
