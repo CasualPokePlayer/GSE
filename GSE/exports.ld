@@ -1,4 +1,4 @@
-V1.0 {
+{
 	global:
 		"GSE_GB_WRAM_PTR";
 		"GSE_GB_WRAM_LEN";
