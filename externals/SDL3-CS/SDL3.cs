@@ -143,6 +143,10 @@ public static unsafe partial class SDL
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial void SDL_free(IntPtr mem);
 
+	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+	public static partial IntPtr SDL_strdup(string str);
+
 	// /usr/local/include/SDL3/SDL_assert.h
 
 	public enum SDL_AssertState

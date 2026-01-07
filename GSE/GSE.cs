@@ -327,7 +327,19 @@ internal sealed class GSE : IDisposable
 					{
 						filePath = Marshal.PtrToStringUTF8((nint)e.drop.data) ?? string.Empty;
 					}
+#if GSE_ANDROID
+					// see Open ROM menu bar hack
+					if (filePath.Contains('|'))
+					{
+						unsafe
+						{
+							SDL_free((nint)e.drop.data);
+						}
 
+						_romLoader.LoadRomFile(filePath);
+						continue;
+					}
+#endif
 					var fileExt = Path.GetExtension(filePath);
 					if (fileExt.Equals(".gqs", StringComparison.OrdinalIgnoreCase))
 					{

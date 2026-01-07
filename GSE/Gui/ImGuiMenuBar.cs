@@ -1,6 +1,7 @@
 // Copyright (c) 2024 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
+using System;
 using System.IO;
 
 using ImGuiNET;
@@ -26,8 +27,28 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var filePath = OpenFileDialog.ShowDialog("GB/C/A ROM File", null, RomLoader.RomAndCompressionExtensions, mainWindow);
 						if (filePath != null)
 						{
-							config.RecentRoms.Insert(0, filePath);
-							//romLoader.LoadRomFile(filePath);
+#if GSE_ANDROID
+							// Android seems to have some weird bug when opening the file from a dialog immediately after causes a black screen, which goes away on background to foreground
+							// Deferring this opening to later seems to workaround this bug at least... so we'll just pretend to drag-n-drop the ROM
+							unsafe
+							{
+								var e = default(SDL_Event);
+								e.type = (uint)SDL_EventType.SDL_EVENT_DROP_FILE;
+								e.drop.data = (byte*)SDL_strdup(filePath);
+								if (!SDL_PushEvent(ref e))
+								{
+									SDL_free((nint)e.drop.data);
+									_ = SDL_ShowSimpleMessageBox(
+										flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+										title: "ROM Load Failure",
+										message: "Failed to load ROM file",
+										window: mainWindow.SdlWindow
+									);
+								}
+							}
+#else
+							romLoader.LoadRomFile(filePath);
+#endif
 						}
 					}
 				}
