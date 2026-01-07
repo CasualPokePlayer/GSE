@@ -102,18 +102,18 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_OSX)' == 'true'">
 		<!-- Ensure our memory exports are exported symbols -->
-		<LinkerArg Include="-exported_symbol _GSE_GB_WRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GB_WRAM_LEN" />
-		<LinkerArg Include="-exported_symbol _GSE_GB_SRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GB_SRAM_LEN" />
-		<LinkerArg Include="-exported_symbol _GSE_GB_HRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GB_HRAM_LEN" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_IWRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_IWRAM_LEN" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_EWRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_EWRAM_LEN" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_SRAM_PTR" />
-		<LinkerArg Include="-exported_symbol _GSE_GBA_SRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_WRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_WRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_SRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_SRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_HRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GB_HRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_IWRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_IWRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_EWRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_EWRAM_LEN" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_SRAM_PTR" />
+		<LinkerArg Include="-Wl,-exported_symbol,_GSE_GBA_SRAM_LEN" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_LINUX)' == 'true'">
 		<!-- Ensure our memory exports are dynamic symbols -->
