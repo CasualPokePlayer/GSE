@@ -1,7 +1,6 @@
 // Copyright (c) 2024 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
-using System;
 using System.IO;
 
 using ImGuiNET;
