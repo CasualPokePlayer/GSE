@@ -2,6 +2,6 @@
 	<Import Project="../GSECommon.props" />
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.238" PrivateAssets="all" />
-		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
+		<ProjectReference Include="$(ProjectDir)../externals/SDL3-CS/SDL3-CS.csproj" />
 	</ItemGroup>
 </Project>

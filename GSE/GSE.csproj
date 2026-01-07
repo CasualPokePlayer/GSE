@@ -29,7 +29,7 @@
 		<PackageReference Include="System.IO.Hashing" Version="9.0.10" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.238" PrivateAssets="all" />
 		<PackageReference Include="GitInfo" Version="3.6.0" PrivateAssets="all" />
-		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
+		<ProjectReference Include="$(ProjectDir)../externals/SDL3-CS/SDL3-CS.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Audio/GSE.Audio.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Emu/GSE.Emu.csproj" />
 		<ProjectReference Include="$(ProjectDir)../GSE.Input/GSE.Input.csproj" />
@@ -51,19 +51,19 @@
 	<!-- Include all the libraries we end up using, yes this has to be here (for DirectPInvoke/NativeLibrary anyways) -->
 	<PropertyGroup>
 		<CIMGUI_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)cimgui$(GSE_LIB_EXT)</CIMGUI_PATH>
-		<SDL2_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)SDL2$(GSE_LIB_EXT)</SDL2_PATH>
+		<SDL3_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)SDL3$(GSE_LIB_EXT)</SDL3_PATH>
 		<GAMBATTE_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)gambatte$(GSE_LIB_EXT)</GAMBATTE_PATH>
 		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)mgba$(GSE_LIB_EXT)</MGBA_PATH>
 		<NATIVE_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)native_helper$(GSE_LIB_EXT)</NATIVE_HELPER_PATH>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_ANDROID)' != 'true'">
 		<DirectPInvoke Include="cimgui" />
-		<DirectPInvoke Include="SDL2" />
+		<DirectPInvoke Include="SDL3" />
 		<DirectPInvoke Include="gambatte" />
 		<DirectPInvoke Include="mgba" />
 		<DirectPInvoke Include="native_helper" />
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
-		<NativeLibrary Include="$(SDL2_PATH)" />
+		<NativeLibrary Include="$(SDL3_PATH)" />
 		<NativeLibrary Include="$(GAMBATTE_PATH)" />
 		<NativeLibrary Include="$(MGBA_PATH)" />
 		<NativeLibrary Include="$(NATIVE_HELPER_PATH)" />
@@ -109,7 +109,7 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>
-		<Content Include="$(SDL2_PATH)">
+		<Content Include="$(SDL3_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>

@@ -5,7 +5,7 @@ using System.IO;
 
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 
@@ -26,7 +26,28 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						var filePath = OpenFileDialog.ShowDialog("GB/C/A ROM File", null, RomLoader.RomAndCompressionExtensions, mainWindow);
 						if (filePath != null)
 						{
+#if GSE_ANDROID
+							// Android seems to have some weird bug when opening the file from a dialog immediately after causes a black screen, which goes away on background to foreground
+							// Deferring this opening to later seems to workaround this bug at least... so we'll just pretend to drag-n-drop the ROM
+							unsafe
+							{
+								var e = default(SDL_Event);
+								e.type = (uint)SDL_EventType.SDL_EVENT_DROP_FILE;
+								e.drop.data = (byte*)SDL_strdup(filePath);
+								if (!SDL_PushEvent(ref e))
+								{
+									SDL_free((nint)e.drop.data);
+									_ = SDL_ShowSimpleMessageBox(
+										flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+										title: "ROM Load Failure",
+										message: "Failed to load ROM file",
+										window: mainWindow.SdlWindow
+									);
+								}
+							}
+#else
 							romLoader.LoadRomFile(filePath);
+#endif
 						}
 					}
 				}
@@ -159,7 +180,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 				if (ImGui.MenuItem("Quit"))
 				{
 					var e = default(SDL_Event);
-					e.type = SDL_EventType.SDL_QUIT;
+					e.type = (uint)SDL_EventType.SDL_EVENT_QUIT;
 					SDL_PushEvent(ref e);
 				}
 
@@ -227,7 +248,7 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 
 				if (ImGui.MenuItem("Toggle Fullscreen"))
 				{
-					mainWindow.ToggleFullscreen();
+					mainWindow.ToggleFullscreen(config);
 				}
 #endif
 

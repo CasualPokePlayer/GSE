@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading;
 #endif
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 namespace GSE;
 
@@ -44,6 +44,7 @@ internal static class Entrypoint
 		finally
 		{
 			_gse?.Dispose();
+			SDL_Quit();
 		}
 	}
 }

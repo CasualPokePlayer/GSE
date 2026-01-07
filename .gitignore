@@ -4,6 +4,7 @@
 **/output/**
 **/bin/**
 **/obj/**
+**/Properties/**
 **/build/**
 **/build_*/**
 *.DotSettings.user

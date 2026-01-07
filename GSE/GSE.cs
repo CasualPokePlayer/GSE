@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 using ImGuiNET;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 #if GSE_WINDOWS
 using Windows.Win32;
@@ -38,44 +38,59 @@ internal sealed class GSE : IDisposable
 	private static readonly ImmutableArray<SDL_EventType> _allowedEvents =
 	[
 		// ImGui events
-		SDL_EventType.SDL_QUIT,
-		SDL_EventType.SDL_WINDOWEVENT,
-		SDL_EventType.SDL_KEYDOWN, SDL_EventType.SDL_KEYUP,
-		SDL_EventType.SDL_TEXTINPUT,
-		SDL_EventType.SDL_MOUSEMOTION,
-		SDL_EventType.SDL_MOUSEBUTTONDOWN, SDL_EventType.SDL_MOUSEBUTTONUP,
-		SDL_EventType.SDL_MOUSEWHEEL,
+		SDL_EventType.SDL_EVENT_QUIT,
+		SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER, SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE,
+		SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED, SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST,
+		SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED,
+		SDL_EventType.SDL_EVENT_KEY_DOWN, SDL_EventType.SDL_EVENT_KEY_UP,
+		SDL_EventType.SDL_EVENT_TEXT_INPUT,
+		SDL_EventType.SDL_EVENT_MOUSE_MOTION,
+		SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP,
+		SDL_EventType.SDL_EVENT_MOUSE_WHEEL,
 		// SDL joystick handler events
-		SDL_EventType.SDL_JOYDEVICEADDED, SDL_EventType.SDL_JOYDEVICEREMOVED,
+		SDL_EventType.SDL_EVENT_JOYSTICK_ADDED, SDL_EventType.SDL_EVENT_JOYSTICK_REMOVED,
 		// Drop file event (for drag+drop savestate/ROM files)
 		// drop begin/complete have to be allowed through, otherwise SDL will refuse to send any dropfile events
-		SDL_EventType.SDL_DROPFILE, SDL_EventType.SDL_DROPBEGIN, SDL_EventType.SDL_DROPCOMPLETE,
+		SDL_EventType.SDL_EVENT_DROP_FILE, SDL_EventType.SDL_EVENT_DROP_BEGIN, SDL_EventType.SDL_EVENT_DROP_COMPLETE,
 		// Audio hotplug events
-		SDL_EventType.SDL_AUDIODEVICEADDED, SDL_EventType.SDL_AUDIODEVICEREMOVED,
+		SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED, SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED, SDL_EventType.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED,
 		// Renderer specific events
-		SDL_EventType.SDL_RENDER_TARGETS_RESET, SDL_EventType.SDL_RENDER_DEVICE_RESET,
+		SDL_EventType.SDL_EVENT_RENDER_TARGETS_RESET, SDL_EventType.SDL_EVENT_RENDER_DEVICE_RESET,
 	];
 
 	[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvCdecl) ])]
-	private static unsafe int SDLEventFilter(nint userdata, nint sdlEvent)
+	private static unsafe SDLBool SDLEventFilter(nint userdata, SDL_Event* sdlEvent)
 	{
-		var e = (SDL_Event*)sdlEvent;
-		return _allowedEvents.Contains(e->type) ? 1 : 0;
+		var eventType = (SDL_EventType)sdlEvent->type;
+#if GSE_ANDROID
+		var gse = (GSE)GCHandle.FromIntPtr(userdata).Target!;
+		// ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+		switch (eventType)
+		{
+			case SDL_EventType.SDL_EVENT_TERMINATING:
+				gse.OnTermination();
+				break;
+			case SDL_EventType.SDL_EVENT_WILL_ENTER_BACKGROUND:
+				gse.OnEnterBackground();
+				break;
+			case SDL_EventType.SDL_EVENT_DID_ENTER_FOREGROUND:
+				gse.OnEnterForeground();
+				break;
+		}
+#endif
+
+		return _allowedEvents.Contains(eventType);
 	}
 
 	static GSE()
 	{
-		// we want a few SDL hints set before anything else
-		SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0"); // we'll manually update joysticks (don't let the gui thread handle that!)
-		unsafe
-		{
-			SDL_SetEventFilter(&SDLEventFilter, 0); // filter out events which we don't care for
-		}
+		// We want to set SDL hints set before anything else
+		SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0"); // We'll manually update joysticks (don't let the gui thread handle that!)
 
 #if GSE_WINDOWS
-		// if the user runs with elevated privileges, drag-n-drop will be broken on win7+
-		// do this to bypass the issue
-		const uint WM_COPYGLOBALDATA = 0x0049; // apparently this isn't documented anymore?
+		// If the user runs with elevated privileges, drag-n-drop will be broken on win7+
+		// Do this to bypass the issue
+		const uint WM_COPYGLOBALDATA = 0x0049; // Apparently this isn't documented anymore?
 		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_DROPFILES, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 		PInvoke.ChangeWindowMessageFilter(PInvoke.WM_COPYDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
 		PInvoke.ChangeWindowMessageFilter(WM_COPYGLOBALDATA, CHANGE_WINDOW_MESSAGE_FILTER_FLAGS.MSGFLT_ADD);
@@ -154,7 +169,9 @@ internal sealed class GSE : IDisposable
 	/// </summary>
 	private readonly ImGuiMenuBar _imGuiMenuBar;
 
+
 	private readonly SDL_Event[] _sdlEvents = new SDL_Event[10];
+	private GCHandle _gseUserData;
 
 	private InputGate InputGateCallback()
 	{
@@ -178,11 +195,18 @@ internal sealed class GSE : IDisposable
 	{
 		try
 		{
+			_gseUserData = GCHandle.Alloc(this, GCHandleType.Weak);
+			unsafe
+			{
+				// Filter out events which we don't care for
+				SDL_SetEventFilter(&SDLEventFilter, GCHandle.ToIntPtr(_gseUserData));
+			}
+
 			_config = Config.LoadConfig();
 			_mainWindow = new("GSE", _config);
-			_inputManager = new(in _mainWindow.SdlSysWMInfo, _config.EnableDirectInput);
-			// input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
-			// default bindings will be set if this fails for some reason
+			_inputManager = new(_mainWindow.SdlWindowProperties, _config.EnableDirectInput);
+			// Input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
+			// Default bindings will be set if this fails for some reason
 			_config.DeserializeInputBindings(_inputManager, _mainWindow);
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
 			_emuManager = new(_audioManager, _config.PreferLowLatency);
@@ -203,7 +227,7 @@ internal sealed class GSE : IDisposable
 		}
 		catch
 		{
-			// this just works around a potential Android bug when opening an audio device it doesn't like
+			// This just works around a potential Android bug when opening an audio device it doesn't like
 			if (_inputManager != null && _audioManager == null)
 			{
 				_config.AudioDeviceName = AudioManager.DEFAULT_AUDIO_DEVICE;
@@ -226,87 +250,155 @@ internal sealed class GSE : IDisposable
 		_inputManager?.Dispose();
 		_mainWindow?.Dispose();
 		_config?.SaveConfig(PathResolver.GetConfigPath());
+
+		unsafe
+		{
+			SDL_SetEventFilter(null, 0);
+		}
+
+		if (_gseUserData.IsAllocated)
+		{
+			_gseUserData.Free();
+		}
 	}
 
-	private unsafe bool HandleEvents()
+#if GSE_ANDROID
+	private void OnTermination()
+	{
+		_emuManager?.FlushSave();
+		_config?.SaveConfig(PathResolver.GetConfigPath());
+	}
+
+	private bool _wasPausedOnBackground;
+
+	private void OnEnterBackground()
+	{
+		_wasPausedOnBackground = _wasPausedOnBackground || _emuManager.Pause();
+		_mainWindow.SdlRenderer.PauseRenderer();
+	}
+
+	private void OnEnterForeground()
+	{
+		_mainWindow.SdlRenderer.RestoreRenderer();
+		if (_wasPausedOnBackground)
+		{
+			_emuManager.Unpause();
+			_wasPausedOnBackground = false;
+		}
+	}
+#endif
+
+	private bool HandleEvents()
 	{
 		SDL_PumpEvents();
 
-		fixed (SDL_Event* sdlEvents = _sdlEvents)
+		while (true)
 		{
-			while (true)
+			var numEvents = SDL_PeepEvents(_sdlEvents, _sdlEvents.Length,
+				SDL_EventAction.SDL_GETEVENT, (uint)SDL_EventType.SDL_EVENT_QUIT, (uint)SDL_EventType.SDL_EVENT_MOUSE_WHEEL);
+			numEvents += SDL_PeepEvents(_sdlEvents.AsSpan(numEvents), _sdlEvents.Length - numEvents,
+				SDL_EventAction.SDL_GETEVENT, (uint)SDL_EventType.SDL_EVENT_DROP_FILE, (uint)SDL_EventType.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED);
+			if (numEvents == 0)
 			{
-				var numEvents = SDL_PeepEvents(sdlEvents, _sdlEvents.Length, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_QUIT, SDL_EventType.SDL_MOUSEWHEEL);
-				numEvents += SDL_PeepEvents(sdlEvents + numEvents, _sdlEvents.Length - numEvents, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_DROPFILE, SDL_EventType.SDL_AUDIODEVICEREMOVED);
-				if (numEvents == 0)
+				break;
+			}
+
+			for (var i = 0; i < numEvents; i++)
+			{
+				ref var e = ref _sdlEvents[i];
+				var eventType = (SDL_EventType)e.type;
+
+				// ReSharper disable once ConvertIfStatementToSwitchStatement
+				if (eventType == SDL_EventType.SDL_EVENT_QUIT)
 				{
-					break;
+					return false;
 				}
 
-				for (var i = 0; i < numEvents; i++)
+				if (eventType == SDL_EventType.SDL_EVENT_DROP_FILE)
 				{
-					var e = &sdlEvents[i];
-					// ReSharper disable once ConvertIfStatementToSwitchStatement
-					if (e->type == SDL_EventType.SDL_QUIT)
+					if (_imGuiModals.ModalIsOpened)
+					{
+						// Don't allow drag+drop while a modal is open
+						continue;
+					}
+
+					string filePath;
+					unsafe
+					{
+						filePath = Marshal.PtrToStringUTF8((nint)e.drop.data) ?? string.Empty;
+					}
+#if GSE_ANDROID
+					// see Open ROM menu bar hack
+					if (filePath.Contains('|'))
+					{
+						unsafe
+						{
+							SDL_free((nint)e.drop.data);
+						}
+
+						_romLoader.LoadRomFile(filePath);
+						continue;
+					}
+#endif
+					var fileExt = Path.GetExtension(filePath);
+					if (fileExt.Equals(".gqs", StringComparison.OrdinalIgnoreCase))
+					{
+						if (_emuManager.RomIsLoaded)
+						{
+							_emuManager.LoadState(filePath);
+						}
+					}
+					else if (RomLoader.RomAndCompressionExtensions.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
+					{
+						_romLoader.LoadRomFile(filePath);
+					}
+
+					continue;
+				}
+
+				if (eventType == SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED)
+				{
+					_audioManager.RecoverLostAudioDeviceIfNeeded(e.adevice.which);
+					_config.AudioDeviceName = _audioManager.AudioDeviceName;
+				}
+
+				// ReSharper disable once ConvertIfStatementToSwitchStatement
+				if (eventType is SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED or SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED)
+				{
+					_imGuiModals.AudioDeviceListChanged = true;
+					continue;
+				}
+
+				if (eventType == SDL_EventType.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED)
+				{
+					_audioManager.ResetAudioDeviceIfNeeded(e.adevice.which);
+					_config.AudioDeviceName = _audioManager.AudioDeviceName;
+					continue;
+				}
+
+				var windowId = eventType switch
+				{
+					SDL_EventType.SDL_EVENT_MOUSE_MOTION or SDL_EventType.SDL_EVENT_MOUSE_WHEEL => e.motion.windowID,
+					SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN or SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP => e.button.windowID,
+					SDL_EventType.SDL_EVENT_TEXT_INPUT => e.text.windowID,
+					SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP => e.key.windowID,
+					>= SDL_EventType.SDL_EVENT_WINDOW_FIRST and <= SDL_EventType.SDL_EVENT_WINDOW_LAST => e.window.windowID,
+					_ => 0u,
+				};
+
+				if (windowId == _mainWindow.WindowId)
+				{
+					// Suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
+					if (eventType is SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP && _emuManager.EmuAcceptingInputs)
+					{
+						continue;
+					}
+
+					_mainWindow.ProcessEvent(in e);
+
+					if (eventType == SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED)
 					{
 						return false;
-					}
-
-					if (e->type == SDL_EventType.SDL_DROPFILE)
-					{
-						var filePath = UTF8_ToManaged(e->drop.file, true);
-						if (_imGuiModals.ModalIsOpened)
-						{
-							// don't allow drag+drop while a modal is open
-							continue;
-						}
-
-						var fileExt = Path.GetExtension(filePath);
-						if (fileExt.Equals(".gqs", StringComparison.OrdinalIgnoreCase))
-						{
-							if (_emuManager.RomIsLoaded)
-							{
-								_emuManager.LoadState(filePath);
-							}
-						}
-						else if (RomLoader.RomAndCompressionExtensions.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
-						{
-							_romLoader.LoadRomFile(filePath);
-						}
-
-						continue;
-					}
-
-					if (e->type is SDL_EventType.SDL_AUDIODEVICEADDED or SDL_EventType.SDL_AUDIODEVICEREMOVED)
-					{
-						_imGuiModals.AudioDeviceListChanged = true;
-						continue;
-					}
-
-					var windowId = e->type switch
-					{
-						SDL_EventType.SDL_MOUSEMOTION or SDL_EventType.SDL_MOUSEWHEEL => e->motion.windowID,
-						SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL_EventType.SDL_MOUSEBUTTONUP => e->button.windowID,
-						SDL_EventType.SDL_TEXTINPUT => e->text.windowID,
-						SDL_EventType.SDL_KEYDOWN or SDL_EventType.SDL_KEYUP => e->key.windowID,
-						SDL_EventType.SDL_WINDOWEVENT => e->window.windowID,
-						_ => 0u,
-					};
-
-					if (windowId == _mainWindow.WindowId)
-					{
-						// suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
-						if (e->type is SDL_EventType.SDL_KEYDOWN or SDL_EventType.SDL_KEYUP && _emuManager.EmuAcceptingInputs)
-						{
-							continue;
-						}
-
-						_mainWindow.ProcessEvent(in *e);
-
-						if (e->type == SDL_EventType.SDL_WINDOWEVENT && e->window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
-						{
-							return false;
-						}
 					}
 				}
 			}
@@ -351,12 +443,6 @@ internal sealed class GSE : IDisposable
 				return 0;
 			}
 
-			// this needs to happen periodically
-			if (_audioManager.RecoverLostAudioDeviceIfNeeded())
-			{
-				_config.AudioDeviceName = _audioManager.AudioDeviceName;
-			}
-
 			if (_hotkeyManager.InputBindingsChanged && !_imGuiModals.ModalIsOpened)
 			{
 				_hotkeyManager.OnInputBindingsChange();
@@ -366,7 +452,7 @@ internal sealed class GSE : IDisposable
 
 			_mainWindow.NewFrame();
 
-			// position of the emu window is below the menu bar
+			// Position of the emu window is below the menu bar
 			var barHeight = ImGui.GetFrameHeight();
 			var menuBarHeight = 0.0f;
 			var statusBarHeight = 0.0f;
@@ -423,7 +509,7 @@ internal sealed class GSE : IDisposable
 			{
 				_mainWindow.Render(vsync: true);
 
-				// do this immediately after render, so it closely aligns to vsync
+				// Do this immediately after render, so it closely aligns to vsync
 				if (_emuManager.RomIsLoaded)
 				{
 					_postProcessor.RenderEmuTexture(

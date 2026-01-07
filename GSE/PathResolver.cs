@@ -9,7 +9,7 @@ using System.IO;
 namespace GSE;
 
 #if GSE_PUBLISH
-using static SDL2.SDL;
+using static SDL3.SDL;
 #endif
 
 internal static class PathResolver
@@ -24,7 +24,7 @@ internal static class PathResolver
 		return AppContext.BaseDirectory;
 #elif GSE_ANDROID
 		// we prefer the "external" storage path (SDL_GetPrefPath uses the "internal" storage path)
-		return SDL_AndroidGetExternalStoragePath();
+		return SDL_GetAndroidExternalStoragePath();
 #elif GSE_OSX
 		// for some platforms, we cannot do a portable build (as the application directory cannot be writable)
 		return SDL_GetPrefPath("", "GSE");
@@ -41,7 +41,7 @@ internal static class PathResolver
 #if !GSE_PUBLISH
 		return AppContext.BaseDirectory;
 #elif GSE_ANDROID
-		return SDL_AndroidGetExternalStoragePath();
+		return SDL_GetAndroidExternalStoragePath();
 #elif GSE_OSX
 		return SDL_GetPrefPath("", "GSR");
 #else

@@ -2,6 +2,6 @@
 	<Import Project="../GSECommon.props" />
 	<ItemGroup>
 		<ProjectReference Include="$(ProjectDir)../GSE.Input/GSE.Input.csproj" />
-		<ProjectReference Include="$(ProjectDir)../externals/SDL2-CS/SDL2-CS.csproj" />
+		<ProjectReference Include="$(ProjectDir)../externals/SDL3-CS/SDL3-CS.csproj" />
 	</ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 namespace GSE.Android.JNI;
 
@@ -30,7 +30,8 @@ internal readonly unsafe struct JNIEnvPtr
 
 	public static JNIEnvPtr GetEnv()
 	{
-		var jniEnv = SDL_AndroidGetJNIEnv();
+		var jniEnv = SDL_GetAndroidJNIEnv();
+		// ReSharper disable once ConvertIfStatementToReturnStatement
 		if (jniEnv == 0)
 		{
 			throw new($"Failed to obtain JNI env, SDL error: {SDL_GetError()}");

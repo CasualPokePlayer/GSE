@@ -7,7 +7,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Audio;
 using GSE.Emu;

@@ -98,12 +98,12 @@ internal sealed class MGBACore : IEmuCore
 
 	public void Dispose()
 	{
-		WriteSav();
+		FlushSave();
 		mgba_destroy(_opaque);
 		_emuInputLog?.Dispose();
 	}
 
-	private void WriteSav()
+	public void FlushSave()
 	{
 		try
 		{
@@ -127,7 +127,7 @@ internal sealed class MGBACore : IEmuCore
 
 	private void DoReset()
 	{
-		WriteSav();
+		FlushSave();
 		mgba_reset(_opaque);
 		_resetCallback();
 		_emuInputLog.SubmitHardReset();

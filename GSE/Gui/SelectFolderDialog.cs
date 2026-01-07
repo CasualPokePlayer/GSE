@@ -16,6 +16,10 @@ using Windows.Win32.UI.Shell;
 using static GSE.Gui.CocoaHelper;
 #endif
 
+#if GSE_WINDOWS || GSE_OSX
+using static SDL3.SDL;
+#endif
+
 namespace GSE.Gui;
 
 /// <summary>
@@ -61,7 +65,7 @@ internal static class SelectFolderDialog
 				}
 			}
 
-			fileDialog->Show(new(mainWindow.SdlSysWMInfo.info.win.window));
+			fileDialog->Show(new(SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0)));
 
 			IShellItem* result;
 			fileDialog->GetResult(&result);
@@ -97,7 +101,7 @@ internal static class SelectFolderDialog
 	public static string ShowDialog(string description, string baseDir, ImGuiWindow mainWindow)
 	{
 		var path = cocoa_helper_show_select_folder_dialog(
-			mainWindow: mainWindow.SdlSysWMInfo.info.cocoa.window,
+			mainWindow: SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0),
 			title: $"Select {description} Folder",
 			baseDir: baseDir ?? AppContext.BaseDirectory);
 		try

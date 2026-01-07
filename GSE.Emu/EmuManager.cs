@@ -411,6 +411,14 @@ public sealed class EmuManager : IDisposable
 			: (_emuCore.VideoWidth, _emuCore.VideoHeight);
 	}
 
+	public void FlushSave()
+	{
+		lock (_emuCoreLock)
+		{
+			_emuCore.FlushSave();
+		}
+	}
+
 	public bool LoadSave(string savPath)
 	{
 		byte[] savBuf;

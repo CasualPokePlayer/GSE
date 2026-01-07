@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using static SDL2.SDL;
+using static SDL3.SDL;
 
 using GSE.Emu;
 
@@ -17,17 +18,17 @@ namespace GSE;
 internal sealed class SDLTexture : IDisposable
 {
 	private readonly SDLRenderer _sdlRenderer;
-	private readonly uint _pixelFormat;
+	private readonly SDL_PixelFormat _pixelFormat;
 	private readonly SDL_TextureAccess _textureAccess;
 	private readonly SDL_ScaleMode _scaleMode;
-	private readonly SDL_BlendMode _blendMode;
+	private readonly uint _blendMode;
 	private readonly Action _onRecreate;
 
 	public readonly nint TextureId;
 	public readonly bool IsRenderTarget;
 
-	public SDLTexture(SDLRenderer sdlRenderer, uint pixelFormat, SDL_TextureAccess textureAccess,
-		SDL_ScaleMode scaleMode, SDL_BlendMode blendMode, Action onRecreate = null)
+	public SDLTexture(SDLRenderer sdlRenderer, SDL_PixelFormat pixelFormat, SDL_TextureAccess textureAccess,
+		SDL_ScaleMode scaleMode, uint blendMode, Action onRecreate = null)
 	{
 		_sdlRenderer = sdlRenderer;
 		_pixelFormat = pixelFormat;
@@ -40,7 +41,7 @@ internal sealed class SDLTexture : IDisposable
 		IsRenderTarget = _textureAccess == SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET;
 	}
 
-	public nint _texture;
+	private nint _texture;
 
 	public int Width { get; private set; }
 	public int Height { get; private set; }
@@ -60,18 +61,18 @@ internal sealed class SDLTexture : IDisposable
 		do
 		{
 			_texture = _sdlRenderer.CreateNativeTexture(_pixelFormat, _textureAccess, Width, Height);
-			if (_texture == 0 && !_sdlRenderer.CheckDeviceLost())
+			if (_texture == 0 && !_sdlRenderer.CheckDeviceReset())
 			{
 				throw new($"Failed to create video texture, SDL error: {SDL_GetError()}");
 			}
 		} while (_texture == 0);
 
-		if (SDL_SetTextureScaleMode(_texture, _scaleMode) != 0)
+		if (!SDL_SetTextureScaleMode(_texture, _scaleMode))
 		{
 			throw new($"Failed to set texture scaling mode, SDL error: {SDL_GetError()}");
 		}
 
-		if (SDL_SetTextureBlendMode(_texture, _blendMode) != 0)
+		if (!SDL_SetTextureBlendMode(_texture, _blendMode))
 		{
 			throw new($"Failed to set texture blend mode, SDL error: {SDL_GetError()}");
 		}
@@ -102,18 +103,18 @@ internal sealed class SDLTexture : IDisposable
 		public SDLTextureLock(SDLTexture sdlTexture, SDLRenderer sdlRenderer)
 		{
 			_sdlTexture = sdlTexture;
-			while (SDL_LockTexture(_sdlTexture._texture, 0, out Pixels, out Pitch) != 0)
+			while (!SDL_LockTexture(_sdlTexture.GetNativeTexture(), ref Unsafe.NullRef<SDL_Rect>(), out Pixels, out Pitch))
 			{
-				if (!sdlRenderer.CheckDeviceLost())
+				if (!sdlRenderer.CheckDeviceReset())
 				{
-					throw new($"Failed to lock SDL texture, SDL error {SDL_GetError()}");
+					throw new($"Failed to lock SDL texture, SDL error: {SDL_GetError()}");
 				}
 			}
 		}
 
 		public void Dispose()
 		{
-			SDL_UnlockTexture(_sdlTexture._texture);
+			SDL_UnlockTexture(_sdlTexture.GetNativeTexture());
 		}
 	}
 
@@ -152,9 +153,9 @@ internal sealed class SDLTexture : IDisposable
 	{
 		SetVideoDimensions(width, height);
 
-		while (SDL_UpdateTexture(_texture, 0, pixels, pitch) != 0)
+		while (!SDL_UpdateTexture(_texture, ref Unsafe.NullRef<SDL_Rect>(), pixels, pitch))
 		{
-			if (!_sdlRenderer.CheckDeviceLost())
+			if (!_sdlRenderer.CheckDeviceReset())
 			{
 				throw new($"Failed to update SDL texture! SDL error: {SDL_GetError()}");
 			}

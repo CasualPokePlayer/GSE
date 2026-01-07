@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-using static SDL2.SDL;
-
 #if GSE_WINDOWS
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -35,7 +33,7 @@ public sealed class InputManager : IDisposable
 	private volatile bool _disposing;
 	private volatile InputThreadException _inputThreadException;
 
-	private readonly SDL_SysWMinfo _mainWindowWmInfo;
+	private readonly uint _mainWindowProperties;
 	private volatile bool _enableDirectInput;
 
 	// These must be created/destroyed on the input thread!
@@ -52,7 +50,7 @@ public sealed class InputManager : IDisposable
 	{
 		try
 		{
-			_keyInput = KeyInputFactory.CreateKeyInput(in _mainWindowWmInfo);
+			_keyInput = KeyInputFactory.CreateKeyInput(_mainWindowProperties);
 			_sdlJoysticks = new(_enableDirectInput);
 
 			_inputThreadInitFinished.Set();
@@ -126,9 +124,9 @@ public sealed class InputManager : IDisposable
 		}
 	}
 
-	public InputManager(in SDL_SysWMinfo mainWindowWmInfo, bool enableDirectInput)
+	public InputManager(uint mainWindowProperties, bool enableDirectInput)
 	{
-		_mainWindowWmInfo = mainWindowWmInfo;
+		_mainWindowProperties = mainWindowProperties;
 		_enableDirectInput = enableDirectInput;
 		_inputThread = new(InputThreadProc) { IsBackground = true, Name = "Input Thread" };
 		_inputThread.Start();
@@ -182,6 +180,38 @@ public sealed class InputManager : IDisposable
 		return e.ScanCode.HasValue ? $"SC {(byte)e.ScanCode.Value}" : e.InputName.Replace('+', POSITIVE_CHAR);
 	}
 
+	// migrating from v0.4 SDL2 inputs to newer SDL3 inputs
+	private static string MigrateJoystickSerializationLabel(string serializationLabel)
+	{
+		if (serializationLabel.EndsWith(" A", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" A", " South");
+		}
+
+		if (serializationLabel.EndsWith(" B", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" B", " East");
+		}
+
+		if (serializationLabel.EndsWith(" X", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" X", " West");
+		}
+
+		if (serializationLabel.EndsWith(" Y", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" Y", " North");
+		}
+
+		// ReSharper disable once ConvertIfStatementToReturnStatement
+		if (serializationLabel.EndsWith(" Misc", StringComparison.Ordinal))
+		{
+			return serializationLabel.Replace(" Misc", " Misc 1");
+		}
+
+		return serializationLabel;
+	}
+
 	private InputBinding DeserializeSingleInputBinding(string serializationLabel)
 	{
 		// scancode
@@ -195,6 +225,7 @@ public sealed class InputManager : IDisposable
 		// joystick
 		else if (serializationLabel.StartsWith("JS", StringComparison.Ordinal))
 		{
+			serializationLabel = MigrateJoystickSerializationLabel(serializationLabel);
 			// hard to really check if this is valid, we'll just assume it is at this point
 			return new(serializationLabel, null, serializationLabel.Replace(POSITIVE_CHAR, '+'));
 		}

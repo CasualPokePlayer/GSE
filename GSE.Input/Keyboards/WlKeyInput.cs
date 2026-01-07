@@ -383,6 +383,7 @@ internal sealed class WlKeyInput : EvDevKeyInput
 	private readonly nint _wlDisplayProxy;
 	private readonly nint _wlEventQueue;
 	private readonly nint _wlRegistry;
+	private readonly int _wlFd;
 
 	private GCHandle _wlUserData;
 
@@ -430,6 +431,12 @@ internal sealed class WlKeyInput : EvDevKeyInput
 			if (_wlRegistry == 0)
 			{
 				throw new("Failed to get global registry");
+			}
+
+			_wlFd = wl_display_get_fd(_wlDisplay);
+			if (_wlFd == 0)
+			{
+				throw new("Failed to get display fd");
 			}
 
 			// TODO: xkb isn't strictly needed (and in theory might not work?), perhaps only do this if we get an xkb keymap?
@@ -564,8 +571,28 @@ internal sealed class WlKeyInput : EvDevKeyInput
 		}
 
 		// read and dispatch new events
-		_ = wl_display_flush(_wlDisplay);
-		_ = wl_display_read_events(_wlDisplay);
+		var flushRes = wl_display_flush(_wlDisplay);
+		var ready = 0;
+		if (flushRes == 0)
+		{
+			do
+			{
+				var pollfd = default(Pollfd);
+				pollfd.fd = _wlFd;
+				pollfd.events = POLLIN | POLLPRI;
+				ready = poll(ref pollfd, 1, 0);
+			} while (ready == -1 && Marshal.GetLastPInvokeError() == EINTR);
+		}
+
+		if (ready <= 0)
+		{
+			wl_display_cancel_read(_wlDisplay);
+		}
+		else
+		{
+			_ = wl_display_read_events(_wlDisplay);
+		}
+
 		_ = wl_display_dispatch_queue_pending(_wlDisplay, _wlEventQueue);
 
 		var ret = new KeyEvent[KeyEvents.Count];

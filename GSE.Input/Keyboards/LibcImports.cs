@@ -9,6 +9,7 @@ namespace GSE.Input.Keyboards;
 internal static partial class LibcImports
 {
 	// errno values
+	public const int EINTR = 4;
 	public const int EAGAIN = 11;
 	public const int ENODEV = 19;
 
@@ -38,6 +39,20 @@ internal static partial class LibcImports
 
 	[LibraryImport("libc.so.6", SetLastError = true)]
 	public static partial nint read(int fd, ref EvDevImports.EvDevKeyboardEvent buf, nuint count);
+
+	public const int POLLIN = 1;
+	public const int POLLPRI = 2;
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct Pollfd
+	{
+		public int fd;
+		public short events;
+		public short revents;
+	}
+
+	[LibraryImport("libc.so.6", SetLastError = true)]
+	public static partial int poll(ref Pollfd fds, nuint nfds, int timeout);
 
 	public const int PROT_READ = 1;
 	public const int MAP_PRIVATE = 2;

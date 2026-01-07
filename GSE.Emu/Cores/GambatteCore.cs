@@ -247,7 +247,7 @@ internal sealed class GambatteCore : IEmuCore
 			stateOrSaveFile: state.IsEmpty ? _savBuffer : state);
 	}
 
-	private void WriteSav()
+	public void FlushSave()
 	{
 		try
 		{
@@ -266,7 +266,7 @@ internal sealed class GambatteCore : IEmuCore
 
 	public void Dispose()
 	{
-		WriteSav();
+		FlushSave();
 		gambatte_destroy(_opaque);
 
 		if (_inputGetterUserData.IsAllocated)
@@ -279,7 +279,7 @@ internal sealed class GambatteCore : IEmuCore
 
 	private void DoReset()
 	{
-		WriteSav();
+		FlushSave();
 		gambatte_reset(_opaque, (uint)_resetStall);
 		_resetStage = _resetStall == 0 ? ResetStage.None : ResetStage.Stall;
 		_resetCounter = _resetStall;
