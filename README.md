@@ -25,6 +25,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * "Dead battery" RTC enabled by default for Game Boy Advance games
 * Always runs at the correct framerate (i.e. ~59.7275 FPS)
 * "Clock sync" used for host timing purposes, ensuring extremely consistent frame pacing (i.e. minimal "judder") and minimal input lag (both important for 1 frame tricks and such)
+* Optional "Low Latency Mode" available for even lower input lag, at the cost of potentially less consistent frame pacing
 * Input logs stored for all runs, giving run verifiers a secondary source of proof[^3]
 * Features not useful for speedrunners in runs or practice are not present (e.g. no cheat code support)
 
@@ -49,6 +50,8 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * Input bindings can have up to 4 bindings per input (matching up to how the Game Boy Player accepts 4 GameCube controllers at once)
 * Hotkeys are all configurable, there are no hardcoded hotkeys
 * Keyboard input text is localized according to keyboard layout. However, the config will refer to keyboard key positions, ensuring the config is layout agnostic
+* Vast game controller support, courtesy of [SDL3](https://github.com/libsdl-org/SDL)
+	* This includes even tricky to support controllers such as the offical GameCube USB Adapter, Nintendo Switch 1+2 controllers, etc, among the many controllers supported by SDL3
 
 ***Audio***
 * The host audio device can be selected as a config option
