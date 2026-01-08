@@ -51,7 +51,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * Hotkeys are all configurable, there are no hardcoded hotkeys
 * Keyboard input text is localized according to keyboard layout. However, the config will refer to keyboard key positions, ensuring the config is layout agnostic
 * Vast game controller support, courtesy of [SDL3](https://github.com/libsdl-org/SDL)
-	* This includes even tricky to support controllers such as the offical GameCube USB Adapter, Nintendo Switch 1+2 controllers, etc, among the many controllers supported by SDL3
+	* This includes even tricky to support controllers such as the official GameCube USB Adapter, Switch 1+2 controllers, etc, among the many controllers supported by SDL3
 
 ***Audio***
 * The host audio device can be selected as a config option
