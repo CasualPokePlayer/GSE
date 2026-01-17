@@ -658,7 +658,7 @@ internal sealed class ImGuiWindow : IDisposable
 			maxWindowHeight = maxWindowHeight * lastWindowHeight / rendererH;
 		}
 
-		return Math.Min(maxWindowScale, 1);
+		return Math.Max(maxWindowScale, 1);
 	}
 
 	private void LimitWindowSize(bool allowingManualResizing)
