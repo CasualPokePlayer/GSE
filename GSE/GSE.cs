@@ -450,7 +450,7 @@ internal sealed class GSE : IDisposable
 
 			_hotkeyManager.ProcessHotkeys();
 
-			_mainWindow.NewFrame();
+			_mainWindow.NewFrame(_config.AllowManualResizing);
 
 			// Position of the emu window is below the menu bar
 			var barHeight = ImGui.GetFrameHeight();

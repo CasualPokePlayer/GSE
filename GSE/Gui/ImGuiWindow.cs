@@ -626,6 +626,73 @@ internal sealed class ImGuiWindow : IDisposable
 		SetWindowSize(emuWidth, emuHeight, config.WindowScale, numBars);
 	}
 
+	public int GetMaxWindowScale()
+	{
+		// prevent the window size from exceeding the display usable bounds
+		if (!SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), out var displayBounds))
+		{
+			throw new($"Failed to get display bounds for window, SDL error: {SDL_GetError()}");
+		}
+
+		// substract the window border here (our window resize doesn't account for this)
+		_ = SDL_GetWindowBordersSize(SdlWindow, out var top, out var left, out var bottom, out var right);
+		displayBounds.w -= left + right;
+		displayBounds.h -= top + bottom;
+
+		var maxWindowScale = Math.Min(displayBounds.w / _lastWidth, displayBounds.h / _lastHeight);
+		var maxWindowWidth = _lastWidth * maxWindowScale;
+		var maxWindowHeight = _lastHeight * maxWindowScale;
+		maxWindowHeight += (int)(ImGui.GetFrameHeight() * _lastBars);
+		SdlRenderer.GetCurrentRenderOutputSize(out var rendererW, out var rendererH);
+		SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
+		maxWindowWidth = maxWindowWidth * lastWindowWidth / rendererW;
+		maxWindowHeight = maxWindowHeight * lastWindowHeight / rendererH;
+
+		while (maxWindowWidth > displayBounds.w || maxWindowHeight > displayBounds.h)
+		{
+			maxWindowScale--;
+			maxWindowWidth = _lastWidth * maxWindowScale;
+			maxWindowHeight = _lastHeight * maxWindowScale;
+			maxWindowHeight += (int)(ImGui.GetFrameHeight() * _lastBars);
+			maxWindowWidth = maxWindowWidth * lastWindowWidth / rendererW;
+			maxWindowHeight = maxWindowHeight * lastWindowHeight / rendererH;
+		}
+
+		return Math.Min(maxWindowScale, 1);
+	}
+
+	private void LimitWindowSize(bool allowingManualResizing)
+	{
+		var maxWindowScale = GetMaxWindowScale();
+		if (_lastScale > maxWindowScale)
+		{
+			_lastScale = maxWindowScale;
+			if (!allowingManualResizing)
+			{
+				SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
+			}
+		}
+
+		// even if manual resizing is allowed, we shouldn't allow the window to extend pass the bounds of the display
+		if (!allowingManualResizing && !IsFullscreen)
+		{
+			if (!SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), out var displayBounds))
+			{
+				throw new($"Failed to get display bounds for window, SDL error: {SDL_GetError()}");
+			}
+
+			_ = SDL_GetWindowBordersSize(SdlWindow, out var top, out var left, out var bottom, out var right);
+			displayBounds.w -= left + right;
+			displayBounds.h -= top + bottom;
+
+			SDL_GetWindowSize(SdlWindow, out var windowWidth, out var windowHeight);
+			if (windowWidth > displayBounds.w || windowHeight > displayBounds.h)
+			{
+				SDL_SetWindowSize(SdlWindow, Math.Min(windowWidth, displayBounds.w), Math.Min(windowHeight, displayBounds.h));
+			}
+		}
+	}
+
 	public void SetWindowSize(int w, int h, int scale, int bars)
 	{
 		_lastWidth = w;
@@ -639,10 +706,10 @@ internal sealed class ImGuiWindow : IDisposable
 			h += (int)(ImGui.GetFrameHeight() * bars);
 			// we want to adjust our width/height to match up against the renderer output
 			// as imgui coords go against the dpi scaled size, not the window size
-			SdlRenderer.GetCurrentRenderOutputSize(out var displayW, out var displayH);
+			SdlRenderer.GetCurrentRenderOutputSize(out var rendererW, out var rendererH);
 			SDL_GetWindowSize(SdlWindow, out var lastWindowWidth, out var lastWindowHeight);
-			w = w * lastWindowWidth / displayW;
-			h = h * lastWindowHeight / displayH;
+			w = w * lastWindowWidth / rendererW;
+			h = h * lastWindowHeight / rendererH;
 			SDL_SetWindowSize(SdlWindow, w, h);
 		}
 	}
@@ -877,7 +944,7 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 	}
 
-	public void NewFrame()
+	public void NewFrame(bool allowingManualResizing)
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
@@ -916,9 +983,15 @@ internal sealed class ImGuiWindow : IDisposable
 				ImGui.NewFrame();
 				ImGui.EndFrame();
 
-				SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
+				if (!allowingManualResizing)
+				{
+					SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
+				}
 			}
 		}
+
+		// make sure our window is not exceeding the display bounds
+		LimitWindowSize(allowingManualResizing);
 
 		SDL_GetWindowSize(SdlWindow, out var w, out var h);
 		var windowFlags = SDL_GetWindowFlags(SdlWindow);
@@ -927,11 +1000,11 @@ internal sealed class ImGuiWindow : IDisposable
 			w = h = 0;
 		}
 
-		SdlRenderer.GetCurrentRenderOutputSize(out var displayW, out var displayH);
-		io.DisplaySize = new(displayW, displayH);
+		SdlRenderer.GetCurrentRenderOutputSize(out var rendererW, out var rendererH);
+		io.DisplaySize = new(rendererW, rendererH);
 		if (w > 0 && h > 0)
 		{
-			io.DisplayFramebufferScale = new((float)displayW / w, (float)displayH / h);
+			io.DisplayFramebufferScale = new((float)rendererW / w, (float)rendererH / h);
 		}
 
 		var time = SDL_GetPerformanceCounter();

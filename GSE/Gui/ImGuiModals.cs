@@ -609,27 +609,16 @@ internal sealed class ImGuiModals
 				}
 			}
 
-			int displayWidth, displayHeight;
-			unsafe
-			{
-				var displayMode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
-				if (displayMode == null)
-				{
-					throw new($"Failed to get display mode for window, SDL error: {SDL_GetError()}");
-				}
-
-				displayWidth = displayMode->w;
-				displayHeight = displayMode->h;
-			}
-
-			var (emuWidth, emuHeight) = _emuManager.GetVideoDimensions(_config.HideSgbBorder);
-			var maxWindowScale = Math.Min(displayWidth / emuWidth, displayHeight / emuHeight);
+			var maxWindowScale = _mainWindow.GetMaxWindowScale();
 			maxWindowScale = Math.Clamp(maxWindowScale, 1, _windowScalingOptions.Length);
 
-			if (!_config.AllowManualResizing && maxWindowScale < _config.WindowScale)
+			if (_config.WindowScale > maxWindowScale)
 			{
 				_config.WindowScale = maxWindowScale;
-				_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+				if (!_config.AllowManualResizing)
+				{
+					_mainWindow.UpdateMainWindowSize(_emuManager, _config);
+				}
 			}
 
 			// note that Combo items are 0 indexed, while window scale is 1 indexed
