@@ -149,6 +149,8 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 
 			// reset our emu video texture immediately, mainly so we don't try to render a null texture with a rom loaded
 			var (emuWidth, emuHeight) = emuManager.GetVideoDimensions(false);
+			config.LastEmuWidth = emuWidth;
+			config.LastEmuHeight = emuHeight;
 			postProcessor.ResetEmuTexture(emuWidth, emuHeight);
 
 			if (!config.AllowManualResizing)

@@ -209,7 +209,7 @@ internal sealed class GSE : IDisposable
 			// Default bindings will be set if this fails for some reason
 			_config.DeserializeInputBindings(_inputManager, _mainWindow);
 			_audioManager = new(_config.AudioDeviceName, _config.LatencyMs, _config.Volume);
-			_emuManager = new(_audioManager, _config.PreferLowLatency);
+			_emuManager = new(_audioManager, _config.LastEmuWidth, _config.LastEmuHeight, _config.PreferLowLatency);
 			_postProcessor = new(_config, _emuManager, _mainWindow.SdlRenderer);
 			_osdManager = new(_config, _emuManager, _mainWindow.SdlRenderer);
 			_gbController = new(_inputManager, _config.EmuControllerBindings, InputGateCallback);

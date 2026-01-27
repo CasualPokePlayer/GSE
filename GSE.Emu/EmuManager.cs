@@ -52,6 +52,8 @@ public sealed class EmuManager : IDisposable
 	private uint[] _lastVideoFrameCopy;
 	private readonly object _videoLock = new();
 	private readonly AutoResetEvent _videoFrameUpdated = new(false);
+
+	private int _lastVideoWidth, _lastVideoHeight;
 	private bool _lowLatencyMode;
 
 	private readonly AudioManager _audioManager;
@@ -232,9 +234,11 @@ public sealed class EmuManager : IDisposable
 		}
 	}
 
-	public EmuManager(AudioManager audioManager, bool lowLatencyMode)
+	public EmuManager(AudioManager audioManager, int lastVideoWidth, int lastVideoHeight, bool lowLatencyMode)
 	{
 		_audioManager = audioManager;
+		_lastVideoWidth = lastVideoWidth;
+		_lastVideoHeight = lastVideoHeight;
 		_lowLatencyMode = lowLatencyMode;
 		SetToNullCore();
 
@@ -362,6 +366,8 @@ public sealed class EmuManager : IDisposable
 			RomIsLoaded = true;
 			_lastVideoFrame = new uint[_emuCore.VideoBuffer.Length];
 			_lastVideoFrameCopy = new uint[_emuCore.VideoBuffer.Length];
+			_lastVideoWidth = _emuCore.VideoWidth;
+			_lastVideoHeight = _emuCore.VideoHeight;
 			_audioManager.SetInputAudioFrequency(_emuCore.AudioFrequency);
 		}
 		catch
@@ -401,14 +407,15 @@ public sealed class EmuManager : IDisposable
 
 	public (int Width, int Height) GetVideoDimensions(bool hideSgbBorder)
 	{
-		if (!RomIsLoaded)
+		var videoDimensions = (_lastVideoWidth, _lastVideoHeight);
+
+		// kind of annoying hardcoding, but eh
+		if (hideSgbBorder && videoDimensions == (256, 224))
 		{
-			return (240, 160); // default to GBA resolution, I guess
+			return (160, 144);
 		}
 
-		return hideSgbBorder && CurrentGbPlatform == GBPlatform.SGB2
-			? (160, 144) // kind of annoying hardcoding, but eh
-			: (_emuCore.VideoWidth, _emuCore.VideoHeight);
+		return videoDimensions;
 	}
 
 	public void FlushSave()

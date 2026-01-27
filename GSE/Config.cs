@@ -66,6 +66,8 @@ internal sealed class Config
 	public bool AlwaysOnTop { get; set; }
 	public int WindowScale { get; set; } = 3;
 	public bool AllowManualResizing { get; set; }
+	public int LastEmuWidth { get; set; } = 160;
+	public int LastEmuHeight { get; set; } = 144;
 
 	public string AudioDeviceName { get; set; } = AudioManager.DEFAULT_AUDIO_DEVICE;
 	public int LatencyMs { get; set; } = 35; // 2 frames +1ms rounded up
@@ -151,6 +153,14 @@ internal sealed class Config
 
 		RenderDriver ??= ImGuiWindow.DEFAULT_RENDER_DRIVER;
 		WindowScale = Math.Clamp(WindowScale, 1, 15);
+
+		var lastEmuDimensions = (LastEmuWidth, LastEmuHeight);
+		if (lastEmuDimensions is not ((160, 144) or (240, 160) or (256, 224)))
+		{
+			LastEmuWidth = 160;
+			LastEmuHeight = 144;
+		}
+
 		AudioDeviceName ??= AudioManager.DEFAULT_AUDIO_DEVICE;
 		LatencyMs = Math.Clamp(LatencyMs, AudioManager.MINIMUM_LATENCY_MS, AudioManager.MAXIMUM_LATENCY_MS);
 		Volume = Math.Clamp(Volume, 0, 100);
