@@ -53,6 +53,7 @@
 		<CIMGUI_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)cimgui$(GSE_LIB_EXT)</CIMGUI_PATH>
 		<SDL3_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)SDL3$(GSE_LIB_EXT)</SDL3_PATH>
 		<GAMBATTE_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)gambatte$(GSE_LIB_EXT)</GAMBATTE_PATH>
+		<MESEN_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)mesen$(GSE_LIB_EXT)</MESEN_PATH>
 		<MGBA_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)mgba$(GSE_LIB_EXT)</MGBA_PATH>
 		<NATIVE_HELPER_PATH>$(ProjectDir)../externals/runtimes/$(GSE_RID)/$(GSE_LIB_PREFIX)native_helper$(GSE_LIB_EXT)</NATIVE_HELPER_PATH>
 	</PropertyGroup>
@@ -60,11 +61,13 @@
 		<DirectPInvoke Include="cimgui" />
 		<DirectPInvoke Include="SDL3" />
 		<DirectPInvoke Include="gambatte" />
+		<DirectPInvoke Include="mesen" />
 		<DirectPInvoke Include="mgba" />
 		<DirectPInvoke Include="native_helper" />
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
 		<NativeLibrary Include="$(SDL3_PATH)" />
 		<NativeLibrary Include="$(GAMBATTE_PATH)" />
+		<NativeLibrary Include="$(MESEN_PATH)" />
 		<NativeLibrary Include="$(MGBA_PATH)" />
 		<NativeLibrary Include="$(NATIVE_HELPER_PATH)" />
 	</ItemGroup>
@@ -133,6 +136,10 @@
 			<Visible>false</Visible>
 		</Content>
 		<Content Include="$(GAMBATTE_PATH)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
+		<Content Include="$(MESEN_PATH)">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<Visible>false</Visible>
 		</Content>
