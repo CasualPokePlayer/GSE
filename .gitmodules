@@ -14,3 +14,6 @@
 [submodule "externals/SDL3/libusb"]
 	path = externals/SDL3/libusb
 	url = https://github.com/libusb/libusb.git
+[submodule "externals/mesen/Mesen2"]
+	path = externals/mesen/Mesen2
+	url = https://github.com/CasualPokePlayer/Mesen2.git

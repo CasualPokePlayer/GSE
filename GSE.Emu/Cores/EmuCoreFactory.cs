@@ -11,6 +11,7 @@ internal static class EmuCoreFactory
 	{
 		EmuCoreType.Gambatte => new GambatteCore(loadArgs),
 		EmuCoreType.mGBA => new MGBACore(loadArgs),
+		EmuCoreType.Mesen => new MesenCore(loadArgs),
 		_ => throw new InvalidOperationException()
 	};
 }

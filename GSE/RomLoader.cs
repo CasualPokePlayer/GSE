@@ -123,7 +123,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 			}
 
 			emuManager.LoadRom(new(
-				CoreType: isGbaRom ? EmuCoreType.mGBA : EmuCoreType.Gambatte,
+				CoreType: isGbaRom ? EmuCoreType.Mesen : EmuCoreType.Gambatte,
 				EmuController: isGbaRom ? gbaController : gbController,
 				RomData: romFile.UnderlyingFile,
 				BiosData: biosFile.UnderlyingFile,

@@ -7,4 +7,5 @@ public enum EmuCoreType
 {
 	Gambatte,
 	mGBA,
+	Mesen,
 }
