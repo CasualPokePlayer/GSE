@@ -9,6 +9,7 @@ call:CMakeNinjaBuild cimgui
 call:CMakeNinjaBuild SDL3
 call:CMakeNinjaBuild gambatte
 call:CMakeNinjaBuild mgba
+call:CMakeNinjaBuild mesen
 call:CMakeNinjaBuild native_helper
 GOTO:EOF
 
