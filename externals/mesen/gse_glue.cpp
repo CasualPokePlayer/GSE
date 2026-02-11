@@ -117,64 +117,71 @@ struct GSE_ctx
 
 GSE_EXPORT GSE_ctx* mesen_create(const uint8_t* romData, uint32_t romLength, const uint8_t* biosData, uint32_t biosLength, bool forceDisableRtc, int64_t rtcStartTime)
 {
-	if (biosLength != GbaConsole::BootRomSize)
+	try
+	{
+		if (biosLength != GbaConsole::BootRomSize)
+		{
+			return nullptr;
+		}
+
+		auto ctx = std::make_unique<GSE_ctx>();
+		ctx->emu = std::make_unique<Emulator>();
+
+		auto& audioConfig = ctx->emu->GetSettings()->GetAudioConfig();
+		audioConfig.DisableDynamicSampleRate = true;
+		audioConfig.SampleRate = 48000; // meh
+
+		ctx->audio_provider = std::make_unique<GSEAudioProvider>();
+		ctx->emu->GetSoundMixer()->RegisterAudioProvider(ctx->audio_provider.get());
+
+		auto& gbaConfig = ctx->emu->GetSettings()->GetGbaConfig();
+		gbaConfig.Controller.Type = ControllerType::GbaController;
+		gbaConfig.SkipBootScreen = false;
+		gbaConfig.DisableFrameSkipping = true;
+		gbaConfig.RamPowerOnState = RamState::AllOnes;
+		gbaConfig.RtcType = forceDisableRtc ? GbaRtcType::Disabled : GbaRtcType::AutoDetect;
+		gbaConfig.GbaCustomDate = rtcStartTime;
+
+		uint32_t paddedRomLength = 1;
+		while (paddedRomLength < romLength)
+		{
+			paddedRomLength <<= 1;
+		}
+
+		auto paddedRom = std::make_unique<uint8_t[]>(paddedRomLength);
+		memcpy(paddedRom.get(), romData, romLength);
+		if (romLength != paddedRomLength)
+		{
+			memset(&paddedRom[romLength], 0xFF, paddedRomLength - romLength);
+		}
+
+		auto rom = VirtualFile(paddedRom.get(), paddedRomLength, "rom.gba");
+
+		ctx->battery_provider = std::make_shared<GSEBatteryProvider>();
+		ctx->emu->GetBatteryManager()->Initialize("rom.gba");
+		ctx->emu->GetBatteryManager()->SetBatteryProvider(ctx->battery_provider);
+
+		ctx->console = std::make_unique<GbaConsole>(ctx->emu.get());
+		if (ctx->console->LoadRom(rom) != LoadRomResult::Success)
+		{
+			return nullptr;
+		}
+
+		// manually load up the BIOS
+		auto* biosMemory = ctx->emu->GetMemory(MemoryType::GbaBootRom).Memory;
+		memcpy(biosMemory, biosData, GbaConsole::BootRomSize);
+		ctx->console->Reset(); // need to reset in order to get CPU pipeline in the right state
+
+		ctx->input_provider = std::make_unique<GSEInputProvider>();
+		ctx->console->GetControlManager()->RegisterInputProvider(ctx->input_provider.get());
+		ctx->console->GetControlManager()->UpdateControlDevices();
+
+		return ctx.release();
+	}
+	catch (...)
 	{
 		return nullptr;
 	}
-
-	auto ctx = std::make_unique<GSE_ctx>();
-	ctx->emu = std::make_unique<Emulator>();
-
-	auto& audioConfig = ctx->emu->GetSettings()->GetAudioConfig();
-	audioConfig.DisableDynamicSampleRate = true;
-	audioConfig.SampleRate = 48000; // meh
-
-	ctx->audio_provider = std::make_unique<GSEAudioProvider>();
-	ctx->emu->GetSoundMixer()->RegisterAudioProvider(ctx->audio_provider.get());
-
-	auto& gbaConfig = ctx->emu->GetSettings()->GetGbaConfig();
-	gbaConfig.Controller.Type = ControllerType::GbaController;
-	gbaConfig.SkipBootScreen = false;
-	gbaConfig.DisableFrameSkipping = true;
-	gbaConfig.RamPowerOnState = RamState::AllOnes;
-	gbaConfig.RtcType = forceDisableRtc ? GbaRtcType::Disabled : GbaRtcType::AutoDetect;
-	gbaConfig.GbaCustomDate = rtcStartTime;
-
-	uint32_t paddedRomLength = 1;
-	while (paddedRomLength < romLength)
-	{
-		paddedRomLength <<= 1;
-	}
-
-	auto paddedRom = std::make_unique<uint8_t[]>(paddedRomLength);
-	memcpy(paddedRom.get(), romData, romLength);
-	if (romLength != paddedRomLength)
-	{
-		memset(&paddedRom[romLength], 0xFF, paddedRomLength - romLength);
-	}
-
-	auto rom = VirtualFile(paddedRom.get(), paddedRomLength, "rom.gba");
-
-	ctx->battery_provider = std::make_shared<GSEBatteryProvider>();
-	ctx->emu->GetBatteryManager()->Initialize("rom.gba");
-	ctx->emu->GetBatteryManager()->SetBatteryProvider(ctx->battery_provider);
-
-	ctx->console = std::make_unique<GbaConsole>(ctx->emu.get());
-	if (ctx->console->LoadRom(rom) != LoadRomResult::Success)
-	{
-		return nullptr;
-	}
-
-	// manually load up the BIOS
-	auto* biosMemory = ctx->emu->GetMemory(MemoryType::GbaBootRom).Memory;
-	memcpy(biosMemory, biosData, GbaConsole::BootRomSize);
-	ctx->console->Reset(); // need to reset in order to get CPU pipeline in the right state
-
-	ctx->input_provider = std::make_unique<GSEInputProvider>();
-	ctx->console->GetControlManager()->RegisterInputProvider(ctx->input_provider.get());
-	ctx->console->GetControlManager()->UpdateControlDevices();
-
-	return ctx.release();
 }
 
 GSE_EXPORT void mesen_destroy(GSE_ctx* ctx)
