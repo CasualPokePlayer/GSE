@@ -171,6 +171,8 @@ if(MSVC)
 	target_compile_options(mesen PRIVATE /utf-8)
 	# Enforce standard conformance
 	target_compile_options(mesen PRIVATE /permissive- /volatile:iso /fp:precise)
+	# Exceptions must be compiled in
+	target_compile_options(mesen PRIVATE /EHsc-)
 	# Give Unicode WinAPI functions
 	target_compile_definitions(mesen PRIVATE UNICODE _UNICODE)
 	# Shared lib needs to link immediately
