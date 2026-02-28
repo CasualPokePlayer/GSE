@@ -165,8 +165,11 @@ target_include_directories(mesen PRIVATE
 
 # Set compiler specific options
 if(MSVC)
-	# shut up the compiler
-	target_compile_definitions(mesen PRIVATE _CRT_SECURE_NO_WARNINGS)
+	# Shut up the compiler
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_compile_options(mesen PRIVATE "-Wno-microsoft-include" "-Wno-unused-value")
+	endif()
+	target_compile_definitions(mesen PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 	# Source files are UTF-8
 	target_compile_options(mesen PRIVATE /utf-8)
 	# Enforce standard conformance
