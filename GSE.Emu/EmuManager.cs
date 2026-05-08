@@ -502,8 +502,8 @@ public sealed class EmuManager : IDisposable
 			return false;
 		}
 
-		// Find the footer offset and slice it off before sending it to the core
-		var footerOffset = 0;
+		// Find the footer length and slice it off before sending the state to the core
+		var footerLength = 0;
 		try
 		{
 			using var ms = new MemoryStream(stateBuf, writable: false);
@@ -520,17 +520,17 @@ public sealed class EmuManager : IDisposable
 				throw new("Invalid state preview marker");
 			}
 
-			footerOffset = stateBuf.Length - (int)footerPos;
+			footerLength = stateBuf.Length - (int)footerPos;
 		}
 		catch
 		{
-			// no valid footer, ignored
+			// no valid footer, assume there's no footer
 		}
 
 		lock (_emuCoreLock)
 		{
 			CheckEmuThreadException();
-			return _emuCore.LoadState(stateBuf.AsSpan()[..^footerOffset]);
+			return _emuCore.LoadState(stateBuf.AsSpan()[..^footerLength]);
 		}
 	}
 
