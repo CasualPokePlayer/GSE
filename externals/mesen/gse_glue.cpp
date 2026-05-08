@@ -219,8 +219,9 @@ GSE_EXPORT void mesen_advance(GSE_ctx* ctx, uint16_t buttons, uint32_t* videoBuf
 
 GSE_EXPORT void mesen_reset(GSE_ctx* ctx)
 {
-	// save SaveRAM before reloading the ROM;
 	ctx->console->Reset();
+	ctx->console->GetControlManager()->RegisterInputProvider(ctx->input_provider.get());
+	ctx->console->GetControlManager()->UpdateControlDevices();
 }
 
 GSE_EXPORT uint32_t mesen_savesavedata(GSE_ctx* ctx, uint8_t* dest)
@@ -275,7 +276,7 @@ GSE_EXPORT int64_t mesen_getrtctime(GSE_ctx* ctx)
 
 GSE_EXPORT uint32_t mesen_getsavestatelength(GSE_ctx* ctx)
 {
-	Serializer s(SaveStateManager::FileFormatVersion, true);
+	Serializer s(SaveStateManager::FileFormatVersion, true, SerializeFormat::Binary);
 	SV(*ctx->emu->GetSettings());
 	SV(ctx->console);
 	s.SaveTo(ctx->state_buf);
@@ -295,7 +296,7 @@ GSE_EXPORT bool mesen_savestate(GSE_ctx* ctx, uint8_t* stateBuf)
 
 GSE_EXPORT bool mesen_loadstate(GSE_ctx* ctx, const uint8_t* stateBuf, uint32_t size)
 {
-	Serializer s(SaveStateManager::FileFormatVersion, false);
+	Serializer s(SaveStateManager::FileFormatVersion, false, SerializeFormat::Binary);
 	if (!s.LoadFrom(stateBuf, size))
 	{
 		return false;
