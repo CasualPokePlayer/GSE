@@ -53,6 +53,7 @@ jobs:
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
+          zip: false
         - name: linux-arm
           runner: ubuntu-latest
           container: ubuntu:22.04
