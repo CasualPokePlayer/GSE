@@ -63,12 +63,12 @@ fi
 cd ..
 mkdir output/$TARGET_RID
 mkdir output/$TARGET_RID/publish
-cp -a -T android/app/build/outputs/apk/release/app-release.apk output/$TARGET_RID/publish/GSE.apk
+cp -a -T android/app/build/outputs/apk/release/app-release.apk output/$TARGET_RID/publish/GSE-$TARGET_RID.apk
 
 # Also possibly build an app bundle (for Play Store submission)
 if [ -f $HOME/gse-upload-keystore.jks ]; then
 	cd android
 	./gradlew bundleRelease -Pkeystore="$HOME/gse-upload-keystore.jks" -Pstorepass="$ANDROID_UPLOAD_STOREPASS" -Pkeyalias="$ANDROID_UPLOAD_KEYALIAS" -Pkeypass="$ANDROID_UPLOAD_KEYPASS"
 	cd ..
-	cp -a -T android/app/build/outputs/bundle/release/app-release.aab output/$TARGET_RID/publish/GSE.aab
+	cp -a -T android/app/build/outputs/bundle/release/app-release.aab output/$TARGET_RID/publish/GSE-$TARGET_RID.aab
 fi

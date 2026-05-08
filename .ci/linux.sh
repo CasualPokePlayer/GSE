@@ -4,7 +4,7 @@
 # (Except for 32-bit ARM, which must be built on Ubuntu 22.04)
 
 # Install some base tools
-apt-get install -y wget lsb-release software-properties-common gpg ninja-build pkg-config
+apt-get install -y wget lsb-release software-properties-common gpg ninja-build pkg-config tar
 
 # Install clang 21
 wget https://apt.llvm.org/llvm.sh -O $HOME/llvm.sh
@@ -121,3 +121,8 @@ export PATH=$HOME/.dotnet:$PATH
 # Build GSE
 cd ..
 dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-21 -p:LinkerFlavor=lld-21 -p:ObjCopyName=llvm-objcopy-21
+
+# Compress an executable GSE into a .tar.gz
+chmod +x output/$TARGET_RID/publish/GSE
+tar --owner=root --group=root -cvzf output/$TARGET_RID/publish/GSE-$TARGET_RID.tar.gz output/$TARGET_RID/publish/GSE
+rm output/$TARGET_RID/publish/GSE

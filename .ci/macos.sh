@@ -72,4 +72,4 @@ codesign -s - --deep --force output/$TARGET_RID/GSE.app
 
 # Output a dmg
 mkdir output/$TARGET_RID/publish
-create-dmg output/$TARGET_RID/publish/GSE.dmg output/$TARGET_RID/GSE.app
+create-dmg output/$TARGET_RID/publish/GSE-$TARGET_RID.dmg output/$TARGET_RID/GSE.app
