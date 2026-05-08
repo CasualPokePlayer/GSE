@@ -10,7 +10,7 @@ internal static class EmuCoreFactory
 	public static IEmuCore CreateEmuCore(EmuLoadArgs loadArgs) => loadArgs.CoreType switch
 	{
 		EmuCoreType.Gambatte => new GambatteCore(loadArgs),
-		EmuCoreType.mGBA => new MGBACore(loadArgs),
+		EmuCoreType.Mesen => new MesenCore(loadArgs),
 		_ => throw new InvalidOperationException()
 	};
 }

@@ -502,10 +502,35 @@ public sealed class EmuManager : IDisposable
 			return false;
 		}
 
+		// Find the footer length and slice it off before sending the state to the core
+		var footerLength = 0;
+		try
+		{
+			using var ms = new MemoryStream(stateBuf, writable: false);
+			using var br = new BinaryReader(ms, Encoding.UTF8);
+
+			// seek to footer
+			ms.Seek(-sizeof(long), SeekOrigin.End);
+			var footerPos = br.ReadInt64();
+			ms.Seek(footerPos, SeekOrigin.Begin);
+
+			var footerMarker = br.ReadString();
+			if (footerMarker is not (GSE_STATE_PREVIEW_MARKER or GSR_STATE_PREVIEW_MARKER))
+			{
+				throw new("Invalid state preview marker");
+			}
+
+			footerLength = stateBuf.Length - (int)footerPos;
+		}
+		catch
+		{
+			// no valid footer, assume there's no footer
+		}
+
 		lock (_emuCoreLock)
 		{
 			CheckEmuThreadException();
-			return _emuCore.LoadState(stateBuf);
+			return _emuCore.LoadState(stateBuf.AsSpan()[..^footerLength]);
 		}
 	}
 

@@ -2,21 +2,18 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
-using System.Buffers.Binary;
-using System.Collections.Immutable;
 using System.IO;
-using System.IO.Compression;
 
-using static GSE.Emu.Cores.MGBA;
+using static GSE.Emu.Cores.Mesen;
 
 namespace GSE.Emu.Cores;
 
-internal sealed class MGBACore : IEmuCore
+internal sealed class MesenCore : IEmuCore
 {
 	private readonly nint _opaque;
 	private readonly uint[] _videoBuffer = new uint[240 * 160];
 	private readonly short[] _audioBuffer = new short[0x2000 * 2];
-	private readonly byte[] _savBuffer = new byte[0x20000 + 16];
+	private readonly byte[] _savBuffer = new byte[0x20000 + 19];
 	private readonly string _savPath;
 	private readonly Action _resetCallback;
 
@@ -29,10 +26,10 @@ internal sealed class MGBACore : IEmuCore
 	private readonly bool _disableGbaRtc;
 	private EmuInputLog _emuInputLog;
 
-	public MGBACore(EmuLoadArgs loadArgs)
+	public MesenCore(EmuLoadArgs loadArgs)
 	{
 		var gbaStartTime = GetUnixTime();
-		_opaque = mgba_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc, gbaStartTime);
+		_opaque = mesen_create(loadArgs.RomData.Span, loadArgs.RomData.Length, loadArgs.BiosData.Span, loadArgs.BiosData.Length, loadArgs.DisableGbaRtc, gbaStartTime);
 		if (_opaque == 0)
 		{
 			throw new("Failed to create core opaque state!");
@@ -40,7 +37,7 @@ internal sealed class MGBACore : IEmuCore
 
 		try
 		{
-			mgba_setcolorlut(_opaque,
+			mesen_setcolorlut(_opaque,
 				loadArgs.ApplyColorCorrection ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
 
 			var savPath = Path.Combine(loadArgs.SaveFilePath, loadArgs.RomName) + ".sav";
@@ -49,8 +46,7 @@ internal sealed class MGBACore : IEmuCore
 			{
 				using var sav = savFi.OpenRead();
 				var numRead = sav.Read(_savBuffer);
-				mgba_loadsavedata(_opaque, _savBuffer, numRead, gbaStartTime);
-				mgba_reset(_opaque); // the core needs a hard reset to apply RTC (if present)
+				mesen_loadsavedata(_opaque, _savBuffer, numRead, gbaStartTime);
 			}
 
 			_savPath = savPath;
@@ -79,7 +75,7 @@ internal sealed class MGBACore : IEmuCore
 		var saveDataLength = 0;
 		if (state.IsEmpty)
 		{
-			saveDataLength = mgba_savesavedata(_opaque, _savBuffer);
+			saveDataLength = mesen_savesavedata(_opaque, _savBuffer);
 		}
 
 		_emuInputLog?.Dispose();
@@ -90,7 +86,7 @@ internal sealed class MGBACore : IEmuCore
 			gbPlatform: GBPlatform.GBA,
 			isGba: true,
 			disableGbaRtc: _disableGbaRtc,
-			gbaRtcTime: mgba_getrtctime(_opaque),
+			gbaRtcTime: mesen_getrtctime(_opaque),
 			gbRtcDividers: 0,
 			startsFromSaveState: !state.IsEmpty,
 			stateOrSaveFile: state.IsEmpty ? _savBuffer.AsSpan()[..saveDataLength] : state);
@@ -99,7 +95,7 @@ internal sealed class MGBACore : IEmuCore
 	public void Dispose()
 	{
 		FlushSave();
-		mgba_destroy(_opaque);
+		mesen_destroy(_opaque);
 		_emuInputLog?.Dispose();
 	}
 
@@ -112,7 +108,7 @@ internal sealed class MGBACore : IEmuCore
 				return;
 			}
 
-			var saveDataLength = mgba_savesavedata(_opaque, _savBuffer);
+			var saveDataLength = mesen_savesavedata(_opaque, _savBuffer);
 			if (saveDataLength > 0)
 			{
 				using var sav = File.Create(_savPath);
@@ -128,7 +124,7 @@ internal sealed class MGBACore : IEmuCore
 	private void DoReset()
 	{
 		FlushSave();
-		mgba_reset(_opaque);
+		mesen_reset(_opaque);
 		_resetCallback();
 		_emuInputLog.SubmitHardReset();
 	}
@@ -144,7 +140,7 @@ internal sealed class MGBACore : IEmuCore
 			DoReset();
 		}
 
-		mgba_advance(_opaque, (Buttons)controllerState.GBAInputState, _videoBuffer, _audioBuffer, out var samplesRan, out var cpuCyclesRan);
+		mesen_advance(_opaque, (Buttons)controllerState.GBAInputState, _videoBuffer, _audioBuffer, out var samplesRan, out var cpuCyclesRan);
 		_emuInputLog.SubmitInput(cpuCyclesRan, controllerState.GBAInputState);
 		completedFrame = true;
 		samples = samplesRan;
@@ -154,7 +150,7 @@ internal sealed class MGBACore : IEmuCore
 	public bool LoadSave(ReadOnlySpan<byte> sav)
 	{
 		var saveDataLength = Math.Min(sav.Length, _savBuffer.Length);
-		mgba_loadsavedata(_opaque, sav, saveDataLength, GetUnixTime());
+		mesen_loadsavedata(_opaque, sav, saveDataLength, GetUnixTime());
 		RestartInputLog([]);
 		DoReset();
 		return true;
@@ -162,13 +158,14 @@ internal sealed class MGBACore : IEmuCore
 
 	public ReadOnlySpan<byte> SaveState()
 	{
-		var stateSize = mgba_getsavestatelength(_opaque);
+		var stateSize = mesen_getsavestatelength(_opaque);
 		if (_stateBuffer.Length < stateSize)
 		{
 			_stateBuffer = new byte[stateSize];
 		}
 
-		if (!mgba_savestate(_opaque, _stateBuffer))
+		// ReSharper disable once ConvertIfStatementToReturnStatement
+		if (!mesen_savestate(_opaque, _stateBuffer))
 		{
 			throw new("Failed to create a savestate!");
 		}
@@ -176,90 +173,9 @@ internal sealed class MGBACore : IEmuCore
 		return _stateBuffer.AsSpan()[..stateSize];
 	}
 
-	private static readonly ImmutableArray<byte> _pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-
 	public bool LoadState(ReadOnlySpan<byte> state)
 	{
-		try
-		{
-			if (state[..8].SequenceEqual(_pngSignature.AsSpan()))
-			{
-				// upstream mGBA states might be in a PNG
-				// our mGBA doesn't have libpng
-				// so we need to manually extract the state out
-				state = state[8..];
-				byte[] mainState = null, extState = null;
-				// we only care about savedata extdata
-				const int EXTDATA_SAVEDATA = 2;
-				while (mainState == null || extState == null)
-				{
-					var chunkLength = BinaryPrimitives.ReadUInt32BigEndian(state[..4]);
-					var chunkType = state.Slice(4, 4);
-					if (mainState == null && chunkType.SequenceEqual("gbAs"u8))
-					{
-						using var compressedStateStream = new MemoryStream(
-							state.Slice(8, (int)chunkLength).ToArray(), writable: false);
-						using var ds = new ZLibStream(compressedStateStream, CompressionMode.Decompress);
-						using var ms = new MemoryStream();
-						ds.CopyTo(ms);
-						mainState = ms.ToArray();
-					}
-
-					if (extState == null && chunkType.SequenceEqual("gbAx"u8))
-					{
-						var extStateTag = BinaryPrimitives.ReadUInt32LittleEndian(state.Slice(8, 4));
-						if (extStateTag != EXTDATA_SAVEDATA)
-						{
-							continue;
-						}
-
-						using var compressedStateStream = new MemoryStream(
-							state.Slice(8 + 4 + 4, (int)chunkLength - 4 - 4).ToArray(), writable: false);
-						using var ds = new ZLibStream(compressedStateStream, CompressionMode.Decompress);
-						using var ms = new MemoryStream();
-						ds.CopyTo(ms);
-						extState = ms.ToArray();
-					}
-
-					if (chunkType.SequenceEqual("IEND"u8))
-					{
-						break;
-					}
-
-					// the chunk length does not include the chunk length itself, chunk type, nor crc32
-					state = state[(8 + (int)chunkLength + 4)..];
-				}
-
-				if (mainState == null)
-				{
-					throw new("Failed to find savestate in PNG");
-				}
-
-				// terminating ext state header
-				Span<byte> extNoneStateHeader = stackalloc byte[4 + 4 + 8];
-				extNoneStateHeader.Clear();
-
-				if (extState == null)
-				{
-					state = (byte[])[..mainState, ..extNoneStateHeader];
-				}
-				else
-				{
-					Span<byte> extStateHeader = stackalloc byte[4 + 4 + 8];
-					BinaryPrimitives.WriteInt32LittleEndian(extStateHeader[..4], EXTDATA_SAVEDATA);
-					BinaryPrimitives.WriteInt32LittleEndian(extStateHeader.Slice(4, 4), extState.Length);
-					BinaryPrimitives.WriteInt64LittleEndian(extStateHeader.Slice(4 + 4, 8), mainState.Length + extStateHeader.Length);
-					state = (byte[])[..mainState, ..extStateHeader, ..extState, ..extNoneStateHeader];
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			Console.Error.WriteLine(e);
-			return false;
-		}
-
-		var success = mgba_loadstate(_opaque, state, state.Length, GetUnixTime());
+		var success = mesen_loadstate(_opaque, state, state.Length);
 		if (success)
 		{
 			RestartInputLog(state);
@@ -285,13 +201,13 @@ internal sealed class MGBACore : IEmuCore
 		}
 		else
 		{
-			mgba_getmemoryblock(_opaque, block, out ptr, out len);
+			mesen_getmemoryblock(_opaque, block, out ptr, out len);
 		}
 	}
 
 	public void SetColorCorrectionEnable(bool enable)
 	{
-		mgba_setcolorlut(_opaque, enable ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
+		mesen_setcolorlut(_opaque, enable ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
 	}
 
 	public ReadOnlySpan<uint> VideoBuffer => _videoBuffer;
@@ -299,7 +215,7 @@ internal sealed class MGBACore : IEmuCore
 	public int VideoHeight => 160;
 
 	public ReadOnlySpan<short> AudioBuffer => _audioBuffer;
-	public int AudioFrequency => 262144;
+	public int AudioFrequency => 48000;
 
 	public uint CpuFrequency => 16777216;
 }

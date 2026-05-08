@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace GSE.Emu.Cores;
 
-internal static partial class MGBA
+internal static partial class Mesen
 {
 	/// <summary>
 	/// Create opaque state
@@ -19,27 +19,27 @@ internal static partial class MGBA
 	/// <param name="forceDisableRtc">force disable rtc, if present</param>
 	/// <param name="rtcStartTime">rtc start time to set, if present</param>
 	/// <returns>opaque state pointer</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial nint mgba_create(ReadOnlySpan<byte> romData, int romLength,
+	public static partial nint mesen_create(ReadOnlySpan<byte> romData, int romLength,
 		ReadOnlySpan<byte> biosData, int biosLength, [MarshalAs(UnmanagedType.U1)] bool forceDisableRtc, long rtcStartTime);
 
 	/// <param name="core">opaque state pointer</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_destroy(nint core);
+	public static partial void mesen_destroy(nint core);
 
 	/// <summary>
 	/// set color palette lookup
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="colorLut">uint32[32768], input color (r,g,b) is at lut[r | g &lt;&lt; 5 | b &lt;&lt; 10]</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_setcolorlut(nint core, ReadOnlySpan<uint> colorLut);
+	public static partial void mesen_setcolorlut(nint core, ReadOnlySpan<uint> colorLut);
 
 	/// <summary>
-	/// combination of button flags used in mgba_advance
+	/// combination of button flags used in mesen_advance
 	/// </summary>
 	[Flags]
 	public enum Buttons : ushort
@@ -65,18 +65,18 @@ internal static partial class MGBA
 	/// <param name="soundBuf">buffer with at least 8192 stereo samples (16384 16-bit integers)</param>
 	/// <param name="samples">number of stereo samples produced (double this to get 16-bit integer count)</param>
 	/// <param name="cpuCycles">number of cpu cycles advanced</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_advance(nint core, Buttons buttons, Span<uint> videoBuf, Span<short> soundBuf, out uint samples, out uint cpuCycles);
+	public static partial void mesen_advance(nint core, Buttons buttons, Span<uint> videoBuf, Span<short> soundBuf, out uint samples, out uint cpuCycles);
 
 	/// <summary>
 	/// Reset to initial state.
 	/// Equivalent to reloading a ROM image, or turning a Game Boy Advance off and on again.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_reset(nint core);
+	public static partial void mesen_reset(nint core);
 
 	/// <summary>
 	/// Get persistant cart memory.
@@ -84,9 +84,9 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="dest">byte buffer to write into.</param>
 	/// <returns>length in bytes. 0 means no internal persistant cart memory (or not yet detected)</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int mgba_savesavedata(nint core, Span<byte> dest);
+	public static partial int mesen_savesavedata(nint core, Span<byte> dest);
 
 	/// <summary>
 	/// Restore persistant cart memory.
@@ -95,27 +95,27 @@ internal static partial class MGBA
 	/// <param name="data">byte buffer to read from.</param>
 	/// <param name="size">size of data</param>
 	/// <param name="rtcStartTime">rtc start time to set</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_loadsavedata(nint core, ReadOnlySpan<byte> data, int size, long rtcStartTime);
+	public static partial void mesen_loadsavedata(nint core, ReadOnlySpan<byte> data, int size, long rtcStartTime);
 
 	/// <summary>
 	/// Gets the current RTC time.
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>current rtc time as unix timestamp</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial long mgba_getrtctime(nint core);
+	public static partial long mesen_getrtctime(nint core);
 
 	/// <summary>
 	/// Calculates the savestate length. Must be called every time before making a savestate!
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>
 	/// <returns>save state size in bytes</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial int mgba_getsavestatelength(nint core);
+	public static partial int mesen_getsavestatelength(nint core);
 
 	/// <summary>
 	/// Saves emulator state to the buffer given by 'stateBuf'.
@@ -123,10 +123,10 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <returns>success</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_savestate(nint core, Span<byte> stateBuf);
+	public static partial bool mesen_savestate(nint core, Span<byte> stateBuf);
 
 	/// <summary>
 	/// Loads emulator state from the buffer given by 'stateBuf' of size 'size'.
@@ -134,15 +134,14 @@ internal static partial class MGBA
 	/// <param name="core">opaque state pointer</param>
 	/// <param name="stateBuf">buffer for savestate</param>
 	/// <param name="size">size of savestate buffer</param>
-	/// <param name="rtcTime">rtc time to set (if not found in state)</param>
 	/// <returns>success</returns>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
 	[return: MarshalAs(UnmanagedType.U1)]
-	public static partial bool mgba_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size, long rtcTime);
+	public static partial bool mesen_loadstate(nint core, ReadOnlySpan<byte> stateBuf, int size);
 
 	/// <summary>
-	/// memory blocks that mgba_getmemoryblock() can return
+	/// memory blocks that mesen_getmemoryblock() can return
 	/// </summary>
 	public enum MemoryBlocks : int
 	{
@@ -159,7 +158,7 @@ internal static partial class MGBA
 	/// <param name="which">which memory block</param>
 	/// <param name="ptr">memory block pointer, or NULL if not present</param>
 	/// <param name="len">memory block length, or 0 if not present</param>
-	[LibraryImport("mgba")]
+	[LibraryImport("mesen")]
 	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
-	public static partial void mgba_getmemoryblock(nint core, MemoryBlocks which, out nint ptr, out nuint len);
+	public static partial void mesen_getmemoryblock(nint core, MemoryBlocks which, out nint ptr, out nuint len);
 }

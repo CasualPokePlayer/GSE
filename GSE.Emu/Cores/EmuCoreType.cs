@@ -6,5 +6,5 @@ namespace GSE.Emu.Cores;
 public enum EmuCoreType
 {
 	Gambatte,
-	mGBA,
+	Mesen,
 }

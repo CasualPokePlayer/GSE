@@ -35,5 +35,5 @@ CMakeNinjaBuild() {
 CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL3
 CMakeNinjaBuild gambatte
-CMakeNinjaBuild mgba
+CMakeNinjaBuild mesen
 CMakeNinjaBuild native_helper
