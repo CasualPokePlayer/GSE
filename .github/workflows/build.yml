@@ -81,7 +81,7 @@ jobs:
       if: matrix.platform.container != ''
       run: apt-get update && apt-get install -y git
     - name: Checkout source code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: GSE
         fetch-depth: 0
@@ -111,7 +111,7 @@ jobs:
         cd GSE/.ci
         ${{ matrix.platform.build_script }}
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: GSE-${{ matrix.platform.rid }}
         path: GSE/output/${{ matrix.platform.rid }}/publish/*
