@@ -2,7 +2,7 @@
 
 GSE (Game Boy Speedrun Emulator) is a Game Boy, Game Boy Color, and Game Boy Advance emulator written in C#. It is intended first and foremost to speedrunners, with various features placed in making it optimal for speedrunning use.
 
-This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSE uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSE is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses the [mGBA](https://github.com/mgba-emu/mgba) emulation core.
+This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSE uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSE is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses the [Mesen's](https://github.com/CasualPokePlayer/Mesen2) GBA emulation core.
 
 ---
 ## Features
@@ -13,7 +13,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * Game Boy Player emulation (i.e. Game Boy Advance mode with hard reset fadeout timing)
 * Super Game Boy 2 emulation (with reset timing properly emulated)
 * Battleground tested Game Boy / Game Boy Color emulation, capable of replicating Pokémon RNG manipulations and creating console verifiable TASes[^1]
-* Highly accurate Game Boy Advance emulation (i.e. with Game Boy Advance games), although not at the same level as Game Boy / Game Boy Color emulation[^2]
+* Console accurate Game Boy Advance emulation (i.e. with Game Boy Advance games), capable of console verifiable Pokémon TASes[^2]
 
 ***Speedrunning***
 * Bootrom/BIOS files are required for usage
@@ -60,7 +60,7 @@ This emulator is intended as a successor to the [Gambatte-Speedrun](https://gith
 * Volume uses logarithmic scaling, not linear scaling (more in line with how humans perceive loudness)
 
 [^1]: TASes are created with the [BizHawk](https://github.com/TASEmulators/BizHawk) project, which shares the same Game Boy / Game Boy Color emulation core. GSE itself does not have TAS creation capabilities.
-[^2]: As of now, Game Boy Advance emulation should not be assumed to be completely accurate to console for speedrunning timing purposes. Individual speedrunning communities should decide how to treat emulation for their boards. This situation is subject to change.
+[^2]: Game Boy Advance emulation should be accurate to console for speedrunning timing purposes. However, this has only been confirmed for Pokémon games (a difficult feat in itself). Individual speedrunning communities should decide how to treat emulation for their boards.
 [^3]: Input logs are not intended as a sole source of proof for a run, but rather a secondary source if video proof is not enough or comes into question. Runners can find all their inputs logs within GSE's user folder, which can be easily opened in the `Paths...` settings. Run verifiers can play back input logs using [InputLogPlayer](https://github.com/CasualPokePlayer/InputLogPlayer).
 [^4]: Linux users might not get an automatically scaled GUI, due to X11 not providing reliable DPI info. GUI scaling can be overriden by the GSE_SCALE environment variable.
 
