@@ -848,7 +848,7 @@ internal sealed class ImGuiModals
 			ImGui.TextUnformatted($"GSE v{GSEVersion.FullSemVer}");
 			ImGui.Separator();
 
-			ImGui.TextWrapped("GSE comprises of original work and many third-party libraries, each with their own respective license. In aggregate, GSE is licensable under the terms of the GPL-2.0 license.");
+			ImGui.TextWrapped("GSE comprises of original work and many third-party libraries, each with their own respective license. In aggregate, GSE is licensable under the terms of the GPL-2.0 license or GPL-3.0 license, depending on which emulator core is being used.");
 			ImGui.Separator();
 
 			foreach (var copyrightInfo in Licensing.CopyrightInfos)

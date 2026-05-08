@@ -164,6 +164,7 @@ internal sealed class MesenCore : IEmuCore
 			_stateBuffer = new byte[stateSize];
 		}
 
+		// ReSharper disable once ConvertIfStatementToReturnStatement
 		if (!mesen_savestate(_opaque, _stateBuffer))
 		{
 			throw new("Failed to create a savestate!");

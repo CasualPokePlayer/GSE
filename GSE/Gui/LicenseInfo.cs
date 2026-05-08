@@ -14,6 +14,7 @@ internal static class Licensing
 	private const string MPL20 = "MPL-2.0";
 	private const string GPL20ONLY = "GPL-2.0-only";
 	private const string LGPL21LATER = "LGPL-2.1-or-later";
+	private const string GPL3LATER = "GPL-3.0-or-later";
 	private const string ZLIB = "Zlib";
 	private const string MIT = "MIT";
 	private const string EXPAT = "Expat"; // not an SPDX license id (Expat is just MIT under a different name)
@@ -25,7 +26,7 @@ internal static class Licensing
 	[
 		new("GSE", "https://github.com/CasualPokePlayer/GSE", "CasualPokePlayer", MPL20),
 		new("Gambatte", "https://github.com/pokemon-speedrunning/gambatte-core", "sinamas", GPL20ONLY),
-		new("mGBA", "https://github.com/mgba-emu/mgba", "Jeffrey Pfau", MPL20),
+		new("Mesen (forked)", "https://github.com/CasualPokePlayer/Mesen2/tree/GSE", "Sour & CasualPokePlayer", GPL3LATER),
 		new("SDL3-CS (forked)", "https://github.com/CasualPokePlayer/GSE/blob/master/externals/SDL3-CS/SDL3.cs", "Colin Jackson & CasualPokePlayer", ZLIB),
 		new("SDL3", "https://github.com/libsdl-org/SDL", "Sam Lantinga", ZLIB),
 		new("libusb", "https://github.com/libusb/libusb", "libusb contributors", LGPL21LATER),
@@ -48,6 +49,7 @@ internal static class Licensing
 		[MPL20] = GetLicense(MPL20),
 		[GPL20ONLY] = GetLicense(GPL20ONLY),
 		[LGPL21LATER] = GetLicense(LGPL21LATER),
+		[GPL3LATER] = GetLicense(GPL3LATER),
 		[ZLIB] = GetLicense(ZLIB),
 		[MIT] = GetLicense(MIT),
 		[EXPAT] = GetLicense(MIT),

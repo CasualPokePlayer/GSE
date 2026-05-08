@@ -136,8 +136,7 @@ internal sealed class EmuInputLog : IDisposable
 		public HeaderString EmuVersion;
 
 		/// <summary>
-		/// GBA RTC time as a unix timestamp, used for mgba_create/mgba_loadsavedata/mgba_loadstate
-		/// For movies which start from a savestate, this is more a backup in case the savestate is missing RTC data 
+		/// GBA RTC time as a unix timestamp, used for mesen_create/mesen_loadsavedata
 		/// </summary>
 		public long GbaRtcTime;
 
