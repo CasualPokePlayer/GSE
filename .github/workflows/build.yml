@@ -19,47 +19,55 @@ jobs:
           build_script: .\windows.bat
           rid: win-x64
           msvc_arch: x64
+          zip: true
         - name: windows-arm64
           runner: windows-latest
           shell: cmd
           build_script: .\windows.bat
           rid: win-arm64
           msvc_arch: x64_arm64
+          zip: true
         - name: windows-x86
           runner: windows-latest
           shell: cmd
           build_script: .\windows.bat
           rid: win-x86
           msvc_arch: x64_x86
+          zip: true
         - name: macos-universal
           runner: macos-latest
           shell: sh
           build_script: ./macos.sh
           rid: macos-universal
+          zip: false
         - name: linux-x64
           runner: ubuntu-latest
           container: debian:11
           shell: sh
           build_script: ./linux.sh
           rid: linux-x64
+          zip: false
         - name: linux-arm64
           runner: ubuntu-latest
           container: debian:11
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
+          zip: false
         - name: linux-arm
           runner: ubuntu-latest
           container: ubuntu:22.04
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm
+          zip: false
         - name: android
           runner: ubuntu-latest
           container: debian:11
           shell: sh
           build_script: ./android.sh
           rid: android
+          zip: false
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.runner }}
     container: ${{ matrix.platform.container }}
@@ -116,3 +124,4 @@ jobs:
         name: GSE-${{ matrix.platform.rid }}
         path: GSE/output/${{ matrix.platform.rid }}/publish/*
         if-no-files-found: error
+        archive: ${{ matrix.platform.zip }}
