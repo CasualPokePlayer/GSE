@@ -18,21 +18,18 @@ jobs:
           shell: cmd
           build_script: .\windows.bat
           rid: win-x64
-          msvc_arch: x64
           zip: true
         - name: windows-arm64
           runner: windows-latest
           shell: cmd
           build_script: .\windows.bat
           rid: win-arm64
-          msvc_arch: x64_arm64
           zip: true
         - name: windows-x86
           runner: windows-latest
           shell: cmd
           build_script: .\windows.bat
           rid: win-x86
-          msvc_arch: x64_x86
           zip: true
         - name: macos-universal
           runner: macos-latest
@@ -75,11 +72,6 @@ jobs:
       run:
         shell: ${{ matrix.platform.shell }}
     steps:
-    - name: Setup MSVC environment
-      if: matrix.platform.msvc_arch != ''
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: ${{ matrix.platform.msvc_arch }}
     - name: Setup Xcode environment
       if: matrix.platform.rid == 'macos-universal'
       uses: maxim-lobanov/setup-xcode@v1
