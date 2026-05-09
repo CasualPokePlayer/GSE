@@ -30,10 +30,10 @@ export PATH=$ANDROID_HOME/cmake/3.30.5/bin:$PATH
 cd ../externals/android
 ./build_all.sh
 
-# Install dotnet9 sdk
+# Install dotnet10 sdk
 wget https://dot.net/v1/dotnet-install.sh -O $HOME/dotnet-install.sh
 chmod +x $HOME/dotnet-install.sh
-$HOME/dotnet-install.sh --channel 9.0
+$HOME/dotnet-install.sh --channel 10.0
 export PATH=$HOME/.dotnet:$PATH
 
 # Set path to find NDK's clang (needed to workaround .NET bug)
