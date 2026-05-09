@@ -92,7 +92,7 @@ On Linux, both X11 and Wayland are supported (although X11 will be preferred if 
 
 Before the C# side can be built, various C/C++ libraries must be built. CMake is used for building all C/C++ libraries. Helper scripts are provided to build all C/C++ libraries (build_all_dev.bat for Windows, build_all_dev.sh for macOS/Linux).
 
-The [dotnet9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) (or [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for macOS) is required to build the C# side.
+The [dotnet10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) (or [dotnet8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for macOS) is required to build the C# side.
 
-Windows developers can use [VS Community 2022](https://visualstudio.microsoft.com/vs/community).
+Windows developers can use [VS Community 2026](https://visualstudio.microsoft.com/downloads/).
 Windows, macOS, and Linux developers can all use Rider, VS Code, or `dotnet` directly from the command-line.
