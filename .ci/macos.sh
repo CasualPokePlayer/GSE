@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Install build tools
-brew install ninja create-dmg
+brew install --quiet ninja create-dmg
 
 CMakeNinjaBuild() {
 	# One time for x64
