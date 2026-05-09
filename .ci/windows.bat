@@ -1,4 +1,4 @@
-:: Find the VS install path (so the correct VS build environment is set)
+:: Find the VS install path (so the correct VS build environment can be set)
 FOR /F "delims=" %%I IN (
 	'CALL "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath'
 ) DO (
