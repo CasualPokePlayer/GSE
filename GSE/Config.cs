@@ -64,6 +64,7 @@ internal sealed class Config
 	public ScalingFilter OutputFilter { get; set; } = ScalingFilter.SharpBilinear;
 	public string RenderDriver { get; set; } = ImGuiWindow.DEFAULT_RENDER_DRIVER;
 	public bool AlwaysOnTop { get; set; }
+	public bool AutoHideMouseCursor { get; set; }
 	public int WindowScale { get; set; } = 3;
 	public bool AllowManualResizing { get; set; }
 	public int LastEmuWidth { get; set; } = 160;

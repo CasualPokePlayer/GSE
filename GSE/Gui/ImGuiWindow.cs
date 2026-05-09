@@ -219,6 +219,8 @@ internal sealed class ImGuiWindow : IDisposable
 	private uint _mouseButtonsDown;
 	private int _mouseLeavePending;
 	private nint _lastMouseCursor;
+	private ulong _lastMouseMovementTime;
+	private bool _hidingMouseCursor;
 
 	private nint ClipboardText;
 
@@ -854,6 +856,12 @@ internal sealed class ImGuiWindow : IDisposable
 		}
 	}
 
+	private void UnhideMouseCursor()
+	{
+		_lastMouseMovementTime = SDL_GetPerformanceCounter();
+		_hidingMouseCursor = false;
+	}
+
 	/// <summary>
 	/// HACK to prevent Escape closing the input binding popup
 	/// </summary>
@@ -871,6 +879,7 @@ internal sealed class ImGuiWindow : IDisposable
 			case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
 				io.AddMouseSourceEvent(e.motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
 				io.AddMousePosEvent(e.motion.x * xScale, e.motion.y * yScale);
+				UnhideMouseCursor();
 				break;
 			case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
 				io.AddMouseSourceEvent(e.wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource.TouchScreen : ImGuiMouseSource.Mouse);
@@ -940,11 +949,12 @@ internal sealed class ImGuiWindow : IDisposable
 			case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
 			case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
 				io.AddFocusEvent((SDL_EventType)e.type == SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED);
+				UnhideMouseCursor();
 				break;
 		}
 	}
 
-	public void NewFrame(bool allowingManualResizing)
+	public void NewFrame(bool allowingManualResizing, bool allowHidingMouseCursor)
 	{
 		ImGui.SetCurrentContext(_imGuiContext);
 		var io = ImGui.GetIO();
@@ -1025,6 +1035,11 @@ internal sealed class ImGuiWindow : IDisposable
 			}
 		}
 
+		if (_lastMouseMovementTime > time || !allowHidingMouseCursor)
+		{
+			_lastMouseMovementTime = time;
+		}
+
 		var mouseCaptureSupported = SDL_CaptureMouse(_mouseButtonsDown != 0);
 		var windowFocused = mouseCaptureSupported
 			? SDL_GetKeyboardFocus() == SdlWindow
@@ -1036,7 +1051,7 @@ internal sealed class ImGuiWindow : IDisposable
 				SDL_WarpMouseInWindow(SdlWindow, (int)io.MousePos.X, (int)io.MousePos.Y);
 			}
 
-			if (_mouseCanUseGlobalState && _mouseButtonsDown == 0)
+			if (_mouseCanUseGlobalState && _mouseButtonsDown == 0 && !_hidingMouseCursor)
 			{
 				_ = SDL_GetGlobalMouseState(out var mouseXGlobal, out var mouseYGlobal);
 				SDL_GetWindowPosition(SdlWindow, out var windowX, out var windowY);
@@ -1044,6 +1059,28 @@ internal sealed class ImGuiWindow : IDisposable
 				var yScale = io.DisplayFramebufferScale.Y < 0.01 ? 1 : io.DisplayFramebufferScale.Y;
 				io.AddMousePosEvent((mouseXGlobal - windowX) * xScale, (mouseYGlobal - windowY) * yScale);
 			}
+
+			var hideMouseCursor = allowHidingMouseCursor && (time - _lastMouseMovementTime) / _perfFreq >= 2;
+			if (hideMouseCursor)
+			{
+				ImGui.SetMouseCursor(ImGuiMouseCursor.None);
+				// Ensure ImGui sees the mouse cursor as leaving and de-activates any menus
+				if (!_hidingMouseCursor)
+				{
+					io.AddMousePosEvent(float.MinValue, float.MinValue);
+					// Send a fake left click to close any open menus
+					if ((_mouseButtonsDown & 1u) != 0)
+					{
+						io.AddMouseButtonEvent(0, false);
+					}
+
+					io.AddMouseButtonEvent(0, true);
+					io.AddMouseButtonEvent(0, false);
+					_mouseButtonsDown &= ~1u;
+				}
+			}
+
+			_hidingMouseCursor = hideMouseCursor;
 		}
 
 		var imGuiMouseCursor = ImGui.GetMouseCursor();

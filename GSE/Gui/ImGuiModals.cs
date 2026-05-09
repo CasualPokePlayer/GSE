@@ -12,7 +12,9 @@ using System.Linq;
 
 using ImGuiNET;
 
+#if GSE_OSX || GSE_ANDROID
 using static SDL3.SDL;
+#endif
 
 #if GSE_ANDROID
 using GSE.Android;
@@ -596,6 +598,12 @@ internal sealed class ImGuiModals
 			{
 				_config.AlwaysOnTop = windowsAlwaysOnTop;
 				_mainWindow.SetAlwaysOnTop(windowsAlwaysOnTop);
+			}
+
+			var autoHideMouseCursor = _config.AutoHideMouseCursor;
+			if (ImGui.Checkbox("Auto Hide Mouse Cursor", ref autoHideMouseCursor))
+			{
+				_config.AutoHideMouseCursor = autoHideMouseCursor;
 			}
 
 			var allowManualResizing = _config.AllowManualResizing;

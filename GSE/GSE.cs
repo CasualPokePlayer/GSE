@@ -450,7 +450,8 @@ internal sealed class GSE : IDisposable
 
 			_hotkeyManager.ProcessHotkeys();
 
-			_mainWindow.NewFrame(_config.AllowManualResizing);
+			var allowHidingMouseCursor = _config.AutoHideMouseCursor && _emuManager.EmuAcceptingInputs;
+			_mainWindow.NewFrame(_config.AllowManualResizing, allowHidingMouseCursor);
 
 			// Position of the emu window is below the menu bar
 			var barHeight = ImGui.GetFrameHeight();
