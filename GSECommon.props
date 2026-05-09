@@ -4,8 +4,8 @@
 		<!-- However, we still use .NET 8 on macOS, due to the effective minimum version being bumped from 10.15 to 12 -->
 		<!-- However, to do this, we need to define .NET 8 as the default, so restore on macOS doesn't try to use .NET 10 -->
 		<!-- Since restore will not end up hitting the GSE_OSX condition, it will just use the TargetFramework specified here -->
-		<TargetFramework>net9.0</TargetFramework>
-		<!-- Don't use C# 13, as we're still using .NET 8.0 on macOS -->
+		<TargetFramework>net8.0</TargetFramework>
+		<!-- Don't use C# 13+, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
 		<Platforms>x64;ARM64;x86;ARM</Platforms>
 		<!-- linux-bionic-arm is not present to avoid some kind of compilation bug with local builds -->
@@ -90,7 +90,7 @@
 		<GSE_RID Condition="'$(GSE_X64)' == 'true'">osx-x64</GSE_RID>
 		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">osx-arm64</GSE_RID>
 		<!-- We hold back on .NET 10 for macOS, as it bumps the minimum macOS version from 10.15 to 12 -->
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_OSX</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_LINUX)' == 'true'">
