@@ -64,6 +64,13 @@ internal sealed class ImGuiMenuBar(Config config, EmuManager emuManager, RomLoad
 						}
 					}
 
+					ImGui.Separator();
+
+					if (ImGui.MenuItem("Clear Recent List"))
+					{
+						config.RecentRoms.Clear();
+					}
+
 					ImGui.EndMenu();
 				}
 
