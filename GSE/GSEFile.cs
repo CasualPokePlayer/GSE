@@ -72,7 +72,7 @@ internal sealed class GSEFile
 #endif
 		if (ArchiveFactory.IsArchive(fs, out _))
 		{
-			using var archive = ArchiveFactory.Open(fs);
+			using var archive = ArchiveFactory.OpenArchive(fs);
 			foreach (var entry in archive.Entries.Where(e => e is { IsDirectory: false, Key: not null }))
 			{
 				ext = Path.GetExtension(entry.Key);
