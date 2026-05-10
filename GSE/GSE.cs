@@ -434,6 +434,54 @@ internal sealed class GSE : IDisposable
 		ImGui.Image(finalTex.TextureId, contentRegionAvail);
 	}
 
+	public void HandleCliArgs(CliArgs cliArgs)
+	{
+		if (cliArgs.GbBiosPath != null)
+		{
+			_config.GbBiosPath = cliArgs.GbBiosPath;
+		}
+
+		if (cliArgs.GbcBiosPath != null)
+		{
+			_config.GbcBiosPath = cliArgs.GbcBiosPath;
+		}
+
+		if (cliArgs.Sgb2BiosPath != null)
+		{
+			_config.Sgb2BiosPath = cliArgs.Sgb2BiosPath;
+		}
+
+		if (cliArgs.GbaBiosPath != null)
+		{
+			_config.GbaBiosPath = cliArgs.GbaBiosPath;
+		}
+
+		if (cliArgs.GbPlatform.HasValue)
+		{
+			_config.GbPlatform = cliArgs.GbPlatform.Value;
+		}
+
+		if (cliArgs.ApplyColorCorrection.HasValue)
+		{
+			_config.ApplyColorCorrection = cliArgs.ApplyColorCorrection.Value;
+		}
+
+		if (cliArgs.DisableGbaRtc.HasValue)
+		{
+			_config.DisableGbaRtc = cliArgs.DisableGbaRtc.Value;
+		}
+
+		if (cliArgs.HideSgbBorder.HasValue)
+		{
+			_config.HideSgbBorder = cliArgs.HideSgbBorder.Value;
+		}
+
+		if (cliArgs.RomPath != null)
+		{
+			_romLoader.LoadRomFile(cliArgs.RomPath);
+		}
+	}
+
 	public int MainLoop()
 	{
 		while (true)

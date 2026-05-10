@@ -16,14 +16,21 @@ internal static class Entrypoint
 	private static GSE _gse;
 
 	[STAThread]
-	public static int Main()
+	public static int Main(string[] args)
 	{
 		try
 		{
 #if GSE_WINDOWS
 			SynchronizationContext.SetSynchronizationContext(Win32BlockingWaitSyncContext.Singleton);
 #endif
+			var (returnCode, cliArgs) = CliArgs.Parse(args);
+			if (returnCode.HasValue)
+			{
+				return returnCode.Value;
+			}
+
 			_gse = new();
+			_gse.HandleCliArgs(cliArgs);
 			return _gse.MainLoop();
 		}
 		catch (Exception ex)

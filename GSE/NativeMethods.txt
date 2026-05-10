@@ -24,3 +24,12 @@ DwmSetWindowAttribute
 DWM_WINDOW_CORNER_PREFERENCE
 
 WaitForMultipleObjects
+
+GetConsoleWindow
+AttachConsole
+FreeConsole
+ATTACH_PARENT_PROCESS
+
+PostMessage
+VIRTUAL_KEY
+WM_CHAR

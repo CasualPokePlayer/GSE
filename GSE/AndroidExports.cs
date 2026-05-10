@@ -3,6 +3,7 @@
 
 #if GSE_ANDROID
 
+using System;
 using System.Runtime.InteropServices;
 
 using GSE.Android;
@@ -19,17 +20,21 @@ internal static class AndroidExports
 	/// <summary>
 	/// Entrypoint used in the Java side for the main thread
 	/// Uses standard C main() args
-	/// Although we don't handle those right now, as we don't have a CLI
 	/// </summary>
 	/// <param name="argc">number of arguments</param>
 	/// <param name="argv">array of UTF8 strings, filled with arguments</param>
 	/// <returns>exit code</returns>
 	[UnmanagedCallersOnly(EntryPoint = "GSEMain")]
-	public static int GSEMain(int argc, nint argv)
+	public static unsafe int GSEMain(int argc, nint argv)
 	{
-		_ = argc;
-		_ = argv;
-		return Entrypoint.Main();
+		var args = new string[argc];
+		var argvSpan = new ReadOnlySpan<nint>((void*)argv, argc);
+		for (var i = 0; i < argc; i++)
+		{
+			args[i] = Marshal.PtrToStringUTF8(argvSpan[i]) ?? string.Empty;
+		}
+
+		return Entrypoint.Main(args);
 	}
 
 	/// <summary>
