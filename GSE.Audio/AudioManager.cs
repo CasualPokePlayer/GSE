@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -82,6 +83,8 @@ public sealed class AudioManager : IDisposable
 	private uint _sdlAudioDeviceId;
 	private nint _sdlAudioDeviceStream;
 	private GCHandle _sdlUserData;
+
+	private readonly HashSet<string> _sdlUnavailableAudioDrivers = [];
 
 	/// <summary>
 	/// Helper ref struct for getting the audio device list in an RAII style
@@ -245,6 +248,62 @@ public sealed class AudioManager : IDisposable
 		SDL_ResumeAudioDevice(_sdlAudioDeviceId);
 	}
 
+	private bool FallbackOnAltAudioDriver()
+	{
+		// This function is only called if the current audio driver cannot be used
+		var curAudioDriver = SDL_GetCurrentAudioDriver();
+		if (curAudioDriver != null)
+		{
+			_sdlUnavailableAudioDrivers.Add(curAudioDriver);
+		}
+
+		// This hint stops making sense for non-default audio drivers
+		_ = SDL_ResetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES);
+
+		var numAudioDrivers = SDL_GetNumAudioDrivers();
+		for (var i = 0; i < numAudioDrivers; i++)
+		{
+			var audioDriver = SDL_GetAudioDriver(i);
+			if (_sdlUnavailableAudioDrivers.Contains(audioDriver))
+			{
+				continue;
+			}
+
+			// The audio driver is set in SDL_Init
+			// So shutdown the audio subsystem and close attached resources
+			if (_sdlAudioDeviceStream != 0)
+			{
+				SDL_DestroyAudioStream(_sdlAudioDeviceStream);
+				_sdlAudioDeviceStream = 0;
+				_sdlAudioDeviceId = 0;
+			}
+
+			SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO);
+
+			SDL_SetHint(SDL_HINT_AUDIO_DRIVER, audioDriver);
+			if (!SDL_Init(SDL_InitFlags.SDL_INIT_AUDIO))
+			{
+				Console.Error.WriteLine($"Failed to init {audioDriver} backend for fallback, SDL error: {SDL_GetError()}");
+				_sdlUnavailableAudioDrivers.Add(audioDriver);
+				continue;
+			}
+
+			try
+			{
+				OpenAudioDevice(DEFAULT_AUDIO_DEVICE);
+				return true;
+			}
+			catch
+			{
+				// this audio driver can't be used
+			}
+
+			_sdlUnavailableAudioDrivers.Add(audioDriver);
+		}
+
+		return false;
+	}
+
 	/// <summary>
 	/// NOTE: CALLED ON GUI THREAD
 	/// </summary>
@@ -285,7 +344,19 @@ public sealed class AudioManager : IDisposable
 				_sdlAudioDeviceId = 0;
 			}
 
-			OpenAudioDevice(audioDeviceName);
+			try
+			{
+				// If this throws, that means the current audio driver is not usable
+				// Therefore, we may need to fallback on another audio driver
+				OpenAudioDevice(audioDeviceName);
+			}
+			catch
+			{
+				if (!FallbackOnAltAudioDriver())
+				{
+					throw;
+				}
+			}
 		}
 	}
 
@@ -445,6 +516,8 @@ public sealed class AudioManager : IDisposable
 
 	public AudioManager(string audioDeviceName, int latencyMs, int volume)
 	{
+		// This will try to init with the first audio backend that works
+		// If no backends work, we can't try anything more
 		if (!SDL_Init(SDL_InitFlags.SDL_INIT_AUDIO))
 		{
 			throw new($"Could not init SDL audio! SDL error: {SDL_GetError()}");
@@ -473,6 +546,8 @@ public sealed class AudioManager : IDisposable
 		if (_sdlAudioDeviceStream != 0)
 		{
 			SDL_DestroyAudioStream(_sdlAudioDeviceStream);
+			_sdlAudioDeviceStream = 0;
+			_sdlAudioDeviceId = 0;
 		}
 
 		if (_sdlUserData.IsAllocated)
