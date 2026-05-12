@@ -191,7 +191,7 @@ internal sealed class GSE : IDisposable
 			? new(false, false) : InputGateCallback();
 	}
 
-	public GSE()
+	public GSE(CliArgs cliArgs)
 	{
 		try
 		{
@@ -203,6 +203,7 @@ internal sealed class GSE : IDisposable
 			}
 
 			_config = Config.LoadConfig();
+			_config.ApplyCliArgs(cliArgs);
 			_mainWindow = new("GSE", _config);
 			_inputManager = new(_mainWindow.SdlWindowProperties, _config.EnableDirectInput);
 			// Input manager is needed to fully load the config, as input bindings depend on user's keyboard layout
@@ -224,6 +225,11 @@ internal sealed class GSE : IDisposable
 #if GSE_ANDROID
 			AndroidInput.InputManager = _inputManager;
 #endif
+
+			if (cliArgs.RomPath != null)
+			{
+				_romLoader.LoadRomFile(cliArgs.RomPath);
+			}
 		}
 		catch
 		{
@@ -432,54 +438,6 @@ internal sealed class GSE : IDisposable
 		var contentRegionAvail = ImGui.GetContentRegionAvail();
 		var finalTex = _postProcessor.DoPostProcessing((int)contentRegionAvail.X, (int)contentRegionAvail.Y);
 		ImGui.Image(finalTex.TextureId, contentRegionAvail);
-	}
-
-	public void HandleCliArgs(CliArgs cliArgs)
-	{
-		if (cliArgs.GbBiosPath != null)
-		{
-			_config.GbBiosPath = cliArgs.GbBiosPath;
-		}
-
-		if (cliArgs.GbcBiosPath != null)
-		{
-			_config.GbcBiosPath = cliArgs.GbcBiosPath;
-		}
-
-		if (cliArgs.Sgb2BiosPath != null)
-		{
-			_config.Sgb2BiosPath = cliArgs.Sgb2BiosPath;
-		}
-
-		if (cliArgs.GbaBiosPath != null)
-		{
-			_config.GbaBiosPath = cliArgs.GbaBiosPath;
-		}
-
-		if (cliArgs.GbPlatform.HasValue)
-		{
-			_config.GbPlatform = cliArgs.GbPlatform.Value;
-		}
-
-		if (cliArgs.ApplyColorCorrection.HasValue)
-		{
-			_config.ApplyColorCorrection = cliArgs.ApplyColorCorrection.Value;
-		}
-
-		if (cliArgs.DisableGbaRtc.HasValue)
-		{
-			_config.DisableGbaRtc = cliArgs.DisableGbaRtc.Value;
-		}
-
-		if (cliArgs.HideSgbBorder.HasValue)
-		{
-			_config.HideSgbBorder = cliArgs.HideSgbBorder.Value;
-		}
-
-		if (cliArgs.RomPath != null)
-		{
-			_romLoader.LoadRomFile(cliArgs.RomPath);
-		}
 	}
 
 	public int MainLoop()

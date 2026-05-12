@@ -29,8 +29,7 @@ internal static class Entrypoint
 				return returnCode.Value;
 			}
 
-			_gse = new();
-			_gse.HandleCliArgs(cliArgs);
+			_gse = new(cliArgs);
 			return _gse.MainLoop();
 		}
 		catch (Exception ex)

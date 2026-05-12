@@ -265,7 +265,7 @@ internal sealed class ImGuiWindow : IDisposable
 	}
 
 	public const string DEFAULT_RENDER_DRIVER = "[Default Render Driver]";
-	private const string SOFTWARE_RENDER_DRIVER = "software"; // hopefully SDL doesn't change this!
+	public const string SOFTWARE_RENDER_DRIVER = "software"; // hopefully SDL doesn't change this!
 
 	public static readonly FrozenDictionary<string, string> RenderDriverFriendlyNameMap = new Dictionary<string, string>
 	{
@@ -672,6 +672,7 @@ internal sealed class ImGuiWindow : IDisposable
 			if (!allowingManualResizing)
 			{
 				SetWindowSize(_lastWidth, _lastHeight, _lastScale, _lastBars);
+				SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			}
 		}
 
@@ -691,6 +692,7 @@ internal sealed class ImGuiWindow : IDisposable
 			if (windowWidth > displayBounds.w || windowHeight > displayBounds.h)
 			{
 				SDL_SetWindowSize(SdlWindow, Math.Min(windowWidth, displayBounds.w), Math.Min(windowHeight, displayBounds.h));
+				SetWindowPos(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			}
 		}
 	}

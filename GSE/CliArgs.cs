@@ -25,7 +25,12 @@ internal sealed record CliArgs(
 	GBPlatform? GbPlatform,
 	bool? ApplyColorCorrection,
 	bool? DisableGbaRtc,
-	bool? HideSgbBorder
+	bool? HideSgbBorder,
+	bool? HideStatusBar,
+	bool? HideMenuBarOnUnpause,
+	bool SoftwareRenderer,
+	int? WindowScale,
+	bool? DisableWin11RoundCorners
 )
 {
 	private static readonly Argument<string> _romArgument = new(name: "rom")
@@ -82,13 +87,76 @@ internal sealed record CliArgs(
 		Arity = ArgumentArity.ExactlyOne
 	};
 
+	private static readonly Option<bool?> _hideStatusBarOption = new(name: "--hide-status-bar")
+	{
+		Description = "If true, hides the status bar in favor of an OSD overlay for messages",
+		Arity = ArgumentArity.ExactlyOne
+	};
+
+	private static readonly Option<bool?> _hideMenuBarOnUnpauseOption = new(name: "--hide-menu-bar-on-unpause")
+	{
+		Description = "If true, hides the menu bar while the emulator is unpaused",
+		Arity = ArgumentArity.ExactlyOne
+	};
+
+	private static readonly Option<bool> _softwareRendererOption = new(name: "--software-renderer")
+	{
+		Description = "Sets the render driver to the software renderer",
+		Arity = ArgumentArity.Zero
+	};
+
+	private static readonly Option<int?> _windowScaleOption = new(name: "--window-scale")
+	{
+		Description = "The scale factor for the window",
+		Arity = ArgumentArity.ExactlyOne
+	};
+
+	private static readonly Option<bool?> _disableWin11RoundCorners = new(name: "--disable-win11-round-corners")
+	{
+		Description = "If true, Windows 11 round corners are disabled for the window",
+		Arity = ArgumentArity.ExactlyOne,
+		Hidden = true
+	};
+
+	private static void ValidateGbPlatform(OptionResult optionResult)
+	{
+		if (optionResult.Tokens.Count > 0 &&
+		    Enum.TryParse<GBPlatform>(optionResult.Tokens[^1].Value, ignoreCase: true, out var gbPlatform))
+		{
+			if (!Enum.IsDefined(gbPlatform))
+			{
+				optionResult.AddError("Undefined enum value for option '--gb-platform' with expected type 'GSE.Emu.GBPlatform'.");
+			}
+		}
+	}
+
+	private static void ValidateWindowScale(OptionResult optionResult)
+	{
+		if (optionResult.Tokens.Count > 0 &&
+		    int.TryParse(optionResult.Tokens[^1].Value, out var windowScale))
+		{
+			if (windowScale is < 1 or > 15)
+			{
+				optionResult.AddError("Option '--window-scale' may only range from 1 to 15.");
+			}
+		}
+	}
+
 	static CliArgs()
 	{
-		_romArgument.AcceptLegalFileNamesOnly();
-		_gbBiosOption.AcceptLegalFileNamesOnly();
-		_gbcBiosOption.AcceptLegalFileNamesOnly();
-		_sgb2BiosOption.AcceptLegalFileNamesOnly();
-		_gbaBiosOption.AcceptLegalFileNamesOnly();
+		_romArgument.AcceptLegalFilePathsOnly();
+		_gbBiosOption.AcceptLegalFilePathsOnly();
+		_gbcBiosOption.AcceptLegalFilePathsOnly();
+		_sgb2BiosOption.AcceptLegalFilePathsOnly();
+		_gbaBiosOption.AcceptLegalFilePathsOnly();
+		_gbPlatformOption.Validators.Add(ValidateGbPlatform);
+		_windowScaleOption.Validators.Add(ValidateWindowScale);
+#if GSE_WINDOWS
+		if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+		{
+			_disableWin11RoundCorners.Hidden = false;
+		}
+#endif
 	}
 
 	public static (int? ReturnCode, CliArgs cliArgs) Parse(string[] args)
@@ -103,7 +171,12 @@ internal sealed record CliArgs(
 			_gbPlatformOption,
 			_applyColorCorrectionOption,
 			_disableGbaRtcOption,
-			_hideSgbBorderOption
+			_hideSgbBorderOption,
+			_hideStatusBarOption,
+			_hideMenuBarOnUnpauseOption,
+			_softwareRendererOption,
+			_windowScaleOption,
+			_disableWin11RoundCorners
 		};
 
 		// Remove version option (doesn't make sense here)
@@ -159,6 +232,11 @@ internal sealed record CliArgs(
 		var applyColorCorrection = result.GetValue(_applyColorCorrectionOption);
 		var disableGbaRtc = result.GetValue(_disableGbaRtcOption);
 		var hideSgbBorder = result.GetValue(_hideSgbBorderOption);
+		var hideStatusBar = result.GetValue(_hideStatusBarOption);
+		var hideMenuBarOnUnpause = result.GetValue(_hideMenuBarOnUnpauseOption);
+		var softwareRenderer = result.GetValue(_softwareRendererOption);
+		var windowScale = result.GetValue(_windowScaleOption);
+		var disableWin11RoundCorners = result.GetValue(_disableWin11RoundCorners);
 
 		return (null, new(
 			romPath,
@@ -169,6 +247,11 @@ internal sealed record CliArgs(
 			gbPlatform,
 			applyColorCorrection,
 			disableGbaRtc,
-			hideSgbBorder));
+			hideSgbBorder,
+			hideStatusBar,
+			hideMenuBarOnUnpause,
+			softwareRenderer,
+			windowScale,
+			disableWin11RoundCorners));
 	}
 }

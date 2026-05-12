@@ -199,4 +199,77 @@ internal sealed class Config
 			return new();
 		}
 	}
+
+	public void ApplyCliArgs(CliArgs cliArgs)
+	{
+		if (cliArgs.GbBiosPath != null)
+		{
+			GbBiosPath = cliArgs.GbBiosPath;
+		}
+
+		if (cliArgs.GbcBiosPath != null)
+		{
+			GbcBiosPath = cliArgs.GbcBiosPath;
+		}
+
+		if (cliArgs.Sgb2BiosPath != null)
+		{
+			Sgb2BiosPath = cliArgs.Sgb2BiosPath;
+		}
+
+		if (cliArgs.GbaBiosPath != null)
+		{
+			GbaBiosPath = cliArgs.GbaBiosPath;
+		}
+
+		if (cliArgs.GbPlatform.HasValue)
+		{
+			GbPlatform = cliArgs.GbPlatform.Value;
+
+			if (!Enum.IsDefined(GbPlatform))
+			{
+				GbPlatform = GBPlatform.GBP;
+			}
+		}
+
+		if (cliArgs.ApplyColorCorrection.HasValue)
+		{
+			ApplyColorCorrection = cliArgs.ApplyColorCorrection.Value;
+		}
+
+		if (cliArgs.DisableGbaRtc.HasValue)
+		{
+			DisableGbaRtc = cliArgs.DisableGbaRtc.Value;
+		}
+
+		if (cliArgs.HideSgbBorder.HasValue)
+		{
+			HideSgbBorder = cliArgs.HideSgbBorder.Value;
+		}
+
+		if (cliArgs.HideStatusBar.HasValue)
+		{
+			HideStatusBar = cliArgs.HideStatusBar.Value;
+		}
+
+		if (cliArgs.HideMenuBarOnUnpause.HasValue)
+		{
+			HideMenuBarOnUnpause = cliArgs.HideMenuBarOnUnpause.Value;
+		}
+
+		if (cliArgs.SoftwareRenderer)
+		{
+			RenderDriver = ImGuiWindow.SOFTWARE_RENDER_DRIVER;
+		}
+
+		if (cliArgs.WindowScale.HasValue)
+		{
+			WindowScale = Math.Clamp(cliArgs.WindowScale.Value, 1, 15);
+		}
+
+		if (cliArgs.DisableWin11RoundCorners.HasValue)
+		{
+			DisableWin11RoundCorners = cliArgs.DisableWin11RoundCorners.Value;
+		}
+	}
 }
