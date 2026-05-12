@@ -1,9 +1,7 @@
 // Copyright (c) 2026 CasualPokePlayer
 // SPDX-License-Identifier: MPL-2.0
 
-#if GSE_WINDOWS
 using System;
-#endif
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
