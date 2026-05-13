@@ -2,7 +2,7 @@
 
 GSE (Game Boy Speedrun Emulator) is a Game Boy, Game Boy Color, and Game Boy Advance emulator written in C#. It is intended first and foremost to speedrunners, with various features placed in making it optimal for speedrunning use.
 
-This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSE uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSE is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses [Mesen's](https://github.com/CasualPokePlayer/Mesen2) GBA emulation core.
+This emulator is intended as a successor to the [Gambatte-Speedrun](https://github.com/pokemon-speedrunning/gambatte-speedrun) emulator. As such, GSE uses the [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core) emulation core for Game Boy and Game Boy Color emulation. New in GSE is Game Boy Advance emulation (i.e. with Game Boy Advance games), which currently uses [Mesen's](https://github.com/CasualPokePlayer/MesenCE) GBA emulation core.
 
 ---
 ## Features

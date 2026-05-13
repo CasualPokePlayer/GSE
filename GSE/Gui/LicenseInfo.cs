@@ -26,7 +26,7 @@ internal static class Licensing
 	[
 		new("GSE", "https://github.com/CasualPokePlayer/GSE", "CasualPokePlayer", MPL20),
 		new("Gambatte", "https://github.com/pokemon-speedrunning/gambatte-core", "sinamas", GPL20ONLY),
-		new("Mesen (forked)", "https://github.com/CasualPokePlayer/Mesen2/tree/GSE", "Sour & CasualPokePlayer", GPL3LATER),
+		new("Mesen (forked)", "https://github.com/CasualPokePlayer/MesenCE/tree/GSE", "Sour & CasualPokePlayer", GPL3LATER),
 		new("SDL3-CS (forked)", "https://github.com/CasualPokePlayer/GSE/blob/master/externals/SDL3-CS/SDL3.cs", "Colin Jackson & CasualPokePlayer", ZLIB),
 		new("SDL3", "https://github.com/libsdl-org/SDL", "Sam Lantinga", ZLIB),
 		new("libusb", "https://github.com/libusb/libusb", "libusb contributors", LGPL21LATER),
