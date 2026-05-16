@@ -123,6 +123,7 @@ cd ..
 dotnet publish -r $TARGET_RID -p:CppCompilerAndLinker=clang-21 -p:LinkerFlavor=lld-21 -p:ObjCopyName=llvm-objcopy-21
 
 # Compress an executable GSE into a .tar.gz
-chmod +x output/$TARGET_RID/publish/GSE
-tar --owner=root --group=root -cvzf output/$TARGET_RID/publish/GSE-$TARGET_RID.tar.gz output/$TARGET_RID/publish/GSE
-rm output/$TARGET_RID/publish/GSE
+cd output/$TARGET_RID/publish
+chmod +x ./GSE
+tar --owner=root --group=root -cvzf ./GSE-$TARGET_RID.tar.gz ./GSE
+rm ./GSE
