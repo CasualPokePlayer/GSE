@@ -132,6 +132,9 @@ public sealed class AudioManager : IDisposable
 		return ret;
 	}
 
+	private sealed class UnusableDefaultDeviceException()
+		: Exception($"Failed to open default audio device, SDL error: {SDL_GetError()}");
+
 	/// <summary>
 	/// NOTE: CALLED ON GUI THREAD
 	/// </summary>
@@ -209,7 +212,7 @@ public sealed class AudioManager : IDisposable
 			if (audioDeviceStream == 0)
 			{
 				AudioDeviceName = DEFAULT_AUDIO_DEVICE;
-				throw new($"Failed to open audio device, SDL error: {SDL_GetError()}");
+				throw new UnusableDefaultDeviceException();
 			}
 		}
 
@@ -293,7 +296,7 @@ public sealed class AudioManager : IDisposable
 				OpenAudioDevice(DEFAULT_AUDIO_DEVICE);
 				return true;
 			}
-			catch
+			catch (UnusableDefaultDeviceException)
 			{
 				// this audio driver can't be used
 			}
@@ -350,7 +353,7 @@ public sealed class AudioManager : IDisposable
 				// Therefore, we may need to fallback on another audio driver
 				OpenAudioDevice(audioDeviceName);
 			}
-			catch
+			catch (UnusableDefaultDeviceException)
 			{
 				if (!FallbackOnAltAudioDriver())
 				{
