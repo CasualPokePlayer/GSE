@@ -111,11 +111,10 @@ internal sealed class OSDManager : IDisposable
 		return $"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_emuManager.CurrentGbPlatform} | {_currentRomHash}";
 	}
 
-	public void OnRomLoaded(string romName, ReadOnlySpan<byte> romData)
+	public void OnRomLoaded(string romName, ReadOnlySpan<byte> romData, string romSha256)
 	{
 		_currentRomHash = $"{Crc32.HashToUInt32(romData):X8}";
-		var sha256 = Convert.ToHexString(GSEHash.HashDataSHA256(romData));
-		_isPsrRom = PSRData.GoodRoms.Contains(sha256);
+		_isPsrRom = PSRData.GoodRoms.Contains(romSha256);
 		_osdMessages.Enqueue($"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_currentRomHash} | Loaded {romName}");
 #if !GSE_ANDROID
 		UpdateDiscordRichPresence(romName);

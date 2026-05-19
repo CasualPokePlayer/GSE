@@ -122,6 +122,21 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				return;
 			}
 
+			// we'll use this hash twice (once for a bad rom check, and once for a good rom check)
+			// sha256 is fairly expensive, so we'll avoid hashing twice
+			var romSha256 = Convert.ToHexString(GSEHash.HashDataSHA256(romFile.UnderlyingFile.Span));
+			if (PSRData.BadRoms.Contains(romSha256))
+			{
+				_ = SDL_ShowSimpleMessageBox(
+					flags: SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+					title: "ROM Load Failure",
+					message: "The chosen ROM file is a known bad ROM. You must use a better ROM file.",
+					window: mainWindow.SdlWindow
+				);
+
+				return;
+			}
+
 			emuManager.LoadRom(new(
 				CoreType: isGbaRom ? EmuCoreType.Mesen : EmuCoreType.Gambatte,
 				EmuController: isGbaRom ? gbaController : gbController,
@@ -138,7 +153,7 @@ internal sealed class RomLoader(Config config, EmuManager emuManager, PostProces
 				DisableGbaRtc: config.DisableGbaRtc
 			));
 
-			osdManager.OnRomLoaded(romFile.UnderlyingFileName, romFile.UnderlyingFile.Span);
+			osdManager.OnRomLoaded(romFile.UnderlyingFileName, romFile.UnderlyingFile.Span, romSha256);
 
 			config.RecentRoms.RemoveAll(r => r == path);
 			config.RecentRoms.Insert(0, path);
