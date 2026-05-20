@@ -8,7 +8,7 @@ CMakeNinjaBuild() {
 	mkdir build_$1_static_osx-x64
 	cd build_$1_static_osx-x64
 	cmake ../../externals/$1 \
-		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_C_COMPILER=clang \
 		-DCMAKE_CXX_COMPILER=clang++ \
 		-DCMAKE_OBJC_COMPILER=clang \
@@ -24,7 +24,7 @@ CMakeNinjaBuild() {
 	mkdir build_$1_static_osx-arm64
 	cd build_$1_static_osx-arm64
 	cmake ../../externals/$1 \
-		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_C_COMPILER=clang \
 		-DCMAKE_CXX_COMPILER=clang++ \
 		-DCMAKE_OBJC_COMPILER=clang \
@@ -46,8 +46,8 @@ CMakeNinjaBuild native_helper
 
 # Build GSE
 cd ..
-dotnet publish -r osx-x64
-dotnet publish -r osx-arm64
+dotnet publish -r osx-x64 -c Debug
+dotnet publish -r osx-arm64 -c Debug
 
 # Abort if the build failed for whatever reason
 if [ ! -f output/osx-x64/publish/GSE ] || [ ! -f output/osx-arm64/publish/GSE ]; then
