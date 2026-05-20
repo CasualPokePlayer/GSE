@@ -118,13 +118,20 @@ internal static class OpenFileDialog
 #if GSE_OSX
 	public static string ShowDialog(string description, string baseDir, IEnumerable<string> fileTypes, ImGuiWindow mainWindow)
 	{
-		var fileTypesArray = fileTypes.Select(ft => ft[1..]).ToArray();
+		// macOS requires no '.'s in an extension
+		var fileTypesArray = fileTypes
+			.Select(ft => ft[(ft.LastIndexOf('.') + 1)..])
+			.Distinct()
+			.ToArray();
+
 		var path = cocoa_helper_show_open_file_dialog(
 			mainWindow: SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0),
 			title: $"Open {description}",
 			baseDir: baseDir ?? AppContext.BaseDirectory,
 			fileTypes: fileTypesArray,
-			numFileTypes: fileTypesArray.Length);
+			numFileTypes: fileTypesArray.Length
+		);
+
 		try
 		{
 			return Marshal.PtrToStringUTF8(path);

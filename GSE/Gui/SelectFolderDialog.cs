@@ -103,7 +103,9 @@ internal static class SelectFolderDialog
 		var path = cocoa_helper_show_select_folder_dialog(
 			mainWindow: SDL_GetPointerProperty(mainWindow.SdlWindowProperties, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0),
 			title: $"Select {description} Folder",
-			baseDir: baseDir ?? AppContext.BaseDirectory);
+			baseDir: baseDir ?? AppContext.BaseDirectory
+		);
+
 		try
 		{
 			return Marshal.PtrToStringUTF8(path);

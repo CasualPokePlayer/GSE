@@ -119,7 +119,9 @@ internal static class SaveFileDialog
 			title: $"Save {description}",
 			baseDir: baseDir ?? AppContext.BaseDirectory,
 			filename: filename,
-			ext: ext[1..]);
+			ext: ext[(ext.LastIndexOf('.') + 1)..]
+		);
+
 		try
 		{
 			return Marshal.PtrToStringUTF8(path);
