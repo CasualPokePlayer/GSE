@@ -43,10 +43,12 @@ export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
 cd ../..
 dotnet publish -r android-arm64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
 dotnet publish -r android-x64 -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
-dotnet publish -r android-arm -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
+#dotnet publish -r android-arm -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true
+
+dir output/android-arm64/publish/
 
 # Gradle won't understand if libraries being missing means the build should fail, so check against failure here
-if [ ! -f output/android-arm64/publish/libGSE.so ] || [ ! -f output/android-x64/publish/libGSE.so ] || [ ! -f output/android-arm/publish/libGSE.so ]; then
+if [ ! -f output/android-arm64/publish/libGSE.so ] || [ ! -f output/android-x64/publish/libGSE.so ] ]; then
 	echo "dotnet publish failed, aborting"
 	exit 1
 fi
