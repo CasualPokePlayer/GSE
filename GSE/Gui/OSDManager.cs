@@ -38,8 +38,10 @@ internal sealed class OSDManager : IDisposable
 	private string _currentRomHash;
 	private bool _isPsrRom;
 
+#if !GSE_ANDROID
 	private string _lastRomName;
 	private DateTime _discordTimestampStart;
+#endif
 
 	private readonly SDLTexture _statePreview;
 	private long _statePreviewEndTime;

@@ -113,8 +113,4 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
 	</PropertyGroup>
-	<!-- https://github.com/dotnet/runtime/issues/92272 -->
-	<ItemGroup Condition="'$(GSE_ANDROID)' == 'true'">
-		<LinkerArg Include="-Wl,--undefined-version" />
-	</ItemGroup>
 </Project>
