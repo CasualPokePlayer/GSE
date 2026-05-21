@@ -8,8 +8,8 @@
 		<!-- Don't use C# 13+, as we're still using .NET 8.0 on macOS -->
 		<LangVersion>12.0</LangVersion>
 		<Platforms>x64;ARM64;x86;ARM</Platforms>
-		<!-- linux-bionic-arm is not present to avoid some kind of compilation bug with local builds -->
-		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;win-x86;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-arm;linux-bionic-x64;linux-bionic-arm64</RuntimeIdentifiers>
+		<!-- android-arm is not present to avoid some kind of compilation bug with local builds -->
+		<RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == ''">win-x64;win-arm64;win-x86;osx-x64;osx-arm64;linux-x64;linux-arm64;linux-arm;android-x64;android-arm64</RuntimeIdentifiers>
 		<AnalysisLevel>8</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<Features>strict</Features>
@@ -34,8 +34,7 @@
 		<!-- Use RID to compute the OS if we're publishing -->
 		<GSE_WINDOWS>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('win-'))</GSE_WINDOWS>
 		<GSE_OSX>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx-'))</GSE_OSX>
-		<!-- .NET NativeAOT on Android uses linux-bionic-* rather than android-* RIDs -->
-		<GSE_ANDROID>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-bionic-'))</GSE_ANDROID>
+		<GSE_ANDROID>$(RuntimeIdentifier.ToLowerInvariant().StartsWith('android-'))</GSE_ANDROID>
 		<GSE_LINUX Condition="'$(GSE_ANDROID)' != 'true'">$(RuntimeIdentifier.ToLowerInvariant().StartsWith('linux-'))</GSE_LINUX>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' != 'true'">
@@ -107,9 +106,9 @@
 	<PropertyGroup Condition="'$(GSE_ANDROID)' == 'true' And '$(GSE_PUBLISH)' == 'true'">
 		<GSE_LIB_PREFIX>lib</GSE_LIB_PREFIX>
 		<GSE_LIB_EXT>.so</GSE_LIB_EXT>
-		<GSE_RID Condition="'$(GSE_X64)' == 'true'">linux-bionic-x64</GSE_RID>
-		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">linux-bionic-arm64</GSE_RID>
-		<GSE_RID Condition="'$(GSE_ARM)' == 'true'">linux-bionic-arm</GSE_RID>
+		<GSE_RID Condition="'$(GSE_X64)' == 'true'">android-x64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM64)' == 'true'">android-arm64</GSE_RID>
+		<GSE_RID Condition="'$(GSE_ARM)' == 'true'">android-arm</GSE_RID>
 		<TargetFramework>net10.0</TargetFramework>
 		<DefineConstants>$(DefineConstants);GSE_ANDROID</DefineConstants>
 	</PropertyGroup>
