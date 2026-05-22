@@ -64,7 +64,7 @@ jobs:
           shell: sh
           build_script: ./android.sh
           rid: android
-          zip: startsWith(github.ref, 'refs/tags/')
+          zip: false
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.runner }}
     container: ${{ matrix.platform.container }}

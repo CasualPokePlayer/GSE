@@ -71,4 +71,8 @@ if [ -f $HOME/gse-upload-keystore.jks ]; then
 	./gradlew bundleRelease -Pkeystore="$HOME/gse-upload-keystore.jks" -Pstorepass="$ANDROID_UPLOAD_STOREPASS" -Pkeyalias="$ANDROID_UPLOAD_KEYALIAS" -Pkeypass="$ANDROID_UPLOAD_KEYPASS"
 	cd ..
 	cp -a -T android/app/build/outputs/bundle/release/app-release.aab output/$TARGET_RID/publish/GSE-$TARGET_RID.aab
+	# Put both the apk and aab in a .zip file (as only 1 file must be present)
+	apt-get install -y zip
+	cd output/$TARGET_RID/publish
+	zip -m GSE-$TARGET_RID.zip GSE-$TARGET_RID.apk GSE-$TARGET_RID.aab
 fi
