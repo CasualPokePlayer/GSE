@@ -159,6 +159,14 @@ internal sealed record CliArgs(
 
 	public static (int? ReturnCode, CliArgs cliArgs) Parse(string[] args)
 	{
+		// Android will crash in RootCommand's ctor https://github.com/dotnet/command-line-api/issues/2812
+		// Not like Android can really use CLI args in the first place...
+#if GSE_ANDROID
+		return (null, new(null, null, null, null, null, null, null, null, null, null, null, false, null, null));
+		#pragma warning disable CS0162 // Unreachable code detected
+		// ReSharper disable HeuristicUnreachableCode
+#endif
+
 		var root = new RootCommand(description: $"GSE (Game Boy Speedrun Emulator) v{GSEVersion.FullSemVer}")
 		{
 			_romArgument,
