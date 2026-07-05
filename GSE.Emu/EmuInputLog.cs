@@ -175,6 +175,7 @@ internal sealed class EmuInputLog : IDisposable
 	private readonly AutoResetEvent _inputReadyEvent;
 	private readonly Thread _movieThread;
 	private volatile bool _disposing;
+	private volatile MovieThreadException _movieThreadException;
 
 	public EmuInputLog(
 		string basePath,
@@ -275,33 +276,50 @@ internal sealed class EmuInputLog : IDisposable
 
 	private void MovieThreadProc()
 	{
-		while (!_disposing)
+		try
 		{
+			while (!_disposing)
+			{
+				while (_inputQueue.TryDequeue(out var movieInput))
+				{
+					_inputWriter.Write(movieInput.CpuCyclesRan);
+					_inputWriter.Write((uint)movieInput.Inputs);
+				}
+
+				_inputReadyEvent.WaitOne();
+			}
+
+			// make sure any final inputs are written to the movie file
 			while (_inputQueue.TryDequeue(out var movieInput))
 			{
 				_inputWriter.Write(movieInput.CpuCyclesRan);
 				_inputWriter.Write((uint)movieInput.Inputs);
 			}
-
-			_inputReadyEvent.WaitOne();
 		}
-
-		// make sure any final inputs are written to the movie file
-		while (_inputQueue.TryDequeue(out var movieInput))
+		catch (Exception e)
 		{
-			_inputWriter.Write(movieInput.CpuCyclesRan);
-			_inputWriter.Write((uint)movieInput.Inputs);
+			_movieThreadException = new(e);
+		}
+	}
+
+	private void CheckMovieThreadException()
+	{
+		if (_movieThreadException != null)
+		{
+			throw _movieThreadException;
 		}
 	}
 
 	public void SubmitInput(uint cpuCyclesRan, EmuButtons emuButtons)
 	{
+		CheckMovieThreadException();
 		_inputQueue.Enqueue(new(cpuCyclesRan, emuButtons));
 		_inputReadyEvent.Set();
 	}
 
 	public void SubmitHardReset()
 	{
+		CheckMovieThreadException();
 		_inputQueue.Enqueue(new(0, EmuButtons.HardReset));
 		_inputReadyEvent.Set();
 	}
