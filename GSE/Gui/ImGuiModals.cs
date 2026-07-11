@@ -658,6 +658,7 @@ internal sealed class ImGuiModals
 		if (AudioDeviceListChanged)
 		{
 			EnumerateAudioDevices();
+			AudioDeviceListChanged = false;
 		}
 
 		var audioOpen = true;
