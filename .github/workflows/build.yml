@@ -43,21 +43,21 @@ jobs:
           shell: sh
           build_script: ./linux.sh
           rid: linux-x64
-          zip: false
+          zip: true
         - name: linux-arm64
           runner: ubuntu-latest
           container: debian:11
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm64
-          zip: false
+          zip: true
         - name: linux-arm
           runner: ubuntu-latest
           container: ubuntu:22.04
           shell: sh
           build_script: ./linux.sh
           rid: linux-arm
-          zip: false
+          zip: true
         - name: android
           runner: ubuntu-latest
           container: debian:11

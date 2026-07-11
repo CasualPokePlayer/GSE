@@ -67,8 +67,8 @@
 		<DefineConstants>$(DefineConstants);GSE_32BIT</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
-		<DebugSymbols>False</DebugSymbols>
-		<DebugType>None</DebugType>
+		<DebugSymbols>True</DebugSymbols>
+		<DebugType>Embedded</DebugType>
 		<DefineConstants>$(DefineConstants);GSE_PUBLISH</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GSE_WINDOWS)' == 'true'">
