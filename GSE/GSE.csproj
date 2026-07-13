@@ -62,7 +62,7 @@
 		<DirectPInvoke Include="cimgui" />
 		<DirectPInvoke Include="SDL3" />
 		<DirectPInvoke Include="gambatte" />
-		<DirectPInvoke Include="mesen" />
+		<!--<DirectPInvoke Include="mesen" />-->
 		<DirectPInvoke Include="native_helper" />
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
 		<NativeLibrary Include="$(SDL3_PATH)" />
