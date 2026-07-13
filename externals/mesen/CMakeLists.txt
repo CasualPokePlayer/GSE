@@ -187,8 +187,9 @@ else()
 		target_link_options(mesen PRIVATE $<$<CONFIG:RELEASE>:-s>)
 	endif()
 	target_compile_options(mesen PRIVATE $<$<CONFIG:DEBUG>:-ggdb>)
-	target_compile_options(mesen PRIVATE -fsanitize=address -static-libasan)
-	target_link_options(mesen PRIVATE -fsanitize=address -static-libasan)
+	target_compile_options(mesen PRIVATE -fsanitize=address)
+	target_link_options(mesen PRIVATE -fsanitize=address)
+	target_link_options(mesen PRIVATE -static-libsan)
 endif()
 
 # Copy output to our runtime folders
