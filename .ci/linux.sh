@@ -106,10 +106,24 @@ CMakeNinjaBuild() {
 	cd ..
 }
 
+CMakeNinjaBuildShared() {
+	mkdir build_$1_static_$TARGET_RID
+	cd build_$1_static_$TARGET_RID
+	cmake ../../externals/$1 \
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_C_COMPILER=clang-21 \
+		-DCMAKE_CXX_COMPILER=clang++-21 \
+		$EXTRA_CMAKE_ARGS \
+		-G Ninja \
+		-DGSE_SHARED=ON
+	ninja
+	cd ..
+}
+
 CMakeNinjaBuild cimgui
 CMakeNinjaBuild SDL3
 CMakeNinjaBuild gambatte
-CMakeNinjaBuild mesen
+CMakeNinjaBuildShared mesen
 CMakeNinjaBuild native_helper
 
 # Install dotnet10 sdk

@@ -67,7 +67,7 @@
 		<NativeLibrary Include="$(CIMGUI_PATH)" />
 		<NativeLibrary Include="$(SDL3_PATH)" />
 		<NativeLibrary Include="$(GAMBATTE_PATH)" />
-		<NativeLibrary Include="$(MESEN_PATH)" />
+		<!--<NativeLibrary Include="$(MESEN_PATH)" />-->
 		<NativeLibrary Include="$(NATIVE_HELPER_PATH)" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_WINDOWS)' == 'true'">
@@ -118,7 +118,10 @@
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_LINUX)' == 'true'">
 		<!-- Ensure our memory exports are global symbols -->
 		<LinkerArg Include="-Wl,--version-script=exports.ld" />
-		<LinkerArg Include="-fsanitize=address" />
+		<Content Include="$(ProjectDir)../externals/runtimes/$(GSE_RID)/libmesen.so">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Visible>false</Visible>
+		</Content>
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
 		<!-- We need link the standard C++ library for publishing, as we statically link C++ components -->
