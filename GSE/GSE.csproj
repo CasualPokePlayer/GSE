@@ -118,6 +118,7 @@
 	<ItemGroup Condition="'$(GSE_PUBLISH)' == 'true' And '$(GSE_LINUX)' == 'true'">
 		<!-- Ensure our memory exports are global symbols -->
 		<LinkerArg Include="-Wl,--version-script=exports.ld" />
+		<LinkerArg Include="-fsanitize=address" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GSE_PUBLISH)' == 'true'">
 		<!-- We need link the standard C++ library for publishing, as we statically link C++ components -->
