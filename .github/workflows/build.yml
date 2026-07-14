@@ -14,19 +14,19 @@ jobs:
       matrix:
         platform:
         - name: windows-x64
-          runner: windows-latest
+          runner: windows-2022
           shell: cmd
           build_script: .\windows.bat
           rid: win-x64
           zip: true
         - name: windows-arm64
-          runner: windows-latest
+          runner: windows-2022
           shell: cmd
           build_script: .\windows.bat
           rid: win-arm64
           zip: true
         - name: windows-x86
-          runner: windows-latest
+          runner: windows-2022
           shell: cmd
           build_script: .\windows.bat
           rid: win-x86
