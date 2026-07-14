@@ -244,7 +244,7 @@ public sealed class AudioManager : IDisposable
 			_inputAudioSampleBatchSize = (int)Math.Ceiling(_outputAudioFrequency * 4389 / 262144.0);
 			_resampler?.Dispose();
 			_resampler = null;
-			_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
+			_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 200 / 1000)));
 			Reset();
 		}
 
@@ -449,7 +449,7 @@ public sealed class AudioManager : IDisposable
 					_inputAudioSampleBatchSize = (int)Math.Ceiling(_outputAudioFrequency * 4389 / 262144.0);
 					_resampler?.Dispose();
 					_resampler = null;
-					_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 20 / 1000)));
+					_resampler = new(BitOperations.RoundUpToPowerOf2((uint)(_outputAudioFrequency * 200 / 1000)));
 					Reset();
 				}
 			}

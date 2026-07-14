@@ -32,8 +32,11 @@ public:
 			sampleCount = sizeof(samples) / sizeof(samples[0]) - sample_index;
 		}
 
-		memcpy(&samples[sample_index], out, sampleCount * sizeof(samples[0]));
-		sample_index += sampleCount;
+		if (sampleCount > 0)
+		{
+			memcpy(&samples[sample_index], out, sampleCount * sizeof(samples[0]));
+			sample_index += sampleCount;
+		}
 	}
 
 	struct StereoSample
@@ -42,7 +45,7 @@ public:
 		int16_t right;
 	};
 
-	StereoSample samples[8192] = {};
+	StereoSample samples[0x2000] = {};
 	uint32_t sample_index = 0;
 };
 
