@@ -29,7 +29,7 @@ internal sealed class OSDManager : IDisposable
 	private readonly Config _config;
 	private readonly EmuManager _emuManager;
 #if !GSE_ANDROID
-	private readonly DiscordRpcClient _discordRpc;
+	private DiscordRpcClient _discordRpc;
 #endif
 
 	private readonly ConcurrentQueue<string> _osdMessages = new();
@@ -58,8 +58,6 @@ internal sealed class OSDManager : IDisposable
 #if !GSE_ANDROID
 		try
 		{
-			_discordRpc = new("1323613302793699329");
-			_discordRpc.Initialize();
 			ResetDiscordRichPresence();
 		}
 		catch
@@ -91,19 +89,26 @@ internal sealed class OSDManager : IDisposable
 			Details = romName ?? "No Game Loaded",
 			Timestamps = new(_discordTimestampStart),
 		};
-		_discordRpc.SetPresence(richPresence);
+		_discordRpc?.SetPresence(richPresence);
 	}
 
 	public void ResetDiscordRichPresence()
 	{
 		if (_config.EnableDiscordRichPresence)
 		{
+			if (_discordRpc == null)
+			{
+				_discordRpc = new("1323613302793699329");
+				_discordRpc.Initialize();
+			}
+
 			_discordTimestampStart = DateTime.UtcNow;
 			UpdateDiscordRichPresence(_lastRomName);
 		}
 		else
 		{
-			_discordRpc.SetPresence(null);
+			_discordRpc?.Dispose();
+			_discordRpc = null;
 		}
 	}
 #endif
