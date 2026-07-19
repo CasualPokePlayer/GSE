@@ -45,7 +45,7 @@ elif [ $TARGET_RID = "linux-arm64" ]; then
 	chmod +x /usr/bin/aarch64-linux-gnu-pkg-config
 	export PKG_CONFIG=aarch64-linux-gnu-pkg-config
 	# cmake cross compiler flags
-	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu"
+	export EXTRA_CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu -DSDL_KMSDRM=ON -DSDL_KMSDRM_SHARED=ON"
 	# Enable ARM64 packages
 	dpkg --add-architecture arm64
 	apt-get update

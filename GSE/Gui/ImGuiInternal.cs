@@ -22,4 +22,16 @@ public static unsafe partial class ImGuiInternal
 	{
 		return igBeginViewportSideBar(name, viewport.NativePtr, dir, size, window_flags);
 	}
+
+	[LibraryImport("cimgui")]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
+	private static partial void gseFocusMenuBarOnNav();
+
+	public static void FocusMenuBarOnNav() => gseFocusMenuBarOnNav();
+
+	[LibraryImport("cimgui")]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
+	private static partial void gseCloseDismissableModalOnEscape();
+
+	public static void CloseDismissableModalOnEscape() => gseCloseDismissableModalOnEscape();
 }

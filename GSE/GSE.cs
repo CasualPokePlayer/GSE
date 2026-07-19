@@ -394,8 +394,11 @@ internal sealed class GSE : IDisposable
 
 				if (windowId == _mainWindow.WindowId)
 				{
-					// Suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded
-					if (eventType is SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP && _emuManager.EmuAcceptingInputs)
+					// Suppress imgui keyboard inputs if the emulator is unpaused with a rom loaded, so
+					// gameplay keys don't leak into the menus. On kmsdrm the keyboard is a TV remote
+					// used only for the menus, so let it through even while running.
+					if (eventType is SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP
+					    && _emuManager.EmuAcceptingInputs && !_mainWindow.IsKmsdrmVideo)
 					{
 						continue;
 					}
@@ -464,9 +467,14 @@ internal sealed class GSE : IDisposable
 			var menuBarHeight = 0.0f;
 			var statusBarHeight = 0.0f;
 
-			var hideMenuBar = _config.HideMenuBarOnUnpause && _emuManager.EmuAcceptingInputs && _config.HotkeyBindings.PauseButtonBindings.Count != 0;
+			var hideMenuBar = _config.HideMenuBarOnUnpause && _emuManager.EmuAcceptingInputs && _config.HotkeyBindings.PauseButtonBindings.Count != 0 && !_mainWindow.IsKmsdrmVideo;
 			if (!hideMenuBar)
 			{
+				if (_mainWindow.IsKmsdrmVideo)
+				{
+					ImGuiInternal.FocusMenuBarOnNav();
+				}
+
 				_imGuiMenuBar.RunMenuBar();
 				menuBarHeight = barHeight;
 			}
@@ -485,18 +493,17 @@ internal sealed class GSE : IDisposable
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 
-			if (ImGui.Begin("GSE", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus))
+			if (ImGui.Begin("GSE", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoFocusOnAppearing))
 			{
 				DrawEmu();
-				ImGui.PopStyleVar(3);
-				_imGuiModals.RunModals();
-			}
-			else
-			{
-				ImGui.PopStyleVar(3);
 			}
 
+			ImGui.PopStyleVar(3);
 			ImGui.End();
+
+			ImGuiInternal.CloseDismissableModalOnEscape();
+
+			_imGuiModals.RunModals();
 
 			if (_config.HideStatusBar)
 			{

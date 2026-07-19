@@ -34,6 +34,9 @@ add_subdirectory(cimgui EXCLUDE_FROM_ALL)
 # we don't like that, so restore the prefix
 set_property(TARGET cimgui PROPERTY PREFIX)
 
+# GSE nav helper for appliance (no mouse/keyboard) targets
+target_sources(cimgui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/gse_nav.cpp)
+
 # Copy output to our runtime folders
 add_custom_target(cimgui-gse ALL)
 add_dependencies(cimgui-gse cimgui)

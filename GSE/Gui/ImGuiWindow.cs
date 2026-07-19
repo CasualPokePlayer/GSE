@@ -209,6 +209,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 	public readonly uint SdlWindowProperties;
 
+	public bool IsKmsdrmVideo { get; }
+
 	private int _lastWidth, _lastHeight, _lastScale, _lastBars;
 	public bool IsFullscreen { get; private set; }
 
@@ -401,7 +403,8 @@ internal sealed class ImGuiWindow : IDisposable
 
 		fontConfig.OversampleH = fontConfig.OversampleV = 1;
 		fontConfig.PixelSnapH = true;
-		fontConfig.SizePixels = (float)Math.Round(16 * scaleFactor, MidpointRounding.AwayFromZero);
+		var basePixels = IsKmsdrmVideo ? 28 : 16;
+		fontConfig.SizePixels = (float)Math.Round(basePixels * scaleFactor, MidpointRounding.AwayFromZero);
 		fontConfig.FontDataOwnedByAtlas = false;
 
 		io.Fonts.Clear();
@@ -460,6 +463,7 @@ internal sealed class ImGuiWindow : IDisposable
 #endif
 
 			var videoDriver = SDL_GetCurrentVideoDriver();
+			IsKmsdrmVideo = videoDriver == "kmsdrm";
 			_mouseCanUseGlobalState = videoDriver is "windows" or "cocoa" or "x11" or "DIVE" or "VMAN";
 
 			_imGuiContext = ImGui.CreateContext();
@@ -584,8 +588,15 @@ internal sealed class ImGuiWindow : IDisposable
 		SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_EVENTS);
 	}
 
+	public bool FullscreenLocked { get; private set; }
+
 	public void ToggleFullscreen(Config config)
 	{
+		if (FullscreenLocked)
+		{
+			return;
+		}
+
 		// TODO: how should failure be handled?
 		if (!SDL_SetWindowFullscreen(SdlWindow, !IsFullscreen))
 		{
@@ -738,6 +749,26 @@ internal sealed class ImGuiWindow : IDisposable
 		if (makeVisible)
 		{
 			SDL_ShowWindow(SdlWindow);
+
+#if !GSE_ANDROID
+			if (!FullscreenLocked && IsKmsdrmVideo)
+			{
+				unsafe
+				{
+					var desktop = SDL_GetDesktopDisplayMode(SDL_GetDisplayForWindow(SdlWindow));
+					if (desktop != null)
+					{
+						SDL_SetWindowFullscreenMode(SdlWindow, ref *desktop);
+					}
+				}
+
+				if (SDL_SetWindowFullscreen(SdlWindow, true))
+				{
+					IsFullscreen = true;
+					FullscreenLocked = true;
+				}
+			}
+#endif
 		}
 		else
 		{
