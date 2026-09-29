@@ -19,6 +19,7 @@ internal sealed class HotkeyBindings
 	public List<InputBinding> VolumeDownButtonBindings { get; set; } = [];
 	public List<InputBinding> VolumeUp10ButtonBindings { get; set; } = [];
 	public List<InputBinding> VolumeDown10ButtonBindings { get; set; } = [];
+	public List<InputBinding> ToggleWirelessAdapterButtonBindings { get; set; } = [];
 	public List<InputBinding> SaveStateButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_LEFTBRACKET) ];
 	public List<InputBinding> LoadStateButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_RIGHTBRACKET) ];
 	public List<InputBinding> PrevStateSetButtonBindings { get; set; } = [ InputManager.CreateInputBindingForScanCode(ScanCode.SC_MINUS, ScanCode.SC_LEFTSHIFT) ];
@@ -74,6 +75,7 @@ internal sealed class HotkeyBindings
 			VolumeDownButtonBindings,
 			VolumeUp10ButtonBindings,
 			VolumeDown10ButtonBindings,
+			ToggleWirelessAdapterButtonBindings,
 			SaveStateButtonBindings,
 			LoadStateButtonBindings,
 			PrevStateSetButtonBindings,

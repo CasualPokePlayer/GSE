@@ -242,6 +242,7 @@ internal sealed class GambatteCore : IEmuCore
 			isGba: false,
 			disableGbaRtc: false,
 			gbaRtcTime: 0,
+			gbaWirelessAdapter: false,
 			gbRtcDividers: rtcDividers,
 			startsFromSaveState: !state.IsEmpty,
 			stateOrSaveFile: state.IsEmpty ? _savBuffer : state);
@@ -496,6 +497,9 @@ internal sealed class GambatteCore : IEmuCore
 	{
 		gambatte_setcgbpalette(_opaque, enable ? GBColors.GetLut(_gbPlatform) : GBColors.TrueColorLut);
 	}
+
+	public bool? ToggleWirelessAdapter() => null;
+	public bool IsWirelessAdapterPluggedIn => false;
 
 	public ReadOnlySpan<uint> VideoBuffer => _videoBuffer;
 	public int VideoWidth { get; }

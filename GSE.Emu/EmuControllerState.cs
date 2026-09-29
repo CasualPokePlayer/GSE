@@ -24,6 +24,9 @@ public enum EmuButtons : uint
 	LR_DIR_MASK = Right | Left,
 	UD_DIR_MASK = Up | Down,
 
+	// input log only
+	WirelessAdapterUnplug = 1u << 29,
+	WirelessAdapterPlugIn = 1u << 30,
 	HardReset = 1u << 31,
 }
 

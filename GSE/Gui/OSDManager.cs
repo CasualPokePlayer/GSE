@@ -110,7 +110,7 @@ internal sealed class OSDManager : IDisposable
 
 	private string RomInfoPrefix()
 	{
-		return $"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_emuManager.CurrentGbPlatform} | {_currentRomHash}";
+		return $"{(_isPsrRom ? "<PSR> | " : string.Empty)}{_emuManager.CurrentGbPlatform} | {_currentRomHash}{(_emuManager.IsWirelessAdapterPluggedIn() ? " | Wireless Adapter" : string.Empty)}";
 	}
 
 	public void OnRomLoaded(string romName, ReadOnlySpan<byte> romData, string romSha256)

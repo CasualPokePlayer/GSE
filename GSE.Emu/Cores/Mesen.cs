@@ -109,6 +109,26 @@ internal static partial class Mesen
 	public static partial long mesen_getrtctime(nint core);
 
 	/// <summary>
+	/// Plugs/unplugs wireless adapter. Polls at the start of the next frame.
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <returns>true if the adapter is now plugged in</returns>
+	[LibraryImport("mesen")]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
+	[return: MarshalAs(UnmanagedType.U1)]
+	public static partial bool mesen_togglewirelessadapter(nint core);
+
+	/// <summary>
+	/// Gets whether the GBA wireless adapter is plugged in.
+	/// </summary>
+	/// <param name="core">opaque state pointer</param>
+	/// <returns>true if the adapter is plugged in</returns>
+	[LibraryImport("mesen")]
+	[UnmanagedCallConv(CallConvs = [ typeof(CallConvCdecl) ])]
+	[return: MarshalAs(UnmanagedType.U1)]
+	public static partial bool mesen_getwirelessadapter(nint core);
+
+	/// <summary>
 	/// Calculates the savestate length. Must be called every time before making a savestate!
 	/// </summary>
 	/// <param name="core">opaque state pointer</param>

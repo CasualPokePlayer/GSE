@@ -277,6 +277,19 @@ GSE_EXPORT int64_t mesen_getrtctime(GSE_ctx* ctx)
 	return ctx->emu->GetSettings()->GetGbaConfig().GbaCustomDate;
 }
 
+// updates requested adapter state, can't change midframe
+GSE_EXPORT bool mesen_togglewirelessadapter(GSE_ctx* ctx)
+{
+	auto& gbaConfig = ctx->emu->GetSettings()->GetGbaConfig();
+	gbaConfig.FakeAdapter = !gbaConfig.FakeAdapter;
+	return gbaConfig.FakeAdapter;
+}
+
+GSE_EXPORT bool mesen_getwirelessadapter(GSE_ctx* ctx)
+{
+	return ctx->emu->GetSettings()->GetGbaConfig().FakeAdapter;
+}
+
 GSE_EXPORT uint32_t mesen_getsavestatelength(GSE_ctx* ctx)
 {
 	Serializer s(SaveStateManager::FileFormatVersion, true, SerializeFormat::Binary);

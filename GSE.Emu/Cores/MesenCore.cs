@@ -87,6 +87,7 @@ internal sealed class MesenCore : IEmuCore
 			isGba: true,
 			disableGbaRtc: _disableGbaRtc,
 			gbaRtcTime: mesen_getrtctime(_opaque),
+			gbaWirelessAdapter: mesen_getwirelessadapter(_opaque),
 			gbRtcDividers: 0,
 			startsFromSaveState: !state.IsEmpty,
 			stateOrSaveFile: state.IsEmpty ? _savBuffer.AsSpan()[..saveDataLength] : state);
@@ -209,6 +210,15 @@ internal sealed class MesenCore : IEmuCore
 	{
 		mesen_setcolorlut(_opaque, enable ? GBColors.GetLut(GBPlatform.GBA) : GBColors.TrueColorLut);
 	}
+
+	public bool? ToggleWirelessAdapter()
+	{
+		var pluggedIn = mesen_togglewirelessadapter(_opaque);
+		_emuInputLog.SubmitWirelessAdapterChange(pluggedIn);
+		return pluggedIn;
+	}
+
+	public bool IsWirelessAdapterPluggedIn => mesen_getwirelessadapter(_opaque);
 
 	public ReadOnlySpan<uint> VideoBuffer => _videoBuffer;
 	public int VideoWidth => 240;

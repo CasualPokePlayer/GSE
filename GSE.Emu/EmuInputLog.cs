@@ -48,6 +48,11 @@ internal sealed class EmuInputLog : IDisposable
 		/// GBA RTC should be force disabled
 		/// </summary>
 		GbaRtcDisabled = 1 << 2,
+
+		/// <summary>
+		/// Start with wireless adapter plugged in
+		/// </summary>
+		GbaWirelessAdapter = 1 << 3,
 	}
 
 	/// <summary>
@@ -71,7 +76,7 @@ internal sealed class EmuInputLog : IDisposable
 		}
 	}
 
-	private const int GM2_VERSION = 2;
+	private const int GM2_VERSION = 3;
 	private const ulong GM2_MAGIC = 0x4753454D4F564945;
 
 	[StructLayout(LayoutKind.Sequential, Size = 1024)]
@@ -185,6 +190,7 @@ internal sealed class EmuInputLog : IDisposable
 		bool isGba,
 		bool disableGbaRtc,
 		long gbaRtcTime,
+		bool gbaWirelessAdapter,
 		ulong gbRtcDividers,
 		bool startsFromSaveState,
 		ReadOnlySpan<byte> stateOrSaveFile)
@@ -215,6 +221,11 @@ internal sealed class EmuInputLog : IDisposable
 				if (disableGbaRtc)
 				{
 					header.Flags |= MovieFlags.GbaRtcDisabled;
+				}
+
+				if (gbaWirelessAdapter)
+				{
+					header.Flags |= MovieFlags.GbaWirelessAdapter;
 				}
 			}
 			else
@@ -321,6 +332,13 @@ internal sealed class EmuInputLog : IDisposable
 	{
 		CheckMovieThreadException();
 		_inputQueue.Enqueue(new(0, EmuButtons.HardReset));
+		_inputReadyEvent.Set();
+	}
+
+	public void SubmitWirelessAdapterChange(bool pluggedIn)
+	{
+		CheckMovieThreadException();
+		_inputQueue.Enqueue(new(0, pluggedIn ? EmuButtons.WirelessAdapterPlugIn : EmuButtons.WirelessAdapterUnplug));
 		_inputReadyEvent.Set();
 	}
 

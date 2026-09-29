@@ -142,6 +142,7 @@ internal sealed class ImGuiModals
 			new("R", _config.EmuControllerBindings.RButtonBindings),
 			new("L", _config.EmuControllerBindings.LButtonBindings),
 			new("Hard Reset", _config.EmuControllerBindings.HardResetButtonBindings),
+			new("Wireless Adapter", _config.HotkeyBindings.ToggleWirelessAdapterButtonBindings),
 		];
 
 		_playInputConfigs =
@@ -472,7 +473,7 @@ internal sealed class ImGuiModals
 			{
 				if (ImGui.BeginTabItem("Game"))
 				{
-					DoInputTab(_gameInputConfigs, 5.5f);
+					DoInputTab(_gameInputConfigs, 9.5f);
 					ImGui.EndTabItem();
 				}
 
